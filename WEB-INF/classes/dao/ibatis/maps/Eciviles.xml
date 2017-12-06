@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Eciviles">
+
+  <resultMap id="datosecivil" class="domain.Eciviles">
+    <result property="id_ecivil"                 column="id_ecivil"/>
+    <result property="ecivil"                    column="ecivil"/>
+    <result property="id_estado"               column="id_estado"/>
+  </resultMap>
+
+  <select id="getListarEciviles" resultMap="datosecivil">
+    SELECT id_tipo_estado_civil as id_ecivil,tipo_estado_civil as ecivil,id_estado
+    FROM tipos_estados_civiles
+    ORDER BY tipo_estado_civil
+  </select>
+  
+  <select id="getDatosEcivil" resultMap="datosecivil">
+    SELECT id_tipo_estado_civil as id_ecivil,tipo_estado_civil as ecivil,id_estado
+    FROM tipos_estados_civiles
+    where id_tipo_estado_civil=#id_ecivil#
+    ORDER BY tipo_estado_civil   
+  </select>
+  
+  <insert id="setCrearEcivil" >
+    insert into tipos_estados_civiles (id_tipo_estado_civil, tipo_estado_civil,  id_estado, ult_usuario) 
+                      values ( #id_ecivil#, #ecivil#, 'A', #ult_usuario# )
+  </insert>
+
+  <update id="setModificarEcivil" >
+    update tipos_estados_civiles
+    set  tipo_estado_civil = #ecivil#,
+         id_estado = #id_estado#       
+    where  id_tipo_estado_civil = #id_ecivil#
+    
+  </update>
+
+  <delete id="setEliminarEcivil" >
+    delete from tipos_estados_civiles where id_tipo_estado_civil = #id_ecivil#
+  </delete>
+  
+</sqlMap>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Categorias">
+
+  <resultMap id="categoria" class="domain.Categorias">
+    <result property="id_categoria" column="id_categoria" />
+    <result property="categoria"    column="categoria" />
+    <result property="imagen"       column="imagen" />
+  </resultMap>
+
+  <select id="getListarCategorias" resultMap="categoria">
+    SELECT distinct categoria, id_categoria, imagen
+    FROM ctg_listar_categorias(#id_rol#) order by categoria ;
+  </select>
+
+</sqlMap>

@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Localidades">
+
+  <update id="setModificarEstab" >
+    update establecimientos  set  id_estado = 'X';       
+    update establecimientos  set  id_estado = 'A', nit=#nit#, num_auto=#num_auto#,llave=#llave#,fecha=#fecha#,
+                             id_persona=#id_provincia#,num_fact=#num_fact#,direccion=#direccion#,tele1=#tele1#,tele2=#tele2#, 
+                             maximo=#maximo#,minimo=#minimo#,izquierda=#izquierda#,derecha=#derecha#,
+                             inferior=#inferior#,superior=#superior#,imp_recibo=#id_pais#  
+                             where cod_esta = #cod_esta#;
+    update prv_localidades   set  id_estado = 'X';       
+    update prv_localidades   set  id_estado = 'A'  where id_localidad = #id_localidad#;
+    update red   set  id_estado = 'X';       
+    update red   set  id_estado = 'A'  where id_red = #id_red#;
+    update pas_departamentos   set  id_estado = 'X';       
+    update pas_departamentos   set  id_estado = 'A'  where id_departamento = #id_departamento#;
+  </update>  
+    
+  <resultMap id="datosprvlocalidad" class="domain.Localidades">
+    <result property="id_localidad"                 column="id_localidad"/>
+    <result property="localidad"                    column="localidad"/>    
+  </resultMap>
+
+  <select id="getListarPaisDepProvLoc" resultMap="datosprvlocalidad">
+    select id_localidad,localidad 
+    from prv_localidades 
+    where id_departamento=#id_departamento#
+    and id_provincia=#id_provincia# 
+  </select>
+  
+  <select id="getListarMuniRed" resultMap="datosprvlocalidad">
+    select id_localidad,localidad 
+    from prv_localidades 
+    where id_departamento=#id_departamento# and id_red=#id_red# 
+  </select>
+  
+  <select id="getDatosLocalidad" resultMap="datosprvlocalidad">
+    select id_localidad,localidad 
+    from prv_localidades 
+    where id_localidad=#id_localidad#    
+  </select>
+  
+   <resultMap id="datosred" class="domain.Localidades">
+    <result property="id_red"                 column="id_red"/>
+    <result property="red"                    column="red"/>    
+  </resultMap>
+
+  <select id="getListarRed" resultMap="datosred">
+    select id_red,red
+    from red
+    where id_departamento=#id_departamento#
+  </select>
+  
+  <resultMap id="datosEstab" class="domain.Localidades">
+    <result property="id_red"                 column="id_red"/>
+    <result property="id_departamento"        column="id_departamento"/>
+    <result property="id_localidad"           column="id_localidad"/>
+    <result property="cod_esta"               column="cod_esta"/>
+    <result property="establecimiento"        column="establecimiento"/>
+    <result property="cod_cen"                column="cod_cen"/>
+    <result property="codigolab"              column="codigolab"/>
+    <result property="nombreseg"              column="nombreseg"/>
+    <result property="inst_id"                column="inst_id"/>
+    <result property="latitud"                column="latitud"/>
+    <result property="longitud"               column="longitud"/>
+  </resultMap>
+
+  <select id="getListarEstab" resultMap="datosEstab">
+    select id_red, muni as id_localidad, cod_esta,establecimiento,cod_cen,id_departamento,codigolab,nombreseg,latitud,
+           longitud,inst_id
+    from establecimientos
+    where muni=#id_localidad# 
+  </select>
+  
+  <select id="getListarEstabGen" resultMap="datosEstab">
+    select id_red, muni as id_localidad, cod_esta,establecimiento,cod_cen,id_departamento,codigolab,nombreseg,latitud,
+           longitud,inst_id
+    from establecimientos
+    where id_estado=#id_estado# 
+  </select>
+  
+  <select id="getDatosEstable" resultMap="datosEstab">
+    select id_red, muni as id_localidad, cod_esta,establecimiento,cod_cen,id_departamento,codigolab,nombreseg,latitud,
+           longitud,inst_id
+    from establecimientos
+    where cod_esta=#cod_esta#    
+  </select>
+  
+  <select id="getEstabHabiles" resultMap="datosEstab">
+    select id_red, muni as id_localidad, cod_esta,establecimiento,cod_cen,id_departamento,codigolab,nombreseg,latitud,
+           longitud,inst_id
+    from establecimientos
+    where cod_esta in (select cod_esta from medica_select group by cod_esta)
+    order by cod_esta     
+  </select>
+  
+  <select id="getListarEstabRef" resultMap="datosEstab">
+    select id_red, muni as id_localidad, cod_esta,establecimiento,cod_cen,id_departamento,codigolab,nombreseg,latitud,
+           longitud,inst_id
+    from establecimientos
+    where inst_id=#id_persona# order by establecimiento 
+  </select>
+  
+  <select id="getEstabTransCns" resultMap="datosEstab">
+    select id_red, muni as id_localidad, cod_esta,establecimiento,cod_cen,id_departamento,codigolab,nombreseg,latitud,
+           longitud,inst_id
+    from establecimientos
+    where inst_id=#id_persona# and id_departamento=#id_departamento#
+    order by tipo,establecimiento 
+  </select>
+  
+   <resultMap id="datosesta" class="domain.Localidades">
+    <result property="id_departamento"        column="id_departamento"/>
+    <result property="id_provincia"           column="id_provincia"/>
+    <result property="id_red"                 column="id_red"/>
+    <result property="id_localidad"           column="id_localidad"/>
+    <result property="cod_esta"               column="cod_esta"/>
+    <result property="establecimiento"        column="establecimiento"/>
+    <result property="id_persona"             column="id_persona"/>
+    <result property="area"                   column="area"/>
+    <result property="tipo"                   column="tipo"/>
+    <result property="nit"                    column="nit"/>
+    <result property="num_auto"               column="num_auto"/>
+    <result property="llave"                  column="llave"/>
+    <result property="fecha"                  column="fecha"/>
+    <result property="num_fact"               column="num_fact"/>
+    <result property="direccion"              column="direccion"/>
+    <result property="tele1"                  column="tele1"/>
+    <result property="tele2"                  column="tele2"/>
+    <result property="minimo"                 column="minimo"/>
+    <result property="maximo"                 column="maximo"/>
+    <result property="izquierda"              column="izquierda"/>
+    <result property="derecha"                column="derecha"/>
+    <result property="superior"               column="superior"/>
+    <result property="inferior"               column="inferior"/>
+    <result property="id_pais"                column="id_pais"/>
+    <result property="far_sinstock"           column="far_sinstock"/>
+    <result property="departamento"           column="departamento"/>
+    <result property="localidad"              column="localidad"/>
+    <result property="codigolab"              column="codigolab"/>
+    <result property="nombreseg"              column="nombreseg"/>
+    <result property="latitud"                column="latitud"/>
+    <result property="longitud"               column="longitud"/>
+    <result property="hcl"                    column="hcl"/>
+    <result property="inst_id"                column="inst_id"/>
+    <result property="codesta"                column="codesta"/>
+    <result property="compartehcl"            column="compartehcl"/>
+  </resultMap>
+
+  <select id="getListarEsta" resultMap="datosesta">
+    select e.id_departamento,e.id_provincia,e.id_red, muni as id_localidad, cod_esta,establecimiento, id_persona,area,tipo,nit,
+           num_auto,llave,fecha,num_fact,direccion,tele1,tele2,minimo,maximo,izquierda,derecha,superior,inferior,inst_id,
+           imp_recibo as id_pais,far_sinstock,departamento,localidad,codigolab,nombreseg,latitud,longitud,hcl,codesta,compartehcl
+    from establecimientos e
+    where e.id_estado='A'
+  </select>
+  
+  <select id="getListarEstaUsua" resultMap="datosesta">
+    select e.id_departamento,e.id_provincia,e.id_red, muni as id_localidad, cod_esta,establecimiento, id_persona,area,tipo,nit,
+           num_auto,llave,fecha,num_fact,direccion,tele1,tele2,minimo,maximo,izquierda,derecha,superior,inferior,inst_id,
+           imp_recibo as id_pais,far_sinstock,departamento,localidad,codigolab,nombreseg,latitud,longitud,hcl,codesta,compartehcl
+    from establecimientos e
+    where cod_esta=#cod_esta#    
+  </select>
+  
+</sqlMap>

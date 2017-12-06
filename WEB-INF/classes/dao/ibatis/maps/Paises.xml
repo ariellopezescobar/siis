@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Paises">
+
+  <resultMap id="datosPais" class="domain.Paises">
+    <result property="id_pais"                 column="id_pais"/>
+    <result property="pais"                    column="pais"/>
+    <result property="nacionalidad"            column="nacionalidad"/>
+    <result property="id_estado"               column="id_estado"/>
+  </resultMap>
+
+  <select id="getListarPaises" resultMap="datosPais">
+    SELECT id_pais, pais, nacionalidad,id_estado
+    FROM paises where id_estado='A'and id_pais!=0
+    ORDER BY pais
+  </select>
+  
+  <select id="getDatosPais" resultMap="datosPais">
+    SELECT id_pais, pais, nacionalidad,id_estado
+    FROM paises
+    where id_pais=#id_pais#
+    ORDER BY pais
+  </select>
+  
+  <insert id="setCrearPais" >
+    insert into paises (id_pais, pais,  nacionalidad, id_estado,ult_usuario) values ( #id_pais#, #pais#, #nacionalidad#, 'A', #ult_usuario# )
+  </insert>
+
+  <update id="setModificarPais" >
+    update paises
+    set  pais = #pais#,
+         nacionalidad = #nacionalidad#,       
+         id_estado = #id_estado#       
+    where  id_pais = #id_pais#
+    
+  </update>
+
+  <delete id="setEliminarPais" >
+    delete from paises where id_pais = #id_pais#
+  </delete>
+  
+</sqlMap>

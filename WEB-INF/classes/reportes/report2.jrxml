@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="null" language="groovy" pageWidth="612" pageHeight="792" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="8423f772-9485-4e8c-8f02-06af41f55674">
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<style name="Heading 1" fontSize="16" isBold="true"/>
+	<queryString language="SQL">
+		<![CDATA[select * from public.ptb25]]>
+	</queryString>
+	<field name="cm" class="java.lang.Double"/>
+	<field name="x3sd" class="java.lang.Double"/>
+	<field name="x2sd" class="java.lang.Double"/>
+	<field name="x1sd" class="java.lang.Double"/>
+	<field name="median" class="java.lang.Double"/>
+	<field name="sd1" class="java.lang.Double"/>
+	<field name="sd2" class="java.lang.Double"/>
+	<field name="sd3" class="java.lang.Double"/>
+	<background>
+		<band splitType="Stretch"/>
+	</background>
+	<title>
+		<band height="39" splitType="Stretch"/>
+	</title>
+	<detail>
+		<band height="29"/>
+	</detail>
+	<summary>
+		<band height="248" splitType="Stretch">
+			<lineChart>
+				<chart>
+					<reportElement x="11" y="11" width="536" height="219" uuid="f13f0f87-46d2-4cb3-81be-394201fdb298"/>
+					<chartTitle/>
+					<chartSubtitle/>
+					<chartLegend/>
+				</chart>
+				<categoryDataset>
+					<categorySeries>
+						<seriesExpression><![CDATA["Dummy Series"]]></seriesExpression>
+						<categoryExpression><![CDATA[$F{cm}]]></categoryExpression>
+						<valueExpression><![CDATA[$F{x3sd}]]></valueExpression>
+					</categorySeries>
+				</categoryDataset>
+				<linePlot>
+					<plot/>
+					<categoryAxisFormat>
+						<axisFormat/>
+					</categoryAxisFormat>
+					<valueAxisFormat>
+						<axisFormat/>
+					</valueAxisFormat>
+				</linePlot>
+			</lineChart>
+		</band>
+	</summary>
+</jasperReport>

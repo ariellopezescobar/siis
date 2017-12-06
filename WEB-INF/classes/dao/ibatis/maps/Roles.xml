@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<!--
+ * @autor FAUTAPO
+ * @fec_registro 2005-11-01
+ * @ult_usuario FAUTAPO
+ * @fec_modificacion 2005-11-01
+-->
+
+<sqlMap namespace="Roles">
+
+  <resultMap id="rol" class="domain.Roles">
+    <result property="id_rol"       column="id_rol" />
+    <result property="rol"          column="rol" />
+    <result property="id_estado"          column="id_estado" />
+    <result property="id_rol_padre" column="id_rol_padre" />
+    <result property="descripcion"  column="descripcion" />
+  </resultMap>
+
+  <select id="getBuscarRol" resultMap="rol">
+    SELECT *  FROM _roles
+    WHERE id_estado = 'A' and id_rol = #id_rol# and id_rol!=1;
+  </select>
+
+  <select id="getListarRoles" resultMap="rol">
+    SELECT * FROM rol_listar_roles() order by rol;
+  </select>
+  
+  <insert id="setCrearRol" >
+    insert into _roles (id_rol_padre, rol,  id_estado, descripcion, ult_usuario) 
+                      values (1,#rol#, 'A', #descripcion#, #ult_usuario# )
+  </insert>
+
+  <update id="setModificarRol" >
+    update _roles
+    set  rol = #rol#,
+         descripcion = #descripcion#,
+         id_estado = #id_estado#       
+    where  id_rol = #id_rol#
+    
+  </update>
+
+  <delete id="setEliminarRol" >
+    delete from _roles where id_rol = #id_rol#
+  </delete>
+  
+  <resultMap id="rolesCliente" class="domain.Roles">
+    <result property="id_usuario"            column="id_usuario" />
+    <result property="id_rol"                column="id_rol" />
+    <result property="rol"                   column="rol" />
+  </resultMap>
+
+  <select id="getListarRolesCliente" resultMap="rolesCliente">
+    SELECT * FROM rol_listar_usr_roles(#id_usuario#)
+    AS (id_usuario integer, id_rol integer, rol text);
+   </select>
+
+  <resultMap id="rolCliente" class="domain.Roles">
+    <result property="id_usr_rol"            column="id_usr_rol" />
+    <result property="id_usuario"            column="id_usuario" />
+    <result property="id_rol"                column="id_rol" />
+    <result property="id_nivel_acceso"       column="id_nivel_acceso" />
+    <result property="id_estado"             column="id_estado" />
+    <result property="fec_expiracion"        column="fec_expiracion" />
+    <result property="fec_registro"          column="fec_registro" />
+    <result property="fec_modificacion"      column="fec_modificacion" />
+    <result property="ult_usuario"           column="ult_usuario" />
+    <result property="rol"                   column="rol" />
+  </resultMap>
+
+  <select id="getBuscarRolCliente" resultMap="rolCliente">
+    SELECT * FROM rol_buscar_usr_rol(#id_usuario#, #id_rol#)
+    AS (id_usr_rol integer, id_usuario integer, id_rol integer, id_nivel_acceso integer, id_estado char, fec_expiracion timestamp without time zone,
+	fec_registro timestamp without time zone, fec_modificacion timestamp without time zone, ult_usuario integer, rol text);
+  </select>
+
+  <!-- Nuevo de almacenes -->
+  <resultMap id="almacenesCliente" class="domain.Roles">
+    <result property="id_almacen" column="id_almacen" />
+    <result property="almacen"    column="almacen" />
+    <result property="permiso"    column="permiso" />
+  </resultMap>
+
+  <select id="getListarAlmacenesCliente" resultMap="almacenesCliente">
+    SELECT * FROM rol_listar_almacenes(#id_usuario#, #id_rol#)
+    AS (id_almacen integer, permiso text, almacen text);
+  </select>
+
+  <resultMap id="almacen" class="domain.Roles">
+    <result property="id_almacen" column="id_almacen" />
+    <result property="almacen"    column="almacen" />
+    <result property="permiso"    column="permiso" />
+  </resultMap>
+
+  <select id="getBuscarAlmacenCliente" resultMap="almacen">
+    SELECT * FROM rol_buscar_almacen(#id_usuario#, #id_rol#, #id_almacen#)
+    AS (id_almacen integer, permiso text, almacen text);
+  </select>
+  <!-- Fin Nuevo de almacenes -->
+   
+</sqlMap>

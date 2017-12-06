@@ -1,0 +1,1028 @@
+<?ml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<!--
+  - DispatcherServlet application context for the Spring web MVC
+  - implementation of JPetStore's web tier.
+-->
+<beans>
+
+  <!-- ========================= VIEW DEFINITIONS ========================= -->
+
+  <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+    <property name="prefix" value="/WEB-INF/jsp/"/>
+    <property name="suffix" value=".jsp"/>
+  </bean>
+
+  <!-- ========================= DEFINITIONS OF PUBLIC CONTROLLERS ========================= -->
+
+  <!-- Marcos -->
+  <bean name="/verEncabezado.do" class="web.verEncabezado.VerEncabezado" />
+
+  <bean name="/verCuerpo.do" class="web.verCuerpo.VerCuerpo">
+    <property name="mi" ref="mi"/>
+  </bean>
+  <bean name="/verPie.do" class="org.springframework.web.servlet.mvc.ParameterizableViewController">
+    <property name="viewName"><value>verPie/VerPie</value></property>
+  </bean>
+  <!-- fin Marcos -->
+
+  <!-- Conexion -->
+  <bean name="/login.do" class="web.login.VerSesion" />
+  <bean name="/buscarConexion.do" class="web.login.BuscarConexion">
+    <property name="mi" ref="mi"/>
+  </bean>
+  <bean name="/elegirRol.do" class="web.login.ElegirRol" />
+  <bean name="/cambiarRol.do" class="web.login.CambiarRol">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/logout.do" class="web.logout.Logout"/>
+  <!-- fin Conexion -->
+
+  <!-- Menu -->
+  <bean name="/menu.do" class="web.menu.Menu">
+    <property name="mi" ref="mi"/>
+  </bean>
+  <!-- fin Menu -->
+
+  
+  <!--Administrar noticias -->
+  <bean name="/verNoticias.do" class="web.administrarNoticias.VerNoticias">
+    <property name="mi" ref="mi"/>
+  </bean>
+  <bean name="/nuevaNoticia.do" class="web.administrarNoticias.NuevaNoticia">
+    <property name="mi" ref="mi"/>
+  </bean>
+  <bean name="/registrarNoticia.do" class="web.administrarNoticias.RegistrarNoticia">
+    <property name="mi" ref="mi"/>
+  </bean>
+  <bean name="/eliminarNoticia.do" class="web.administrarNoticias.EliminarNoticia">
+    <property name="mi" ref="mi"/>
+  </bean>
+  <!-- Fin Administrar noticias -->
+  
+  <!-- Cambio de clave -->
+  <bean name="/verificarUsuario.do" class="web.administrarClaves.VerificarUsuario">
+    <property name="mi" ref="mi"/>
+  </bean>
+  <bean name="/registrarClave.do" class="web.administrarClaves.RegistrarClave">
+    <property name="mi" ref="mi"/>
+  </bean>
+ 
+   <bean name="/ListarFichadas.do" class="web.administrarClaves.ListarFichadasControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+   <!-- Fin Cambio de clave -->
+  
+  <!-- mvvc Administrar enlaces -->
+  <bean name="/ListarEnlaces.do" class="web.administrarenlaces.ListarEnlacesControlador">
+    <property name="mi" ref="mi"/>
+  </bean>
+   <bean name="/NuevoEnlace.do" class="web.administrarenlaces.NuevoEnlaceControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarEnlace.do" class="web.administrarenlaces.ConfirmarEnlaceControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarEnlace.do" class="web.administrarenlaces.GrabarEnlaceControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+   <!--Administrar Menues-->
+  <bean name="/administrarMenues.do" class="web.administrarmenu.AdministrarMenuControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+   <!-- mvvc Administrar categorias -->
+  <bean name="/ListarCategorias.do" class="web.administrarcategorias.ListarCategoriasControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevaCategoria.do" class="web.administrarcategorias.NuevaCategoriaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarCategoria.do" class="web.administrarcategorias.ConfirmarCategoriaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarCategoria.do" class="web.administrarcategorias.GrabarCategoriaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+ <!-- Fin Administrar categorias -->
+  
+<!-- mvvc Administrar paises -->
+  <bean name="/ListarPaises.do" class="web.administrarpaises.ListarPaisesControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarPais.do" class="web.administrarpaises.ConfirmarPaisControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoPais.do" class="web.administrarpaises.NuevoPaisControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarPais.do" class="web.administrarpaises.GrabarPaisControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+<!-- mvvc Administrar laboratorios -->
+  <bean name="/ListarLaboratorios.do" class="web.administrarlaboratorios.ListarLaboratoriosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarLaboratorio.do" class="web.administrarlaboratorios.ConfirmarLaboratorioControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoLaboratorio.do" class="web.administrarlaboratorios.NuevoLaboratorioControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarLaboratorio.do" class="web.administrarlaboratorios.GrabarLaboratorioControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+ <!-- Fin Administrar categorias -->  
+
+ <!-- mvvc Administrar costos -->
+  <bean name="/ListarCostos.do" class="web.administrarcostos.ListarCostosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarCosto.do" class="web.administrarcostos.ConfirmarCostoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoCosto.do" class="web.administrarcostos.NuevoCostoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarCosto.do" class="web.administrarcostos.GrabarCostoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+ 
+  <!--FIN-->
+
+  <!-- mvvc Administrar camas -->
+  <bean name="/ListarCamas.do" class="web.administrarcamas.ListarCamasControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarCama.do" class="web.administrarcamas.ConfirmarCamaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarCamaMod.do" class="web.administrarcamas.ConfirmarCamaModControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoCama.do" class="web.administrarcamas.NuevoCamaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarCama.do" class="web.administrarcamas.GrabarCamaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <!--FIN-->
+ 
+ <!-- mvvc Administrar sexos -->
+  <bean name="/ListarSexos.do" class="web.administrarsexos.ListarSexosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoSexo.do" class="web.administrarsexos.NuevoSexoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarSexo.do" class="web.administrarsexos.ConfirmarSexoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarSexo.do" class="web.administrarsexos.GrabarSexoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+   <!-- mvvc Administrar parentescos -->
+  <bean name="/ListarParentescos.do" class="web.administrarparentescos.ListarParentescosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoParentesco.do" class="web.administrarparentescos.NuevoParentescoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarParentesco.do" class="web.administrarparentescos.ConfirmarParentescoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarParentesco.do" class="web.administrarparentescos.GrabarParentescoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <!-- mvvc Administrar rubros -->
+  <bean name="/ListarRubros.do" class="web.administrarrubros.ListarRubrosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoRubro.do" class="web.administrarrubros.NuevoRubroControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarRubro.do" class="web.administrarrubros.ConfirmarRubroControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarRubro.do" class="web.administrarrubros.GrabarRubroControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+   <!-- mvvc Administrar salas -->
+  <bean name="/ListarSalas.do" class="web.administrarsalas.ListarSalasControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoSala.do" class="web.administrarsalas.NuevoSalaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarSala.do" class="web.administrarsalas.ConfirmarSalaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarSala.do" class="web.administrarsalas.GrabarSalaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  
+   <!-- mvvc Administrar Seguros -->
+  <bean name="/ListarSeguros.do" class="web.administrarseguros.ListarSegurosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoSeguro.do" class="web.administrarseguros.NuevoSeguroControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarSeguro.do" class="web.administrarseguros.ConfirmarSeguroControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarSeguro.do" class="web.administrarseguros.GrabarSeguroControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+   <!-- mvvc Administrar Empresas -->
+  <bean name="/ListarEmpresas.do" class="web.administrarempresas.ListarEmpresasControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarEmpresasPago.do" class="web.administrarempresas.ListarEmpresasPagoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoEmpresa.do" class="web.administrarempresas.NuevoEmpresaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarEmpresa.do" class="web.administrarempresas.ConfirmarEmpresaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarEmpresa.do" class="web.administrarempresas.GrabarEmpresaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <!-- mvvc Administrar documentos -->
+  <bean name="/ListarDocumentos.do" class="web.administrardocumentos.ListarDocumentosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoDocumento.do" class="web.administrardocumentos.NuevoDocumentoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarDocumento.do" class="web.administrardocumentos.ConfirmarDocumentoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarDocumento.do" class="web.administrardocumentos.GrabarDocumentoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+ 
+  <!-- mvvc Administrar Roles -->
+  <bean name="/ListarRoles.do" class="web.administrarroles.ListarRolesControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoRol.do" class="web.administrarroles.NuevoRolControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+   <bean name="/ConfirmarRol.do" class="web.administrarroles.ConfirmarRolControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+   <bean name="/GrabarRol.do" class="web.administrarroles.GrabarRolControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+   <!-- mvvc Administrar Cargos -->
+  <bean name="/ListarCargos.do" class="web.administrarcargos.ListarCargosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoCargo.do" class="web.administrarcargos.NuevoCargoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+    <bean name="/ConfirmarCargo.do" class="web.administrarcargos.ConfirmarCargoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarCargo.do" class="web.administrarcargos.GrabarCargoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <!-- mvvc Administrar Consultorios -->
+  <bean name="/ListarConsultorios.do" class="web.administrarconsultorios.ListarConsultoriosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoConsultorio.do" class="web.administrarconsultorios.NuevoConsultorioControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+    <bean name="/ConfirmarConsultorio.do" class="web.administrarconsultorios.ConfirmarConsultorioControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarConsultorio.do" class="web.administrarconsultorios.GrabarConsultorioControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+   <!-- Administrar DEPARTAMENTOS -->
+  <bean name="/ListarDepartamentos.do" class="web.administrardepartamentos.ListarDepartamentosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoDepartamento.do" class="web.administrardepartamentos.NuevoDepartamentoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarDepartamento.do" class="web.administrardepartamentos.ConfirmarDepartamentoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarDepartamento.do" class="web.administrardepartamentos.GrabarDepartamentoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+   <!-- mvvc Administrar eciviles -->
+  <bean name="/ListarEciviles.do" class="web.administrareciviles.ListarEcivilesControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+   <bean name="/NuevoEcivil.do" class="web.administrareciviles.NuevoEcivilControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarEcivil.do" class="web.administrareciviles.ConfirmarEcivilControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+   <bean name="/GrabarEcivil.do" class="web.administrareciviles.GrabarEcivilControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <!-- Administrar provincias -->
+  <bean name="/ListarProvincias.do" class="web.administrarprovincias.ListarProvinciasControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+   <!-- mvvc Administrar eciviles -->
+  <bean name="/ListarUsuarios.do" class="web.administrarusuarios.ListarUsuariosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+    <!-- mvvc Administrar PERSONAS -->
+  <bean name="/ListarPersonas.do" class="web.administrarpersonas.ListarPersonasControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+   <bean name="/NuevoPersona.do" class="web.administrarpersonas.NuevoPersonaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarPersona.do" class="web.administrarpersonas.ConfirmarPersonaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarPersona.do" class="web.administrarpersonas.GrabarPersonaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+   
+   <!-- mvvc Configurar Establecimientos -->
+  <bean name="/NuevoEstab.do" class="web.administrarestab.NuevoEstabControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <!-- mvvc Administrar usuarios -->
+  <bean name="/NuevoUsuario.do" class="web.administrarusuarios.NuevoUsuarioControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarUsuario.do" class="web.administrarusuarios.ConfirmarUsuarioControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <bean name="/GrabarUsuario.do" class="web.administrarusuarios.GrabarUsuarioControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+   <!-- mvvc Administrar rol usuarios-->
+  <bean name="/ListarRolUsuarios.do" class="web.administrarusuarios.ListarRolUsuariosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoRolUsuario.do" class="web.administrarusuarios.NuevoRolUsuarioControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+   <bean name="/ConfirmarRolUsuario.do" class="web.administrarusuarios.ConfirmarRolUsuarioControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+   <bean name="/GrabarRolUsuario.do" class="web.administrarusuarios.GrabarRolUsuarioControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+    <!-- mvvc Administrar pacientes-->
+  <bean name="/ListarHistoPacientes.do" class="web.administrarpacientes.ListarHistoriaPacientesControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarPacientes.do" class="web.administrarpacientes.ListarPacientesControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarPacientesFar.do" class="web.administrarpacientes.ListarPacientesFarControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+
+  <bean name="/NuevoPaciente.do" class="web.administrarpacientes.NuevoPacienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+   <bean name="/ConfirmarPaciente.do" class="web.administrarpacientes.ConfirmarPacienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarPaciente.do" class="web.administrarpacientes.GrabarPacienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <bean name="/ListarReservasConsul.do" class="web.administrarpacientes.ListarReservasConsulControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarReservasMedico.do" class="web.administrarpacientes.ListarReservasMedicoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarVigencia.do" class="web.administrarpacientes.ListarVigenciaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/AsignarMedVigencia.do" class="web.administrarpacientes.AsignarMedicoVigControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarVigenciaAt.do" class="web.administrarpacientes.ListarVigenciaAtControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarAdmisiones.do" class="web.administrarpacientes.ListarAdmisionesControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarReservasCIE10.do" class="web.administrarpacientes.ListarReservasCIE10Controlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarAfiliadosSumi.do" class="web.administrarpacientes.ListarAfiliadosSumiControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+   <bean name="/AtencionFichas.do" class="web.administrarpacientes.AtencionFichasControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+  
+  
+<!-- mvvc Administrar Cobranza-->
+  <bean name="/ListarCobroReserva.do" class="web.administrarcobranza.ListarCobroReservaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/CobrarPaciente.do" class="web.administrarcobranza.CobrarPacienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/CobrarPaciente1.do" class="web.administrarcobranza.CobrarPaciente1Controlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/CobrarNPaciente.do" class="web.administrarcobranza.CobrarNPacienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarCobroFarmacia.do" class="web.administrarcobranza.ListarCobroFarmaciaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/CobrarFarmacia.do" class="web.administrarcobranza.CobrarFarmaciaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/buscarPorFecha.do" class="web.administrarcobranza.reportefarmacia.ReporteFarmaciaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+   </bean>
+  <bean name="/ReporteEconomico.do" class="web.administrarcobranza.reporteeconomico.ReporteEconomicoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+   </bean> 
+   <bean name="/ListarRecibos.do" class="web.administrarcobranza.ListarRecibosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarFacturas.do" class="web.administrarcobranza.ListarFacturasControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListaCobrarPaciente.do" class="web.administrarcobranza.ListaCobrarPacienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/CobrarLab.do" class="web.administrarcobranza.CobrarLabControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+   <bean name="/CodigoControl.do" class="web.administrarcobranza.GenerarCodigoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <!-- mvvc Administrar enfermeria-->
+  <bean name="/ListarSignosReserva.do" class="web.administrarenfermeria.ListarSignosReservaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/SignosPaciente.do" class="web.administrarenfermeria.SignosPacienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <bean name="/EntregaMedicamentos.do" class="web.administrarenfermeria.EntregaMedicamentosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/EntregaMedicamentoPaciente.do" class="web.administrarenfermeria.EntregaMedicamentoPacienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <bean name="/ListarCobroEnfermeria.do" class="web.administrarenfermeria.ListarCobroReservaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/CobrarPacienteEnfermeria.do" class="web.administrarenfermeria.CobrarPacienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/CobrarNPacienteEnfermeria.do" class="web.administrarenfermeria.CobrarNPacienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>  
+  <bean name="/PrestacionSumiPaciente.do" class="web.administrarenfermeria.PrestacionSumiPacienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarReservasMedEnfer.do" class="web.administrarenfermeria.ListarReservasMedEnferControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <!-- mvvc Administrar HISTORIALES-->
+  <bean name="/ListarReservas.do" class="web.administrarhistoriales.ListarReservasControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarReservasP.do" class="web.administrarhistoriales.ListarReservasPControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarInternados.do" class="web.administrarhistoriales.ListarInternosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarAltaInternados.do" class="web.administrarhistoriales.ListarInternosAltaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarCamasInternados.do" class="web.administrarhistoriales.ListarCamasInternadosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarAteVigencia.do" class="web.administrarhistoriales.ListarAteVigenciaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/AtenderPaciente.do" class="web.administrarhistoriales.AtenderPacienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/InternarPac.do" class="web.administrarhistoriales.InternarPacControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/DarAltaPac.do" class="web.administrarhistoriales.DarAltaPacControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/InternarPaciente.do" class="web.administrarhistoriales.InternadoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarAmbulatorioGen.do" class="web.administrarhistoriales.ambulatorio.PacientesAtendidosGeneralControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarHistorial.do" class="web.administrarhistoriales.ListarHistorialControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarHistoriaGraba.do" class="web.administrarhistoriales.ListarHistoriaGrabaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/PlanAccionPaciente.do" class="web.administrarhistoriales.PlanAccionPacienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/PlanAccionI.do" class="web.administrarhistoriales.PlanAccionIControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/RecetarPaciente.do" class="web.administrarhistoriales.RecetarPacienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/RecetarPacienteExtInt.do" class="web.administrarhistoriales.RecetarPacienteExtIntControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/RecetarSumiPaciente.do" class="web.administrarhistoriales.RecetarSumiPacienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/RecetarInternado.do" class="web.administrarhistoriales.RecetarInternadoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+
+   <bean name="/ListarCobroRubro.do" class="web.administrarhistoriales.ListarCobroRubroControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+  
+  <bean name="/ListarPacientesAtendidos.do" class="web.administrarhistoriales.ambulatorio.PacientesAtendidosControlador">
+    <property name="mi" ref="mi"/>
+  </bean>
+  <bean name="/Estadisticas.do" class="web.administrarhistoriales.ambulatorio.EstadisticasControlador">
+    <property name="mi" ref="mi"/>
+  </bean>
+  <bean name="/EconomicoPacientes.do" class="web.administrarhistoriales.ambulatorio.EconomicoPacientesControlador">
+    <property name="mi" ref="mi"/>
+  </bean>
+  <bean name="/ListarPacientesAtendidosInter.do" class="web.administrarhistoriales.ambulatorio.PacientesAtendidosInterControlador">
+    <property name="mi" ref="mi"/>
+  </bean>
+  
+  <bean name="/ListarReceta.do" class="web.administrarhistoriales.ListarRecetaControlador">
+    <property name="mi" ref="mi"/>
+  </bean>
+
+  <bean name="/HistorialAtendidos.do" class="web.administrarhistoriales.HistorialAtendidosControlador">
+    <property name="mi" ref="mi"/>
+  </bean>
+  
+  <!-- mvvc Administrar medicamentos -->
+  <bean name="/ListarMedicamentos.do" class="web.administrarmedicamentos.ListarMedicamentosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarMedicamentosAlma.do" class="web.administrarmedicamentos.ListarMedicamentosAlmaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoMedicamento.do" class="web.administrarmedicamentos.NuevoMedicamentoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoMedicamento2.do" class="web.administrarmedicamentos.NuevoMedicamento2Controlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/AsignarMedicamentos.do" class="web.administrarmedicamentos.AsignarMedicamentosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarMedicamento.do" class="web.administrarmedicamentos.ConfirmarMedicamentoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+    <bean name="/GrabarMedicamento.do" class="web.administrarmedicamentos.GrabarMedicamentoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarPedidos.do" class="web.administrarmedicamentos.ListarPedidosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+  <bean name="/ListarEntregados.do" class="web.administrarmedicamentos.ListarEntregadosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ReporteEntregados.do" class="web.administrarmedicamentos.ReporteEntregadosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+   <bean name="/ListarRecibidos.do" class="web.administrarmedicamentos.ListarRecibidosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+   <bean name="/VerEntregados.do" class="web.administrarmedicamentos.VerEntregadosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/VerPedidos.do" class="web.administrarmedicamentos.VerPedidosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+
+  <bean name="/VerRecibidos.do" class="web.administrarmedicamentos.VerRecibidosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+    <bean name="/BuscarPedidos.do" class="web.administrarmedicamentos.BuscarPedidosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+
+  <bean name="/KardexMedicamento.do" class="web.administrarmedicamentos.KardexMedicamentoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+<!-- mvvc Administrar farmacias -->
+  <bean name="/ListarAtendidos.do" class="web.administrarfarmacias.ListarAtendidosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarAtendidosVenta.do" class="web.administrarfarmacias.ListarAtendidosVControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarAtendidosProg.do" class="web.administrarfarmacias.ListarAtendidosProgControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarAtendidosSPS.do" class="web.administrarfarmacias.ListarAtendidosSPSControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListaReceta.do" class="web.administrarfarmacias.ListaRecetaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListaRecetaFar.do" class="web.administrarfarmacias.ListaRecetaFarControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+  <bean name="/ListaRecetaI.do" class="web.administrarfarmacias.ListaRecetaIControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+  <bean name="/ListaNReceta.do" class="web.administrarfarmacias.ListaNRecetaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarInternadosFar.do" class="web.administrarfarmacias.ListarInternadosFarControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/RecetasInternados.do" class="web.administrarfarmacias.RecetasInternadosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+   <bean name="/ListarPacFarmacia.do" class="web.administrarfarmacias.ListarPacFarmaciaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/AsignarFarmacias.do" class="web.administrarfarmacias.AsignarFarmaciasControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+   <bean name="/ListaNRecetaV.do" class="web.administrarfarmacias.ListaNRecetaVControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+   <bean name="/ListaNRecetaP.do" class="web.administrarfarmacias.ListaNRecetaProgControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+   <bean name="/ListaNRecetaSPS.do" class="web.administrarfarmacias.ListaNRecetaSPSControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListaNRecetaI.do" class="web.administrarfarmacias.ListaNRecetaIControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/RecepcionMed.do" class="web.administrarfarmacias.RecepcionMedControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <bean name="/RecepcionMedicamento.do" class="web.administrarfarmacias.RecepcionMedicamentoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarImm.do" class="web.administrarfarmacias.ListarImmControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <bean name="/ListarCpt.do" class="web.administrarfarmacias.ListarCptControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <!--Sumi Prestaciones Mensual-->
+  <bean name="/reporteFopos.do" class="web.reporteprestacion.ListarRepesControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>            
+
+  <bean name="/ListarPrestacionSumi.do" class="web.administrarsumi.ListarPrestacionSumiControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>   
+ <bean name="/ListarPrestacionCodigo.do" class="web.administrarsumi.ListarPrestacionCodigoControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>           
+ <bean name="/NuevaPrestacion.do" class="web.administrarsumi.NuevaPrestacionControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>  
+ <bean name="/ConfirmarPrestacion.do" class="web.administrarsumi.ConfirmarPrestacionControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>  
+  <bean name="/GrabarPrestacion.do" class="web.administrarsumi.GrabarPrestacionControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>  
+  <bean name="/ModificarPaquete.do" class="web.administrarsumi.ModificarPaqueteControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>  
+    <!--Cuadernos SNIS-->
+
+ <bean name="/ReporteOdonMensual.do" class="web.administrarcuadernos.ListarOdonMensualControlador">
+     <property name="mi"><ref bean="mi"/></property>
+ </bean>  
+ <bean name="/ReporteSnis301.do" class="web.administrarcuadernos.ListarSnis301Controlador">
+     <property name="mi"><ref bean="mi"/></property>
+ </bean> 
+ <bean name="/ReporteSnis.do" class="web.administrarcuadernos.ReporteSnis302Controlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>
+
+ <bean name="/ReporteCIE10.do" class="web.administrarcuadernos.ReporteCIE10Controlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+ 
+  <bean name="/ReporteResumen.do" class="web.administrarhistoriales.ReporteResumenControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+  <bean name="/ControlCalidad.do" class="web.administrarhistoriales.ControlCalidadControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>       
+  <bean name="/ListarLibros.do" class="web.administrarcuadernos.ListarLibrosControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+  
+   <bean name="/Graficas.do" class="web.administrarcuadernos.GraficasControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+  
+  <bean name="/VerCuaderno7.do" class="web.administrarcuadernos.VerCuaderno7Controlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+  <bean name="/VerCuaderno6.do" class="web.administrarcuadernos.VerCuaderno6Controlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+  <bean name="/VerCuaderno5.do" class="web.administrarcuadernos.VerCuaderno5Controlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+ <bean name="/VerVacunas.do" class="web.administrarcuadernos.VerVacunasControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+  <bean name="/VerCuadernos.do" class="web.administrarcuadernos.VerCuadernosControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+  <bean name="/ExportarSNS.do" class="web.administrarcuadernos.ExportarSNSControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+  <bean name="/VerCemergencias.do" class="web.administrarcuadernos.VerCemergenciasControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+  <bean name="/VerEcografias.do" class="web.administrarcuadernos.VerCuadernoEcoControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/VerCuaderno1.do" class="web.administrarcuadernos.VerCuaderno1Controlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/VerCuaderno2.do" class="web.administrarcuadernos.VerCuaderno2Controlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+  <bean name="/VerCuaderno3.do" class="web.administrarcuadernos.VerCuaderno3Controlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+  <bean name="/VerCuaderno4.do" class="web.administrarcuadernos.VerCuaderno4Controlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+  <bean name="/Cuaderno7.do" class="web.administrarcuadernos.Cuaderno7Controlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>  
+  <bean name="/VerCuadernoFisio.do" class="web.administrarcuadernos.VerCuadernoFisioControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+  <bean name="/Cuaderno6.do" class="web.administrarcuadernos.Cuaderno6Controlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+
+  <bean name="/Vacunas.do" class="web.administrarcuadernos.VacunasControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+ <bean name="/Cemergencias.do" class="web.administrarcuadernos.CemergenciasControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/Cuaderno1.do" class="web.administrarcuadernos.Cuaderno1Controlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>  
+  <bean name="/Cuaderno3.do" class="web.administrarcuadernos.Cuaderno3Controlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/Cuaderno4.do" class="web.administrarcuadernos.Cuaderno4Controlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/Cuaderno5.do" class="web.administrarcuadernos.Cuaderno5Controlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>  
+  <bean name="/Cuaderno2.do" class="web.administrarcuadernos.Cuaderno2Controlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>
+   <bean name="/Laboratorio.do" class="web.administrarcuadernos.LaboratorioControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>
+   <bean name="/CuadernoFisio.do" class="web.administrarcuadernos.CuadernoFisioControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>  
+  <bean name="/Aiepi.do" class="web.administrarcuadernos.AiepiControlador">
+     <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <!-- mvvc Administrar cuentas -->
+  <bean name="/ListarCuentas.do" class="web.administrarcuentas.ListarCuentasControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarCuenta.do" class="web.administrarcuentas.ConfirmarCuentaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoCuenta.do" class="web.administrarcuentas.NuevoCuentaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarCuenta.do" class="web.administrarcuentas.GrabarCuentaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+   <!-- mvvc Administrar Transacciones -->
+  <bean name="/ListarTransacciones.do" class="web.administrarcuentas.ListarTransaccionesControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarTransaccion.do" class="web.administrarcuentas.ConfirmarTransaccionControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoTransaccion.do" class="web.administrarcuentas.NuevoTransaccionControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarTransaccion.do" class="web.administrarcuentas.GrabarTransaccionControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <bean name="/LibroDiario.do" class="web.administrarcuentas.LibroDiarioControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/LibroMayor.do" class="web.administrarcuentas.LibroMayorControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+   <!-- mvvc Administrar Laboratorios -->
+ <bean name="/LabPacPendiente.do" class="web.administrarlaboratorio.LabPacPendienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>  
+ <bean name="/LabPacI.do" class="web.administrarlaboratorio.LabPacIControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>  
+  <bean name="/LabPendiente.do" class="web.administrarlaboratorio.LabPendienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfigurarEcos.do" class="web.administrarlaboratorio.ConfigurarEcosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/LabRealizado.do" class="web.administrarlaboratorio.LabRealizadoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/LabRealizadoI.do" class="web.administrarlaboratorio.LabRealizadoIControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/VerLaboratorio.do" class="web.administrarlaboratorio.VerLaboratorioControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/PedirLaboratorio.do" class="web.administrarlaboratorio.PedirLaboratorioControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean> 
+  <bean name="/LabSumiPaciente.do" class="web.administrarlaboratorio.PrestacionSumiPacienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+   <!-- mvvc Administrar ECOGRAFICA-->
+  <bean name="/ListarReservasEco.do" class="web.administrarecografia.ListarReservasControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/AtenderPacienteEco.do" class="web.administrarecografia.AtenderPacienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/LabPendienteEco.do" class="web.administrarecografia.LabPendienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/LabSumiPacienteEco.do" class="web.administrarecografia.PrestacionSumiPacienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+   <!-- mvvc Administrar carpetas -->
+  <bean name="/ListarCarpetas.do" class="web.administrarcarpetas.ListarCarpetasControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarCarpeta.do" class="web.administrarcarpetas.ConfirmarCarpetaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoCarpeta.do" class="web.administrarcarpetas.NuevoCarpetaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarCarpeta.do" class="web.administrarcarpetas.GrabarCarpetaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ListarPacientesD.do" class="web.administrarcarpetas.ListarPacientesDControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>  
+  
+  
+   <!-- mvvc Administrar quirofanos -->
+  <bean name="/ListarQuirofanos.do" class="web.administrarquirofanos.ListarQuirofanosControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoQuirofano.do" class="web.administrarquirofanos.NuevoQuirofanoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarQuirofano.do" class="web.administrarquirofanos.ConfirmarQuirofanoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarQuirofano.do" class="web.administrarquirofanos.GrabarQuirofanoControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+   <!-- mvvc Administrar farmacias -->
+  <bean name="/ListarFarmacias.do" class="web.administrafarmacia.ListarFarmaciasControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoFarmacia.do" class="web.administrafarmacia.NuevoFarmaciaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarFarmacia.do" class="web.administrafarmacia.ConfirmarFarmaciaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarFarmacia.do" class="web.administrafarmacia.GrabarFarmaciaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <bean name="/SolSangre.do" class="web.administrarcuadernos.SolSangreControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <bean name="/Transferencia.do" class="web.administrarcuadernos.TransferenciaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <bean name="/AdmisionHosp.do" class="web.administrarcuadernos.AdmisionHospControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <bean name="/ProtocoloOpera.do" class="web.administrarcuadernos.ProtocoloOperaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <bean name="/Epicrisis.do" class="web.administrarcuadernos.EpicrisisControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <bean name="/Oftalmologia.do" class="web.administrarcuadernos.OftalmologiaControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <!-- mvvc Administrar clientes -->
+  <bean name="/ListarClientes.do" class="web.administrarclientes.ListarClientesControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoCliente.do" class="web.administrarclientes.NuevoClienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarCliente.do" class="web.administrarclientes.ConfirmarClienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarCliente.do" class="web.administrarclientes.GrabarClienteControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+  <!-- mvvc Administrar proveedores -->
+  <bean name="/ListarProveedores.do" class="web.administrarproveedores.ListarProveedoresControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/NuevoProveedor.do" class="web.administrarproveedores.NuevoProveedorControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/ConfirmarProveedor.do" class="web.administrarproveedores.ConfirmarProveedorControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  <bean name="/GrabarProveedor.do" class="web.administrarproveedores.GrabarProveedorControlador">
+    <property name="mi"><ref bean="mi"/></property>
+  </bean>
+  
+</beans>

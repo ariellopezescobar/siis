@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Personas">
+
+    <resultMap id="datosFichadas" class="domain.Personas">
+    <result property="id_persona"        column="id_persona"/>
+    <result property="nombres"           column="nombres"/>
+    <result property="paterno"           column="paterno"/>
+    <result property="materno"          column="materno"/>
+    <result property="fec_nacimiento"    column="fec_nacimiento"/>
+    <result property="dip"               column="dip"/> 
+  </resultMap>
+
+  <select id="getListarFichadas" resultMap="datosFichadas">
+      select id_persona,nombres,paterno,materno,dthora as fec_nacimiento,dip from personas 
+        inner join fichadas on strcodigoempleado=id_biometrico
+        where id_persona= #id_persona#
+        order by id_persona,dthora desc
+  </select>
+  
+  <resultMap id="datosPersona" class="domain.Personas">
+    <result property="id_consultorio"    column="id_consultorio"/>
+    <result property="id_persona"        column="id_persona"/>
+    <result property="nombres"           column="nombres"/>
+    <result property="id_estado"         column="id_estado"/>
+    <result property="dip"               column="dip"/>
+    <result property="consultorio"       column="consultorio"/>
+    <result property="firma"             column="firma"/>
+    <result property="establecimiento"   column="establecimiento"/>
+    <result property="cod_esta"          column="cod_esta"/>
+    <result property="urgencias"         column="urgencias"/>
+    <result property="matricula"         column="matricula"/>
+    <result property="codigoprof"        column="codigoprof"/>
+    <result property="id_piso"           column="id_piso"/>
+    <result property="id_medico"           column="id_medico"/>
+    <result property="suma1"             column="suma1"/>
+    <result property="cadena1"           column="cadena1"/>
+  </resultMap>
+
+  <select id="getListarPersonas" resultMap="datosPersona">
+      SELECT con.id_consultorio,emp.id_persona, (emp.paterno||' ' ||emp.materno||' ' ||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, con.consultorio, firma, establecimiento, cod_esta, emp.matricula, id_medico,
+           emp.codigoprof,urgencias,id_farmacia,id_laboratorio,id_piso,count(*) OVER() as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN establecimientos e USING(cod_esta)
+      JOIN consultorios con USING(id_consultorio)
+      WHERE emp.id_estado = 'A' and emp.id_persona!=0 and emp.id_persona!=1
+      ORDER BY cod_esta,nombres 
+      LIMIT 10
+      OFFSET #pagina#
+  </select>
+  
+  <select id="getListarPersonaUnico" resultMap="datosPersona">
+      SELECT con.id_consultorio,emp.id_persona, (emp.paterno||' ' ||emp.materno||' ' ||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, con.consultorio, firma, establecimiento, cod_esta, emp.matricula, id_medico,
+           emp.codigoprof,urgencias,id_farmacia,id_laboratorio,id_piso,count(*) OVER() as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN establecimientos e USING(cod_esta)
+      JOIN consultorios con USING(id_consultorio)
+      WHERE emp.id_estado = 'A' and emp.id_persona!=0 and emp.id_persona!=1 and emp.id_persona=#id_persona#
+  </select>
+  
+  <select id="getListarPersonasUsua" resultMap="datosPersona">
+      SELECT con.id_consultorio,emp.id_persona, (emp.paterno||' ' ||emp.materno||' ' ||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, con.consultorio, firma, establecimiento, cod_esta, emp.matricula, id_medico,
+           emp.codigoprof,urgencias,id_farmacia,id_laboratorio,id_piso,count(*) OVER() as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN establecimientos e USING(cod_esta)
+      JOIN consultorios con USING(id_consultorio)
+      WHERE emp.id_estado = 'A' and emp.id_persona!=0 and
+            emp.id_persona in (select id_persona from personas ) and
+            emp.id_persona not in (select id_persona from _usuarios)
+      ORDER BY cod_esta,nombres
+  </select>
+  
+  <select id="getListarPersonasUsuaLocal" resultMap="datosPersona">
+      SELECT con.id_consultorio,emp.id_persona, (emp.paterno||' ' ||emp.materno||' ' ||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, con.consultorio, firma, establecimiento, cod_esta, emp.matricula, id_medico,
+           emp.codigoprof,urgencias,id_farmacia,id_laboratorio,id_piso,count(*) OVER() as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN establecimientos e USING(cod_esta)
+      JOIN consultorios con USING(id_consultorio)
+      WHERE emp.id_estado = 'A' and emp.id_persona!=0 and
+            emp.id_persona in (select id_persona from personas where cod_esta=#cod_esta#) and
+            emp.id_persona not in (select id_persona from _usuarios)
+      ORDER BY cod_esta,nombres
+  </select>
+  
+  <select id="getListarPersonasFarma" resultMap="datosPersona">
+      SELECT con.id_consultorio,emp.id_persona, (emp.paterno||' ' ||emp.materno||' ' ||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, con.consultorio, firma, establecimiento, cod_esta, emp.matricula, id_medico,
+           emp.codigoprof,urgencias,id_farmacia,id_laboratorio,id_piso,0 as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN establecimientos e USING(cod_esta)
+      JOIN consultorios con USING(id_consultorio)
+      WHERE emp.id_estado = 'A' and emp.cod_esta=#cod_esta# and emp.id_persona in 
+                                (select id_persona from kardex where cod_esta=#cod_esta# and id_persona!=1 group by id_persona) 
+      ORDER BY cod_esta,nombres
+  </select>
+  
+  <select id="getListarPersonasLocal" resultMap="datosPersona">
+      SELECT con.id_consultorio,emp.id_persona, (emp.paterno||' ' ||emp.materno||' ' ||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, con.consultorio, firma, establecimiento, cod_esta, emp.matricula, id_medico,
+           emp.codigoprof,urgencias,id_farmacia,id_laboratorio,id_piso,count(*) OVER() as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN establecimientos e USING(cod_esta)
+      JOIN consultorios con USING(id_consultorio)
+      WHERE emp.id_estado = 'A' and emp.id_persona!=0 and emp.id_persona!=1 and emp.cod_esta=#cod_esta#
+      ORDER BY cod_esta,nombres
+      <!--LIMIT 10
+      OFFSET #pagina#-->
+  </select>
+  
+  <select id="getListarPersonasEstab" resultMap="datosPersona">
+      SELECT con.id_consultorio,emp.id_persona, (emp.paterno||' ' ||emp.materno||' ' ||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, con.consultorio, firma, establecimiento, cod_esta, emp.matricula, id_medico,
+           emp.codigoprof,urgencias,id_farmacia,id_laboratorio,id_piso,count(*) OVER() as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN establecimientos e USING(cod_esta)
+      JOIN consultorios con USING(id_consultorio)
+      WHERE emp.id_estado = 'A' and emp.id_persona!=0 and emp.id_persona!=1 and emp.cod_esta=#cod_esta#
+      ORDER BY cod_esta,nombres
+      LIMIT 10
+      OFFSET #pagina#
+  </select>
+  
+  <select id="getListarPersonasNombre" resultMap="datosPersona">
+      SELECT con.id_consultorio,emp.id_persona, (emp.paterno||' ' ||emp.materno||' ' ||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, con.consultorio, firma, establecimiento, cod_esta, emp.matricula, id_medico,
+           emp.codigoprof,urgencias,id_farmacia,id_laboratorio,id_piso,0 as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN establecimientos e USING(cod_esta)
+      JOIN consultorios con USING(id_consultorio)
+      WHERE UPPER(nombres||paterno||materno||dip||consultorio||cod_esta) like UPPER(#nombres#)
+      ORDER BY cod_esta,nombres
+  </select>
+  
+  <select id="getListarPersonasNombreMat" resultMap="datosPersona">
+      SELECT con.id_consultorio,emp.id_persona, (emp.paterno||' ' ||emp.materno||' ' ||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, con.consultorio, firma, establecimiento, cod_esta, emp.matricula, id_medico,
+           emp.codigoprof,urgencias,id_farmacia,id_laboratorio,id_piso,0 as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN establecimientos e USING(cod_esta)
+      JOIN consultorios con USING(id_consultorio)
+      WHERE codigoprof=#nombres#
+      ORDER BY id_persona,cod_esta,nombres LIMIT 1
+  </select>
+  
+  <select id="getListarPersonasNombreLocal" resultMap="datosPersona">
+      SELECT con.id_consultorio,emp.id_persona, (emp.paterno||' ' ||emp.materno||' ' ||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, con.consultorio, firma, establecimiento, cod_esta, emp.matricula, id_medico,
+           emp.codigoprof,urgencias,id_farmacia,id_laboratorio,id_piso,0 as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN establecimientos e USING(cod_esta)
+      JOIN consultorios con USING(id_consultorio)
+      WHERE UPPER(nombres||paterno||materno||dip||consultorio||cod_esta) like UPPER(#nombres#) and emp.cod_esta=#cod_esta#
+      ORDER BY cod_esta,nombres
+  </select>
+  
+  <select id="getListarPersonasSoloAten" resultMap="datosPersona">
+      SELECT id_consultorio,emp.id_persona, (emp.paterno||' '||emp.materno||' '||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, consultorio, firma, establecimiento, cod_esta, emp.matricula, id_medico,
+           emp.codigoprof,urgencias,id_farmacia,id_laboratorio,id_piso,0 as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN establecimientos e USING(cod_esta)
+      JOIN consultorios tel USING(id_consultorio)
+      WHERE emp.id_estado = 'A' and (emp.id_persona in (select id_persona from historiales group by id_persona)
+      or emp.id_persona in (select id_persona from recetass group by id_persona) )
+      ORDER BY cod_esta,nombres
+  </select>
+  
+  <select id="getDatosPersona" resultMap="datosPersona">
+      SELECT tel.id_consultorio,emp.id_persona, (emp.paterno||' ' ||emp.materno||' ' ||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, tel.consultorio, firma, 'A' as establecimiento, cod_esta, emp.matricula, id_medico,
+           emp.codigoprof,urgencias,id_farmacia,id_laboratorio,id_piso,0 as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN consultorios tel USING(id_consultorio)
+      WHERE emp.id_persona= #id_persona#
+  </select>
+  
+  <select id="getDatosPersonaConsul" resultMap="datosPersona">
+     SELECT tel.id_consultorio,emp.id_persona, (emp.paterno||' ' ||emp.materno||' ' ||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, tel.consultorio, firma, 'A' as establecimiento, cod_esta, emp.matricula, id_medico,
+           emp.codigoprof,urgencias,id_farmacia,id_laboratorio,id_piso,0 as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN consultorios tel USING(id_consultorio)
+      WHERE emp.id_estado = 'A'  and emp.id_consultorio= #id_consultorio# and emp.cod_esta=#cod_esta#
+      ORDER BY nombres
+  </select>
+  
+  <select id="getListaMedicoAsig" resultMap="datosPersona">
+     SELECT tel.id_consultorio,emp.id_persona, (emp.paterno||' ' ||emp.materno||' ' ||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, tel.consultorio, firma, 'A' as establecimiento, cod_esta, emp.matricula, id_medico,
+           emp.codigoprof,urgencias,id_farmacia,id_laboratorio,id_piso,0 as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN consultorios tel USING(id_consultorio)
+      WHERE emp.id_estado = 'A'  and emp.cod_esta=#cod_esta# and emp.id_persona in 
+            (select id_medico from public.asignarmedico where id_persona=#id_persona# and cod_esta=#cod_esta#)
+      ORDER BY nombres
+  </select>
+  
+  <select id="getDatosPersonaConsulCIE" resultMap="datosPersona">
+     SELECT tel.id_consultorio,emp.id_persona, (emp.paterno||' ' ||emp.materno||' ' ||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, tel.consultorio, firma, 'A' as establecimiento, cod_esta, emp.matricula, id_medico,
+           emp.codigoprof,urgencias,id_farmacia,id_laboratorio,id_piso,0 as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN consultorios tel USING(id_consultorio)
+      WHERE emp.id_estado = 'A' and emp.cod_esta=#cod_esta# and id_persona in (select id_persona from historiales group by id_persona)
+      ORDER BY nombres
+  </select>
+  
+  <select id="getDatosPersonaConsulUrgen" resultMap="datosPersona">
+      SELECT tel.id_consultorio,emp.id_persona, (emp.paterno||' ' ||emp.materno||' ' ||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, tel.consultorio, firma, 'A' as establecimiento, cod_esta, emp.matricula, id_medico,
+           emp.codigoprof,urgencias,id_farmacia,id_laboratorio,id_piso,0 as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN consultorios tel USING(id_consultorio)
+      WHERE urgencias=1 and emp.id_estado = 'A' and emp.id_consultorio= #id_consultorio# and cod_esta=#cod_esta# 
+           <!-- and (emp.id_consultorio=17 or emp.id_consultorio=19 or emp.id_consultorio=23 or emp.id_consultorio=45)-->
+      ORDER BY nombres
+  </select>
+  
+  <select id="getDatosPersonaConsulEmerg" resultMap="datosPersona">
+      SELECT tel.id_consultorio,emp.id_persona, (emp.paterno||' ' ||emp.materno||' ' ||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, tel.consultorio, firma, 'A' as establecimiento, cod_esta, emp.matricula, id_medico, 
+           emp.codigoprof,urgencias,id_farmacia,id_laboratorio,id_piso,0 as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN consultorios tel USING(id_consultorio)
+      WHERE urgencias=1 and id_especialidad!=99 and id_especialidad!=98 and id_consultorio!=0 and id_consultorio!=14
+            and emp.id_estado = 'A' and emp.cod_esta=#cod_esta#
+      ORDER BY nombres
+      <!-- and (emp.id_consultorio=17 or emp.id_consultorio=19 or emp.id_consultorio=23 or emp.id_consultorio=45)-->
+  </select>
+  
+  <select id="getDatosPersonaConsulLabos" resultMap="datosPersona">
+      SELECT tel.id_consultorio,emp.id_persona, (emp.paterno||' ' ||emp.materno||' ' ||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, tel.consultorio, firma, 'A' as establecimiento, cod_esta, emp.matricula, id_medico,
+           emp.codigoprof,urgencias,id_farmacia,id_laboratorio,id_piso,0 as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN consultorios tel USING(id_consultorio)
+      WHERE urgencias=#urgencias# and emp.id_estado = 'A' and cod_esta=#cod_esta# and emp.id_persona in 
+      (select id_persona from personas where cod_esta=#cod_esta# and id_consultorio in 
+      (select id_consultorio from personas where id_persona=#id_persona# and cod_esta=#cod_esta#) )
+      ORDER BY nombres
+  </select>
+  
+  <select id="getDatosPersonaInt" resultMap="datosPersona">
+      SELECT tel.id_consultorio,emp.id_persona, (emp.paterno||' ' ||emp.materno||' ' ||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, tel.consultorio, firma,'A' as establecimiento, cod_esta, emp.matricula, id_medico,
+           emp.codigoprof,urgencias,id_farmacia,id_laboratorio,id_piso,0 as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN consultorios tel USING(id_consultorio)
+      WHERE emp.id_estado = 'A' and emp.id_persona =#id_persona#
+  </select>
+  
+  <select id="getListarPersonasFacturas" resultMap="datosPersona">
+      SELECT tel.id_consultorio,emp.id_persona, (emp.paterno||' ' ||emp.materno||' ' ||emp.nombres)::varchar as nombres,
+           emp.id_estado, emp.dip, tel.consultorio, firma, establecimiento, cod_esta, emp.matricula, emp.codigoprof, id_medico,
+           urgencias,id_farmacia,id_laboratorio,id_piso,0 as suma1,id_espe_cns as cadena1
+      FROM personas emp 
+      JOIN establecimientos e USING(cod_esta)
+      JOIN consultorios tel USING(id_consultorio)
+      WHERE emp.id_estado = 'A' and emp.id_persona in (select id_persona from facturas group by id_persona )
+      ORDER BY cod_esta,nombres
+  </select>
+
+   <resultMap id="datoPersona" class="domain.Personas">
+    <result property="id_persona"              column="id_persona"/>
+    <result property="nombres"                 column="nombres"/>
+    <result property="paterno"                 column="paterno"/>
+    <result property="materno"                 column="materno"/>   
+    <result property="telefono"                column="telefono"/>   
+    <result property="celular"                 column="celular"/>       
+    <result property="id_sexo"                 column="id_sexo"/>    
+    <result property="id_ecivil"               column="id_ecivil"/>        
+    <result property="direccion"               column="direccion"/>
+    <result property="id_estado"               column="id_estado"/>
+    <result property="dip"                     column="dip"/>
+    <result property="id_consultorio"          column="id_consultorio"/>
+    <result property="id_pais"                 column="id_pais"/>
+    <result property="id_departamento"         column="id_departamento"/>
+    <result property="id_provincia"            column="id_provincia"/>          
+    <result property="id_localidad"            column="id_localidad"/>    
+    <result property="fec_nacimiento"          column="fec_nacimiento"/>        
+    <result property="correo"                  column="correo"/>   
+    <result property="firma"                   column="firma"/>   
+    <result property="cod_esta"                column="cod_esta"/>
+    <result property="urgencias"               column="urgencias"/>
+    <result property="id_farmacia"             column="id_farmacia"/>
+    <result property="id_laboratorio"          column="id_laboratorio"/>
+    <result property="matricula"               column="matricula"/>
+    <result property="codigoprof"              column="codigoprof"/>
+    <result property="id_piso"                 column="id_piso"/>
+    <result property="id_medico"               column="id_medico"/>
+  </resultMap>
+
+  <select id="getBuscarPersona" resultMap="datoPersona">
+      SELECT id_persona, nombres,paterno,materno,telefono,celular,id_tipo_sexo as id_sexo,id_tipo_estado_civil as id_ecivil,
+           direccion,id_estado, dip,id_consultorio, id_pais, id_departamento, id_provincia,  id_localidad,fec_nacimiento,correo,
+           firma,cod_esta,urgencias,id_farmacia,id_laboratorio, matricula, codigoprof,id_piso,id_medico
+      FROM personas      
+      WHERE id_estado = 'A' and  id_persona=#id_persona#
+  </select>
+  
+  <insert id="setCrearPersona" >
+    insert into personas ( nombres,paterno,materno,id_tipo_sexo, id_tipo_estado_civil, direccion,id_estado,dip,id_consultorio,
+                          correo,firma,celular,telefono,id_pais, id_departamento, id_provincia,  id_localidad,fec_nacimiento,
+                          fec_registro,cod_esta,urgencias,id_farmacia,id_laboratorio,id_piso, matricula, codigoprof) 
+                 values (  #nombres#, #paterno#, #materno#,#id_sexo#,#id_ecivil#, #direccion#,'A',#dip#,#id_consultorio#,
+                          #correo#,#firma#,#celular#,#telefono#,1, #id_departamento#, #id_provincia#,  #id_localidad#,#fec_nacimiento#,
+                          now(),#cod_esta#,#urgencias#,#id_farmacia#,#id_laboratorio#,#id_piso#,#matricula#,#codigoprof#);
+  </insert>
+  
+  <insert id="setCrearPersonaEnfer" >
+       insert into public.asignarmedico(id_persona, id_medico, fec_registro, cod_esta)
+              VALUES (#id_persona#, #id_medico# ,now(), #cod_esta#);
+  </insert>
+
+  <update id="setModificarPersona" >
+    INSERT INTO personasupdate(id_persona, id_pais, id_departamento, id_provincia, id_localidad, id_tipo_estado_civil, id_tipo_sexo, 
+            id_consultorio, id_estado, nombres, paterno, materno, dip, fec_nacimiento, direccion, telefono, celular, correo, 
+            titulo, fec_registro, firma, cod_esta, ult_usuario, urgencias, id_farmacia, matricula, codigoprof, id_laboratorio, 
+            id_piso, tipo_receta, fechamod, modi_por, tipop, ip, nameip)  
+   (select id_persona, id_pais, id_departamento, id_provincia, id_localidad,id_tipo_estado_civil, id_tipo_sexo, id_consultorio, 
+           id_estado, nombres, paterno, materno, dip, fec_nacimiento, direccion, telefono, celular, correo, titulo, fec_registro, 
+           firma, cod_esta, ult_usuario, urgencias, id_farmacia, matricula, codigoprof, id_laboratorio, id_piso, tipo_receta,
+           now(),#ult_usuario#,#cadena1#,#cadena2#,#cadena3#
+    from personas where  id_persona = #id_persona#);
+    
+    update personas
+    set  nombres= #nombres#, paterno=#paterno#, materno=#materno#, id_tipo_sexo=#id_sexo#, id_tipo_estado_civil=#id_ecivil#,
+     direccion=#direccion#, telefono=#telefono#, celular=#celular#, correo=#correo#, firma=#firma#, id_estado=#id_estado#,
+     dip=#dip#, id_consultorio=#id_consultorio#, id_pais=1, id_departamento=#id_departamento#, id_provincia=#id_provincia#,
+     id_localidad=#id_localidad#, fec_nacimiento=#fec_nacimiento#, cod_esta=#cod_esta#, urgencias=#urgencias#,
+     id_farmacia=#id_farmacia#, id_laboratorio=#id_laboratorio#, id_piso=#id_piso#, matricula=#matricula#, codigoprof=#codigoprof#,
+     id_medico=#id_medico#
+    where  id_persona = #id_persona#;
+    update pedidos set medico=#codigoprof# where id_persona = #id_persona# and cod_esta=#cod_esta#;
+  </update>
+
+  <delete id="setEliminarPersona" >
+    delete from personas where id_persona = #id_persona#
+  </delete>
+  
+  <delete id="setEliminarPersonaAsig" >
+    delete from public.asignarmedico where id_persona = #id_persona# and id_medico = #id_medico# and cod_esta = #cod_esta#
+  </delete>
+  
+</sqlMap>

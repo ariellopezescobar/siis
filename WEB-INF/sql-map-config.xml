@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//iBATIS.com//DTD SQL Map Config 2.0//EN"
+    "http://www.ibatis.com/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+
+  <sqlMap resource="dao/ibatis/maps/Clientes.xml"/>
+  <sqlMap resource="dao/ibatis/maps/Usuarios.xml"/>
+  <sqlMap resource="dao/ibatis/maps/Enlaces.xml"/>
+  <sqlMap resource="dao/ibatis/maps/Categorias.xml"/>
+  <sqlMap resource="dao/ibatis/maps/Roles.xml"/>
+  <sqlMap resource="dao/ibatis/maps/Personas.xml"/>
+  <sqlMap resource="dao/ibatis/maps/Tableros.xml"/>
+  <sqlMap resource="dao/ibatis/maps/Menues.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Paises.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Laboratorios.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Costos.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Camas.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Detalle.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Sexos.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Clieentes.xml"/>
+  <sqlMap resource="dao/ibatis/maps/Proveedores.xml"/>
+  <sqlMap resource="dao/ibatis/maps/Parentescos.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Rubros.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Salas.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Seguros.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Empresas.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Documentos.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Escolaridades.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Consultorios.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Departamentos.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Eciviles.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Provincias.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Localidades.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Pacientes.xml"/>   
+  <sqlMap resource="dao/ibatis/maps/Historiales.xml"/>   
+  <sqlMap resource="dao/ibatis/maps/Medicamentos.xml"/>   
+  <sqlMap resource="dao/ibatis/maps/Recetas.xml"/>     
+  <sqlMap resource="dao/ibatis/maps/Prestaciones.xml"/>     
+  <sqlMap resource="dao/ibatis/maps/Cuadernos.xml"/>     
+  <sqlMap resource="dao/ibatis/maps/Cuentas.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Carpetas.xml"/> 
+   <sqlMap resource="dao/ibatis/maps/Actividad.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Quirofanos.xml"/> 
+  <sqlMap resource="dao/ibatis/maps/Farmacias.xml"/> 
+</sqlMapConfig>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Parentescos">
+
+  <resultMap id="datosParentesco" class="domain.Parentescos">
+    <result property="id_parentesco"                 column="id_parentesco"/>
+    <result property="parentesco"                    column="parentesco"/>
+    <result property="id_estado"               column="id_estado"/>
+  </resultMap>
+
+  <select id="getListarParentescos" resultMap="datosParentesco">
+    SELECT id_tipo_parentesco as id_parentesco,tipo_parentesco as parentesco,id_estado
+    FROM tipos_parentescos Where Id_estado='A'
+    ORDER BY tipo_parentesco
+  </select>
+  
+  <select id="getDatosParentesco" resultMap="datosParentesco">
+    SELECT id_tipo_parentesco as id_parentesco,tipo_parentesco as parentesco,id_estado
+    FROM tipos_parentescos
+    where id_tipo_parentesco=#id_parentesco#
+    ORDER BY tipo_parentesco   
+  </select>
+  
+  <insert id="setCrearParentesco" >
+    insert into tipos_parentescos (id_tipo_parentesco, tipo_parentesco,  id_estado, ult_usuario) 
+                      values ( #id_parentesco#, #parentesco#, 'A', #ult_usuario# )
+  </insert>
+
+  <update id="setModificarParentesco" >
+    update tipos_parentescos
+    set  tipo_parentesco = #parentesco#,
+         id_estado = #id_estado#       
+    where  id_tipo_parentesco = #id_parentesco#
+    
+  </update>
+
+  <delete id="setEliminarParentesco" >
+    delete from tipos_parentescos where id_tipo_parentesco = #id_parentesco#
+  </delete>
+  
+</sqlMap>

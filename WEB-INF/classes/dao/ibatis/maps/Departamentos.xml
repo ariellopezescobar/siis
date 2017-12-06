@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Departamentos">
+
+  <resultMap id="datosdepartamento" class="domain.Departamentos">
+    <result property="id_departamento"                 column="id_departamento"/>
+    <result property="departamento"                    column="departamento"/>
+    <result property="id_pais"                         column="id_pais"/>
+    <result property="id_estado"                       column="id_estado"/>
+  </resultMap>
+
+  <select id="getListarDepartamentos" resultMap="datosdepartamento">
+    SELECT a.id_departamento, a.departamento, a.id_pais,a.id_estado
+    FROM pas_departamentos a
+    ORDER BY departamento
+  </select>
+  
+  <select id="getDatosDepartamento" resultMap="datosdepartamento">
+    SELECT a.id_departamento, a.departamento, a.id_pais,a.id_estado
+    FROM pas_departamentos a
+    where  a.id_departamento=#id_departamento#
+    <!--where  a.id_estado='A' and a.id_departamento=#id_departamento#-->
+    ORDER BY departamento      
+  </select>
+  
+  <insert id="setCrearDepartamento" >
+    insert into pas_departamentos (id_departamento, departamento,  id_pais, id_estado,ult_usuario) 
+                         values ( #id_departamento#, #departamento#, #id_pais#, 'A', #ult_usuario# )
+  </insert>
+
+  <update id="setModificarDepartamento" >
+    update pas_departamentos
+    set  departamento = #departamento#,
+         id_pais = #id_pais#,       
+         id_estado = #id_estado#       
+    where  id_departamento = #id_departamento#
+    
+  </update>
+
+  <delete id="setEliminarDepartamento" >
+    delete from pas_departamentos where id_departamento = #id_departamento#
+  </delete>
+  
+  <resultMap id="datospaisdep" class="domain.Departamentos">
+    <result property="id_departamento"                 column="id_departamento"/>
+    <result property="departamento"                    column="departamento"/>
+    <result property="sigla"                           column="sigla"/>
+  </resultMap>
+  
+  <select id="getListarPaisDep" resultMap="datospaisdep">
+      select id_departamento, departamento, sigla 
+      from pas_departamentos 
+      where id_pais=1 and id_departamento!=0
+  </select>
+  
+  
+</sqlMap>

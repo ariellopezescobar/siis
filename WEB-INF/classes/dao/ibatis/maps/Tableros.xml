@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<!--
+ * @autor FAUTAPO
+ * @fec_registro 2006-04-03
+ * @ult_usuario FAUTAPO
+ * @fec_modificacion 2006-04-03
+-->
+
+<sqlMap namespace="Tableros">
+ 
+  <resultMap id="listaNoticias" class="domain.Tableros">
+    <result property="id_tablero"    column="id_tablero" />
+    <result property="fec_registro"  column="fec_registro" />
+    <result property="noticia"       column="noticia" />
+    <result property="mensaje"       column="mensaje" />
+    <result property="tipo_aviso"    column="tipo_aviso" />
+    <result property="id_rol"        column="id_rol" />
+    <result property="ult_usuario"   column="envia" />
+    <result property="correo"        column="correo" />
+  </resultMap>
+ 
+  <select id="getListarNoticias" resultMap="listaNoticias">
+    SELECT * FROM tr_tbl_listar_tableros()
+    AS (id_tablero integer, fec_registro timestamp without time zone, noticia text, mensaje text, tipo_aviso text, id_rol integer, 
+        envia integer, correo text);
+  </select>
+  
+   <resultMap id="listaTiposTableros" class="domain.Tableros">
+    <result property="id_tipo_tablero"    column="id_tipo_tablero" />
+    <result property="tipo_tablero"       column="tipo_tablero" />
+  </resultMap>
+ 
+  <select id="getListarTiposTableros" resultMap="listaTiposTableros">
+    SELECT * FROM tr_tbl_listar_tipos_tableros();
+  </select>
+  
+  <resultMap id="listaTiposAvisos" class="domain.Tableros">
+    <result property="id_tipo_aviso"    column="id_tipo_aviso" />
+    <result property="tipo_aviso"       column="tipo_aviso" />
+  </resultMap>
+ 
+  <select id="getListarTiposAvisos" resultMap="listaTiposAvisos">
+    SELECT * FROM tr_tbl_listar_tipos_avisos();
+  </select>
+ 
+  <select id="setRegistrarTablero" resultClass="java.lang.Integer">
+    SELECT tr_tbl_registrar_tablero(#id_tablero#, #id_tipo_tablero#, #id_tipo_aviso#, #noticia#, #mensaje#, #id_rol#, #ult_usuario#);
+  </select> 
+
+  <resultMap id="buscarTablero" class="domain.Tableros">
+    <result property="id_tablero"     column="id_tablero" />
+    <result property="id_tipo_aviso"  column="id_tipo_aviso" />
+    <result property="id_rol"         column="id_rol" />
+    <result property="fec_registro"   column="fec_registro" />
+    <result property="noticia"        column="titulo" />
+    <result property="mensaje"        column="cuerpo" />
+    <result property="ult_usuario"    column="envia" />
+  </resultMap>
+ 
+  <select id="getBuscarTablero" resultMap="buscarTablero">
+    SELECT * FROM tr_tbl_buscar_tablero(#id_tablero#);
+  </select>
+  
+  <select id="setEliminarTablero" resultClass="java.lang.Integer">
+    SELECT tr_tbl_eliminar_tablero(#id_tablero#, #ult_usuario#);
+  </select> 
+
+</sqlMap>

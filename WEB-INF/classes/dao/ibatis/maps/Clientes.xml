@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Clientes">
+ 
+  <resultMap id="cliente" class="domain.Clientes">
+    <result property="id_usuario"      column="id_usuario" />
+    <result property="nombres"         column="nombres" />
+    <result property="id_consultorio"  column="id_consultorio" />
+    <result property="id_rol"          column="id_rol" />
+    <result property="rol"             column="rol" />
+    <result property="consultorio"     column="consultorio" />
+    <result property="departamento"    column="departamento" />
+    <result property="red"             column="red" />
+    <result property="localidad"       column="localidad" />
+    <result property="tipo"            column="tipo" />
+    <result property="area"            column="area" /> 
+    <result property="establecimiento" column="establecimiento" />
+    <result property="cod_esta"        column="cod_esta" />
+    <result property="id_persona"      column="id_persona" />
+    <result property="id_almacen"      column="id_almacen" />
+    <result property="id_farmacia"     column="id_farmacia" />
+    <result property="id_cargo"        column="id_cargo" />
+    <result property="id_especialidad" column="id_especialidad" />
+    <result property="id_laboratorio"  column="id_laboratorio" />
+    <result property="id_rol2"         column="id_rol2" />
+    <result property="id_piso"         column="id_piso" />
+    <result property="inst_id"         column="inst_id" />
+    <result property="farmacia"        column="farmacia" />
+  </resultMap>
+
+  <select id="getBuscarConexion" resultMap="cliente">
+    SELECT * FROM buscar_conexion(#apodo#, #clave#)
+     AS (id_usuario integer, nombres text, id_consultorio integer,id_rol integer, consultorio text, rol text, 
+         departamento text, red text,localidad text,tipo text,area text,establecimiento text,cod_esta integer,
+         id_persona integer,id_almacen integer,id_farmacia integer,id_cargo integer,id_rol2 integer,id_especialidad integer,
+         id_laboratorio integer,id_piso integer,inst_id integer,farmacia text);
+         <!--urgencias as id_almacen -->
+  </select>
+
+  <resultMap id="comprobarCliente" class="domain.Clientes">
+    <result property="id_usuario" column="id_usuario" />
+    <result property="apodo"    column="apodo" />
+  </resultMap>
+
+  <select id="getComprobarUsuario" resultMap="comprobarCliente">
+    SELECT id_usuario,apodo FROM comprobar_usuario(#id_usuario#, #clave#);
+  </select>
+
+</sqlMap>

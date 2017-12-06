@@ -1,0 +1,276 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Costos">
+
+  <resultMap id="datosReporteCobro" class="domain.Costos">
+    <result property="costo"                 column="costo"/>
+    <result property="cantidad"              column="cantidad"/>
+    <result property="costo_unit"            column="costo_unit"/>
+    <result property="total"                 column="total"/>
+  </resultMap>
+    
+  <select id="getReporteCobro" resultMap="datosReporteCobro">    
+     select costo,count(*) as cantidad,cobros.costo_unit, sum(cobros.costo_unit) as total 
+     from cobros 
+     JOIN costos c USING(id_costo)
+     where cobros.fecha BETWEEN #fecha_ini#  and #fecha_fin#
+        and id_persona=#id_persona# and costos.cod_esta= #cod_esta#
+     group by costo,cobros.costo_unit
+     order by costo 
+  </select>    
+  
+  <resultMap id="datosLabMed" class="domain.Costos">
+    <result property="id_laboratorio"           column="id_laboratorio"/>
+    <result property="laboratorio"              column="laboratorio"/>
+    <result property="id_estado"                column="id_estado"/>
+    <result property="id_costo"                 column="id_costo"/>
+    <result property="costo"                    column="costo"/>
+    <result property="costo_unit"               column="costo_unit"/>
+    <result property="normales"                 column="normales"/>
+    <result property="defecto"                  column="defecto"/>
+    <result property="muestra"                  column="muestra"/>
+    <result property="tipo"                     column="tipo"/>
+    <result property="id_prestacion"            column="id_prestacion"/>
+    <result property="id_nivel"                 column="id_nivel"/>
+    <result property="emergencias"              column="emergencias"/>
+  </resultMap>
+  
+  <select id="getListarLabosMedico" resultMap="datosLabMed">
+    SELECT id_laboratorio,laboratorio,costos.id_estado,id_costo,costo,costo_unit,normales,defecto,muestra,tipo,id_prestacion,id_nivel,
+           emergencias
+    FROM costos
+    JOIN laboratorios USING(id_laboratorio)
+    where id_rubro=6 and (id_laboratorio between #id_laboratorio# and #id_historial#) and costos.id_estado like #id_estado# and 
+           (tipo between #tipo# and #id_persona#) and (emergencias between #id_nivel# and #emergencias#) and costos.cod_esta= #cod_esta#
+    ORDER BY laboratorio,costo,id_estado 
+    <!--se quita 20-07-2017 (tipo between #tipo# and #id_persona#) and -->
+  </select>
+  
+  <select id="getListarLabosMedicoConf" resultMap="datosLabMed">
+    SELECT id_laboratorio,laboratorio,costos.id_estado,id_costo,costo,costo_unit,normales,defecto,muestra,tipo,id_prestacion,id_nivel,
+           emergencias
+    FROM costos
+    JOIN laboratorios USING(id_laboratorio)
+    where (emergencias between #id_nivel# and #emergencias#) and id_rubro=6 and costos.cod_esta= #cod_esta# and id_costo in 
+         (select id_costo from laboratorio where cod_esta=#cod_esta# and id_laboratorio!=13 and id_laboratorio!=12 and id_costo!=143 and
+         id_pedido in (select id_pedido from pedidoslab where cod_esta=#cod_esta# and id_persona=#id_persona#) group by id_costo  )
+    ORDER BY costo,id_estado 
+  </select>
+  
+  <select id="getListarCostosRx" resultMap="datosLabMed">
+    SELECT id_laboratorio,laboratorio,costos.id_estado,id_costo,costo,costo_unit,normales,defecto,muestra,tipo,id_prestacion,id_nivel,
+           emergencias
+    FROM costos
+    JOIN laboratorios USING(id_laboratorio)
+    where id_rubro=6 and id_laboratorio=13 and normales ilike #defecto# and costos.cod_esta= #cod_esta#
+    ORDER BY laboratorio,costo,id_estado 
+  </select>
+  
+  <select id="getListarCostosEco" resultMap="datosLabMed">
+    SELECT id_laboratorio,laboratorio,costos.id_estado,id_costo,costo,costo_unit,normales,defecto,muestra,tipo,id_prestacion,id_nivel,
+           emergencias
+    FROM costos
+    JOIN laboratorios USING(id_laboratorio)
+    where id_rubro=6 and id_laboratorio=12 and costos.cod_esta= #cod_esta# 
+    ORDER BY laboratorio,costo,id_estado 
+  </select>
+  
+  <resultMap id="datosCosto" class="domain.Costos">
+    <result property="id_persona"               column="id_persona"/>
+    <result property="id_rubro"                 column="id_rubro"/>
+    <result property="id_estado"                column="id_estado"/>
+    <result property="rubro"                    column="rubro"/>
+    <result property="id_costo"                 column="id_costo"/>
+    <result property="costo"                    column="costo"/>
+    <result property="costo_unit"               column="costo_unit"/>
+    <result property="id_laboratorio"           column="id_laboratorio"/>
+    <result property="normales"                 column="normales"/>
+    <result property="defecto"                  column="defecto"/>
+    <result property="muestra"                  column="muestra"/>
+    <result property="tipo"                     column="tipo"/>
+    <result property="id_prestacion"            column="id_prestacion"/>
+    <result property="id_nivel"                 column="id_nivel"/>
+    <result property="emergencias"              column="emergencias"/>
+  </resultMap>
+
+  <select id="getListarCostosRubro" resultMap="datosCosto">
+    SELECT id_costo,id_laboratorio as id_persona,id_rubro,costos.id_estado,rubro,costo,costo_unit,id_laboratorio,normales,
+    defecto,muestra,tipo,id_prestacion,id_nivel,emergencias
+    FROM rubros
+    JOIN costos USING(id_rubro)
+    WHERE cod_esta= #cod_esta#
+    ORDER BY rubro,id_laboratorio,tipo, costo
+  </select>
+  
+  <select id="getListarCostosLabSumi" resultMap="datosCosto">
+    SELECT id_costo,costos.id_laboratorio as id_persona,id_rubro,costos.id_estado,rubro,costo,costo_unit,costos.id_laboratorio,normales,
+    defecto,muestra,tipo,id_prestacion,id_nivel,emergencias
+    FROM costos
+    JOIN rubros USING(id_rubro)
+    JOIN laboratorios USING(id_laboratorio)
+    where laboratorios.id_estado='A' and costos.id_estado like #id_estado# and costos.cod_esta= #cod_esta# and
+         (costos.id_laboratorio between #tipo# and #id_persona#) and not(id_costo=143) and emergencias=#emergencias#
+    ORDER BY costo,id_estado
+  </select>
+  
+   <select id="getListarCostosLab" resultMap="datosCosto">
+    SELECT id_costo,costos.id_laboratorio as id_persona,id_rubro,costos.id_estado,rubro,costo,costo_unit,costos.id_laboratorio,normales,
+    defecto,muestra,tipo,id_prestacion,id_nivel,emergencias
+    FROM costos
+    JOIN rubros USING(id_rubro)
+    JOIN laboratorios USING(id_laboratorio)
+    where laboratorios.id_estado='A' and id_rubro=#id_rubro# and costos.id_estado like #id_estado# and costos.cod_esta= #cod_esta# and 
+         (costos.id_laboratorio between #tipo# and #id_persona#) and id_costo!=143 and emergencias=#emergencias#
+    ORDER BY costo,id_estado
+  </select>
+  
+  <select id="getListarCostosLabQuim" resultMap="datosCosto">
+    SELECT id_costo,costos.id_laboratorio as id_persona,id_rubro,costos.id_estado,rubro,costo,costo_unit,costos.id_laboratorio,normales,
+    defecto,muestra,tipo,id_prestacion,id_nivel,emergencias
+    FROM costos
+    JOIN rubros USING(id_rubro)
+    JOIN laboratorios USING(id_laboratorio)
+    where laboratorios.id_estado like #id_estado# and (id_rubro between #id_rubro# and #id_prestacion#) and costos.id_estado like #id_estado# and 
+          (costos.id_laboratorio between #tipo# and #id_persona#) and quimicas=1 and emergencias=#emergencias# and costos.cod_esta= #cod_esta#
+    and id_costo in (SELECT id_costo FROM laboratorio
+    where id_historial=#id_historial# )
+    ORDER BY costo,id_estado
+  </select>
+  
+  <select id="getListarTodos" resultMap="datosCosto">
+   (SELECT id_costo,costos.id_laboratorio as id_persona,id_rubro,costos.id_estado,rubro,costo,costo_unit,costos.id_laboratorio,normales,
+    defecto,muestra,tipo,id_prestacion,id_nivel,emergencias
+    FROM costos
+    JOIN rubros USING(id_rubro)
+    JOIN laboratorios USING(id_laboratorio)
+    where laboratorios.id_estado='A' and (id_rubro between #id_rubro# and #id_prestacion#) and costos.id_estado like #id_estado# and 
+      (costos.id_laboratorio between #tipo# and #id_persona#) and costos.cod_esta= #cod_esta# and id_costo in  
+              (SELECT id_costo FROM laboratorio where id_historial=#id_historial#)
+    ORDER BY costo,id_estado)
+    UNION    
+    (SELECT id_costo,costos.id_laboratorio as id_persona,id_rubro,costos.id_estado,rubro,costo,costo_unit,costos.id_laboratorio,normales,
+    defecto,muestra,tipo,id_prestacion,id_nivel,emergencias
+    FROM costos
+    JOIN rubros USING(id_rubro)
+    where id_costo=143 and costos.cod_esta= #cod_esta#
+    ORDER BY costo,id_estado)
+    ORDER BY costo,id_estado
+  </select>
+  
+  <select id="getListarCostosLabSero" resultMap="datosCosto">
+    SELECT id_costo,costos.id_laboratorio as id_persona,id_rubro,costos.id_estado,rubro,costo,costo_unit,costos.id_laboratorio,normales,
+    defecto,muestra,tipo,id_prestacion,id_nivel,emergencias
+    FROM costos
+    JOIN rubros USING(id_rubro)
+    JOIN laboratorios USING(id_laboratorio)
+    where laboratorios.id_estado='A' and (id_rubro between #id_rubro# and #id_prestacion#) and costos.id_estado like #id_estado# and 
+      (costos.id_laboratorio between #tipo# and #id_persona#) and quimicas=2 and emergencias=#emergencias#
+    and costos.cod_esta= #cod_esta# and id_costo not in  (SELECT id_costo FROM laboratorio where id_historial=#id_historial# )
+    ORDER BY costo,id_estado
+  </select>
+  
+  <select id="getListarCostosLabOtro" resultMap="datosCosto">
+    SELECT id_costo,costos.id_laboratorio as id_persona,id_rubro,costos.id_estado,rubro,costo,costo_unit,costos.id_laboratorio,normales,
+    defecto,muestra,tipo, id_prestacion ,id_nivel,emergencias
+    FROM costos
+    JOIN rubros USING(id_rubro)
+    JOIN laboratorios on costos.tipo=laboratorios.id_laboratorio
+    where laboratorios.id_estado like '%' (id_rubro between #id_rubro# and #id_prestacion#) and costos.id_estado like #id_estado# and 
+          (costos.id_laboratorio between #tipo# and #id_persona#) and costos.cod_esta= #cod_esta# and id_costo in 
+    (SELECT id_costo FROM laboratorio
+    join historiales using(id_historial)
+    where id_historial=#id_historial# and laboratorio.id_costo != 121 and laboratorio.id_costo != 137    
+           <!-- and laboratorio.id_laboratorio in (select id_costo from costos where quimicas=1)-->
+    order by id_laboratorio,fechap)
+    ORDER BY quimicas,costo,id_estado
+  </select>
+  
+  <select id="getListarCostos" resultMap="datosCosto">
+     (SELECT id_costo,costos.id_laboratorio as id_persona,id_rubro,costos.id_estado,rubro,costo,costo_unit,costos.id_laboratorio,normales,
+    defecto,muestra,tipo,id_prestacion,id_nivel,emergencias
+    FROM costos
+    JOIN rubros USING(id_rubro)
+    where (id_rubro between #id_rubro# and #id_prestacion#) and costos.id_estado like #id_estado# and costos.cod_esta= #cod_esta# and 
+          (id_laboratorio between #tipo# and #id_persona#) and (emergencias between #id_nivel# and #emergencias#)
+    ORDER BY costo,id_estado)
+  UNION    
+    (SELECT id_costo,costos.id_laboratorio as id_persona,id_rubro,costos.id_estado,rubro,costo,costo_unit,costos.id_laboratorio,normales,
+    defecto,muestra,tipo,id_prestacion,id_nivel,emergencias
+    FROM costos
+    JOIN rubros USING(id_rubro)
+    where id_costo=143 and costos.cod_esta= #cod_esta#
+    ORDER BY costo,id_estado)
+    ORDER BY costo,id_estado
+  </select>
+  
+  <select id="getListarCostosLabora" resultMap="datosCosto">
+    SELECT id_costo,costos.id_laboratorio as id_persona,id_rubro,costos.id_estado,rubro,costo,costo_unit,costos.id_laboratorio,normales,
+    defecto,muestra,tipo,id_prestacion,id_nivel,emergencias
+    FROM costos
+    JOIN rubros USING(id_rubro)
+    where costos.cod_esta= #cod_esta# and id_costo in (select id_costo from laboratorio where id_historial=#id_historial# 
+                     and (id_laboratorio between #id_paciente# and #id_persona# ) and laboratorio.cod_esta=#cod_esta#)
+    ORDER BY costo,id_estado
+  </select>
+  
+  <select id="getListarNombreCosto" resultMap="datosCosto">
+    SELECT id_costo,costos.id_laboratorio as id_persona,id_rubro,costos.id_estado,rubro,costo,costo_unit,costos.id_laboratorio,normales,
+    defecto,muestra,tipo,id_prestacion,id_nivel,emergencias
+    FROM costos
+    JOIN rubros USING(id_rubro)
+    where (id_rubro between #id_rubro# and #id_prestacion#) and costos.id_estado like #id_estado# and costos.cod_esta= #cod_esta# and 
+           UPPER(costos||NORMALES) like UPPER(#normales#) and (emergencias between #id_nivel# and #emergencias#)
+    ORDER BY costo,id_estado
+  </select>
+  
+  <select id="getListarNombreCosto22" resultMap="datosCosto">
+    SELECT id_costo,costos.id_laboratorio as id_persona,id_rubro,costos.id_estado,rubro,costo,costo_unit,costos.id_laboratorio,normales,
+    defecto,muestra,tipo,id_prestacion,id_nivel,emergencias
+    FROM costos
+    JOIN rubros USING(id_rubro)
+    where (id_rubro between #id_rubro# and #id_prestacion#) and costos.id_estado like #id_estado# and costos.cod_esta= #cod_esta# and 
+           UPPER(costos||NORMALES) like UPPER(#normales#) and (emergencias between #id_nivel# and #emergencias#)
+    ORDER BY costo,id_estado
+  </select>
+  
+  <select id="getDatosCosto" resultMap="datosCosto">
+    SELECT id_costo,id_laboratorio as id_persona,id_rubro,costos.id_estado,rubro,costo,costo_unit,id_laboratorio,normales,
+    defecto,muestra,tipo,id_prestacion,id_nivel,emergencias
+    FROM costos
+    JOIN rubros USING(id_rubro)
+    where id_costo=#id_costo# and costos.cod_esta= #cod_esta#  <!--and emergencias=#emergencias#  13/11/2014-->
+    ORDER BY costo
+  </select>
+  
+  <insert id="setCrearCosto">
+    insert into costos ( id_rubro,id_estado,costo,costo_unit, normales,defecto,muestra,id_prestacion,id_nivel,emergencias,
+                       id_laboratorio,cod_esta,fec_reg) 
+           values ( #id_rubro#,#id_estado#,#costo#,#costo_unit#,#normales#,#defecto#,#muestra#,#id_prestacion#,#id_nivel#,#emergencias#,
+                       #id_laboratorio#,#cod_esta#,now())
+  </insert>
+
+  <update id="setModificarCosto">
+    update costos
+    set  costo=#costo#,id_estado=#id_estado#,costo_unit=#costo_unit#,normales=#normales#,defecto=#defecto#,muestra=#muestra#,
+         id_prestacion=#id_prestacion#,id_nivel=#id_nivel#,emergencias=#emergencias#,id_laboratorio=#id_laboratorio#
+    where  id_costo = #id_costo# and cod_esta = #cod_esta#  
+  </update>
+
+  <delete id="setEliminarCosto">
+    delete from costos where id_costo = #id_costo# and id_laboratorio=0;
+  </delete>
+  
+  <resultMap id="datosReporteRubro" class="domain.Costos">
+    <result property="id_rubro"           column="id_rubro"/>
+    <result property="rubro"              column="rubro"/>
+  </resultMap>
+    
+  <select id="getListaRubro" resultMap="datosReporteRubro">    
+     select id_rubro,rubro
+     from rubros WHERE id_estado='A'
+     order by id_rubro           
+  </select>    
+  
+  
+</sqlMap>

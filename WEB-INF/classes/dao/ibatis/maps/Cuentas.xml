@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Cuentas">
+  <resultMap id="datosLibro" class="domain.Cuentas">
+    <result property="id_cuenta"           column="id_cuenta"/>
+    <result property="cuenta"              column="cuenta"/>
+    <result property="debe"                column="debe"/>
+    <result property="haber"               column="haber"/>
+  </resultMap>
+
+  <select id="getListarLibroDiario" resultMap="datosLibro">
+   select id_cuenta,cuenta,debe,haber
+   from librodiario
+   join cuentas using(id_cuenta)
+   where id_transaccion=#id_transaccion#
+  </select>
+  
+  <resultMap id="datosLibroMayor" class="domain.Cuentas">
+    <result property="fec_registro"        column="fec_registro"/>
+    <result property="transaccion"         column="transaccion"/>
+    <result property="debe"                column="debe"/>
+    <result property="haber"               column="haber"/>
+  </resultMap>
+
+  <select id="getListarLibroMayor" resultMap="datosLibroMayor">   
+    select fec_registro,transaccion,debe,haber
+    from librodiario 
+    join transacciones using(id_transaccion)
+    where id_cuenta=#id_cuenta# and
+          (fec_registro BETWEEN #fecha_ini#  and #fecha_fin#)
+  </select>
+   
+  <resultMap id="datosCuenta" class="domain.Cuentas">
+    <result property="id_cuenta"                 column="id_cuenta"/>
+    <result property="cuenta"                    column="cuenta"/>
+    <result property="codigo"            column="codigo"/>
+    <result property="tipo_cuenta"            column="tipo_cuenta"/>
+    <result property="id_estado"               column="id_estado"/>
+  </resultMap>
+
+  <select id="getListarCuentas" resultMap="datosCuenta">
+    SELECT id_cuenta, cuenta, codigo,tipo_cuenta,id_estado
+    FROM cuentas
+    where id_estado='A'
+    ORDER BY tipo_cuenta,cuenta
+  </select>
+  
+  <select id="getListarCuentasNom" resultMap="datosCuenta">
+     select * from cuentas 
+     where cuenta like  UPPER(#cuenta#) AND ID_ESTADO='A'
+  </select>
+  
+  <select id="getListarCuentasCot" resultMap="datosCuenta">
+     select * from cuentas 
+     where ID_ESTADO='A' and id_cuenta in (select id_cuenta from librodiario 
+                                           group by id_cuenta order by -count(*) limit 20)
+  </select>
+  
+  <select id="getDatosCuenta" resultMap="datosCuenta">
+    SELECT id_cuenta, cuenta, codigo,tipo_cuenta,id_estado
+    FROM cuentas
+    where id_cuenta=#id_cuenta#
+    ORDER BY cuenta
+  </select>
+  
+  <insert id="setCrearCuenta" >
+    insert into cuentas ( cuenta,  codigo, id_estado,tipo_cuenta) values (  #cuenta#, #codigo#, 'A' ,#tipo_cuenta#)
+  </insert>
+
+  <update id="setModificarCuenta" >
+    update cuentas
+    set  cuenta = #cuenta#,
+         codigo = #codigo#,       
+         id_estado = #id_estado#,       
+         tipo_cuenta=#tipo_cuenta#
+    where  id_cuenta = #id_cuenta#
+    
+  </update>
+
+  <delete id="setEliminarCuenta" >
+    delete from cuentas where id_cuenta = #id_cuenta#
+  </delete>
+  
+  
+   <resultMap id="datosTransaccion" class="domain.Cuentas">
+    <result property="id_transaccion"                 column="id_transaccion"/>
+    <result property="fec_registro"                   column="fec_registro"/>
+    <result property="transaccion"                    column="transaccion"/>
+    <result property="id_estado"                      column="id_estado"/>
+  </resultMap>
+
+  <select id="getListarTransacciones" resultMap="datosTransaccion">
+    SELECT id_transaccion,fec_registro, transaccion, id_estado
+    FROM transacciones
+    ORDER BY transaccion
+  </select>
+  
+  <select id="getDatosTransaccion" resultMap="datosTransaccion">
+    SELECT id_transaccion,fec_registro, transaccion, id_estado
+    FROM transacciones
+    where id_transaccion=#id_transaccion#
+    ORDER BY transaccion
+  </select>
+  
+  <select id="getNumLibroDiario" resultClass="java.lang.Integer">
+     SELECT max(id_transaccion) as valor from transacciones;
+  </select>
+  
+  <insert id="setCrearTransaccion" >
+    insert into transacciones ( transaccion,fec_registro,   id_estado)
+    values (  #transaccion#, #fec_registro#,'A' )
+  </insert>
+
+  <update id="setModificarTransaccion" >
+    update transacciones
+    set  transaccion = #transaccion#,
+         id_estado = #id_estado#,
+         fec_registro = #fec_registro#
+    where  id_transaccion = #id_transaccion#    
+  </update>
+
+  <delete id="setEliminarTransaccion" >
+    delete from transacciones where id_transaccion = #id_transaccion#
+  </delete>
+  
+  <insert id="setCrearLibroDiario" >
+    insert into librodiario (id_transaccion,id_cuenta,debe,haber) 
+    values ( #id_transaccion#, #id_cuenta#, #debe#, #haber#)
+  </insert>
+  
+  <delete id="setEliminarLibroDiario" >
+    delete from librodiario where id_transaccion=#id_transaccion# and id_cuenta=#id_cuenta#     
+  </delete>
+  
+</sqlMap>

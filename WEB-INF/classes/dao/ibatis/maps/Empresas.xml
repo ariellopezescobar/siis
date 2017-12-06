@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Empresas">
+
+    <resultMap id="datosEmpresaCaja" class="domain.Empresas">
+    <result property="id_empresa"                 column="id_empresa"/>
+    <result property="estado"                     column="estado"/>
+    <result property="empresa"                    column="empresa"/>
+    <result property="nit"                        column="nit"/>
+  </resultMap>
+ 
+  <select id="getListarEmpresaCaja" resultMap="datosEmpresaCaja">
+    select 0 as eempresaaseguradoid,0 as eempresaid,eempresaafiliadaid as id_empresa,enropatronal as estado,
+     erazonsocial as empresa,enit as nit 
+        from empresascns limit 1
+     <!-- where taseguradoid in 
+        (SELECT taseguradoid FROM asegurados where tmatricula like #nombres#)
+       --> 
+        
+  </select>
+  
+  <resultMap id="datosEmpresaD" class="domain.Empresas">
+    <result property="id_empresa"                 column="id_empresa"/>
+    <result property="empresa"                    column="empresa"/>
+    <result property="nit"                        column="nit"/>
+    <result property="telefonos"                  column="telefonos"/>
+    <result property="direccion"                  column="direccion"/>
+    <result property="responsable"                column="responsable"/>
+    <result property="id_estado"                  column="id_estado"/>
+    <result property="tipo"                       column="tipo"/>
+    <result property="cod_patronal"               column="cod_patronal"/>
+    <result property="fec_registro"               column="fec_registro"/>
+    <result property="fec_baja"                   column="fec_baja"/>
+  </resultMap>
+ 
+  <select id="getListarEmpresa3" resultMap="datosEmpresaD">
+    SELECT id_empresa,empresa,nit,telefonos,direccion,responsable,e.id_estado, e.tipo,cod_patronal,p.fec_registro::date,p.fec_baja::date
+    FROM empresas e
+    join pacientesumi p using(id_empresa)
+    WHERE id_carpeta=#id_carpeta# and p.id_estado like '%'
+    group by id_empresa,empresa,nit,telefonos,direccion,responsable,e.id_estado, e.tipo,cod_patronal,p.fec_registro::date,p.fec_baja::date 
+    LIMIT 1
+  </select>
+  
+  <resultMap id="datosEmpresa" class="domain.Empresas">
+    <result property="id_empresa"                 column="id_empresa"/>
+    <result property="empresa"                    column="empresa"/>
+    <result property="nit"                        column="nit"/>
+    <result property="telefonos"                  column="telefonos"/>
+    <result property="direccion"                  column="direccion"/>
+    <result property="responsable"                column="responsable"/>
+    <result property="id_estado"                  column="id_estado"/>
+    <result property="tipo"                       column="tipo"/>
+    <result property="cod_patronal"               column="cod_patronal"/>
+    <result property="nro"                        column="nro"/>
+  </resultMap>
+
+  <select id="getListarEmpresas" resultMap="datosEmpresa">
+    SELECT id_empresa,empresa,nit,telefonos,direccion,responsable,id_estado,'A' as tipo,cod_patronal,nro_trabajadores as nro
+    FROM empresas 
+    ORDER BY empresa LIMIT 100
+  </select>
+  
+  <select id="getListaEmpresa" resultMap="datosEmpresa">
+    SELECT id_empresa,empresa,nit,telefonos,direccion,responsable,id_estado,'A' as tipo,cod_patronal,nro_trabajadores as nro
+    FROM empresas
+    WHERE UPPER(empresa||cod_patronal||nit) LIKE UPPER(#nombres#) 
+    ORDER BY empresa LIMIT 100
+    <!--  UPPER(empresa||cod_patronal||nit) no puede ser por no encuentra empresa en controlador-->
+  </select>
+  
+  <select id="getListaEmpresaCod" resultMap="datosEmpresa">
+    SELECT id_empresa,empresa,nit,telefonos,direccion,responsable,id_estado, 'A' as tipo,cod_patronal,nro_trabajadores as nro
+    FROM empresas
+    WHERE cod_patronal =#cod_patronal#
+    ORDER BY empresa LIMIT 100
+  </select>
+  
+  <select id="getListaEmpEmpresa" resultMap="datosEmpresa">
+    SELECT id_empresa,empresa,nit,telefonos,direccion,responsable,id_estado,'A' as tipo,cod_patronal,nro_trabajadores as nro
+    FROM empresas
+    WHERE id_empresa in (select id_empresa from pacientes where nombres LIKE UPPER(#nombres#))
+    ORDER BY empresa LIMIT 100
+  </select>
+  
+  <select id="getListaEmpEmpresaCod" resultMap="datosEmpresa">
+    SELECT id_empresa,empresa,nit,telefonos,direccion,responsable,id_estado,'A' as tipo,cod_patronal,nro_trabajadores as nro
+    FROM empresas
+    WHERE id_empresa in (select id_empresa from pacientes where nro_registro LIKE UPPER(#nombres#))
+    ORDER BY empresa LIMIT 100
+  </select>
+  
+  <select id="getListarEmpresa2" resultMap="datosEmpresa">
+    SELECT id_empresa,empresa,nit,telefonos,direccion,responsable,id_estado,'A' as tipo,cod_patronal,nro_trabajadores as nro
+    FROM empresas
+    WHERE empresa LIKE (#nombres#) 
+    ORDER BY empresa LIMIT 100
+  </select>
+ 
+  <select id="getDatosEmpresa" resultMap="datosEmpresa">
+    SELECT id_empresa,empresa,nit,telefonos,direccion,responsable,id_estado,'A' as tipo,cod_patronal,nro_trabajadores as nro
+    FROM empresas
+    where id_empresa=#id_empresa#
+    ORDER BY empresa   
+  </select>
+  
+  <insert id="setCrearEmpresa">
+    insert into empresas (empresa,nit,cod_patronal,telefonos,direccion,responsable, id_estado,tipo) 
+                      values (upper(#empresa#),#nit#,#cod_patronal#,#telefonos#,#direccion#,#responsable#, '1',1)
+  </insert>
+
+  <update id="setModificarEmpresa">
+    update empresas
+    set  empresa=upper(#empresa#), nit=#nit#,telefonos=#telefonos#, direccion=#direccion#, 
+         responsable=#responsable#,id_estado=#id_estado#, cod_patronal=#cod_patronal#       
+    where  id_empresa = #id_empresa#;
+    update pacientes set nempresa=upper(#empresa#) where id_empresa = #id_empresa#;
+    
+  </update>
+
+  <delete id="setEliminarEmpresa">
+    delete from empresas where id_empresa = #id_empresa#
+  </delete>
+  
+</sqlMap>

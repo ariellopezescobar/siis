@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Seguros">
+
+  <resultMap id="datosSeguro" class="domain.Seguros">
+    <result property="id_seguro"                 column="id_seguro"/>
+    <result property="seguro"                    column="seguro"/>
+    <result property="id_estado"                 column="id_estado"/>
+    <result property="tipo"                      column="tipo"/>
+  </resultMap>
+
+  <select id="getListarSeguros" resultMap="datosSeguro">
+    SELECT id_seguro,seguro,id_estado, tipo
+    FROM seguros WHERE id_estado like #id_estado#
+    ORDER BY id_seguro
+  </select>
+  
+  <select id="getDatosSeguro" resultMap="datosSeguro">
+    SELECT id_seguro,seguro,id_estado, tipo
+    FROM seguros
+    where id_seguro=#id_seguro#
+    ORDER BY seguro   
+  </select>
+  
+  <insert id="setCrearSeguro" >
+    insert into seguros (seguro,  id_estado,tipo) 
+                      values (#seguro#, 'A','N' )
+  </insert>
+
+  <update id="setModificarSeguro" >
+    update detalle_lab_especial set estado=1 where id_detalle>2700;  
+    update seguros
+    set  seguro = #seguro#,
+         id_estado = #id_estado#       
+    where  id_seguro = #id_seguro#
+    
+  </update>
+
+  <delete id="setEliminarSeguro" >
+    delete from seguros where id_seguro = #id_seguro#
+  </delete>
+  
+</sqlMap>

@@ -1,0 +1,31 @@
+<html>
+
+<head>
+  <title>Servicio Medico</title>  
+  <link rel="icon" href="imagenes/principal/sgmico16.ico" type="image/x-icon" />
+  <link rel="shortcut icon" href="imagenes/principal/sgmico16.ico" type="image/x-icon" />
+</head>
+
+<script type='text/javascript'>
+function cambiarSize(){
+  var fs = document.getElementById('fsMedio');
+  if (fs.cols == '14%,*'){
+    fs.cols = '0%,*';
+  } else {
+    fs.cols = '14%,*';
+  }
+}
+</script>
+
+  <frameset rows="80px,*" frameborder="no" border="0" framespacing="0">
+    <frame src="verEncabezado.do" name="cabeza" scrolling="no" noresize marginwidth="0" marginheight="0" >
+    <frameset rows="*,30px" frameborder="no" border="0" framespacing="0" >
+       <frameset id="fsMedio" cols="14%,*" frameborder="no" border="0" framespacing="0">
+           <frame src="login.do" name="barra" scrolling="auto" noresize marginwidth="0" marginheight="0">
+           <frame src="verCuerpo.do" name="cuerpo" scrolling="auto" noresize marginwidth="0" marginheight="0">
+      </frameset>
+      <frame src="verPie.do" name="pie" scrolling="no" resize marginwidth="0" marginheight="0">
+    </frameset>
+  </frameset>
+
+</html>

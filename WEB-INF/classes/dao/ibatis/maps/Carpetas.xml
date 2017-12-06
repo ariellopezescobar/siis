@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Carpetas">
+  
+  <resultMap id="datosCarpetaEmp" class="domain.Carpetas">
+    <result property="id_carpeta"                 column="id_carpeta"/>
+    <result property="id_empresa"                 column="id_empresa"/>
+    <result property="id_paciente"                column="id_paciente"/>
+    <result property="nombres"                    column="nombres"/>
+    <result property="carpeta"                    column="carpeta"/>
+    <result property="id_estado"               column="id_estado"/>
+  </resultMap>
+
+  <select id="getListarCarpetasEmpresa" resultMap="datosCarpetaEmp">
+    SELECT a.id_carpeta,id_paciente,nombres, a.carpeta, a.id_estado
+    FROM carpetas a
+    join pacientes using(id_paciente)
+    where nombres like #nombres#
+    ORDER BY nombres LIMIT 100
+  </select>
+  
+  
+  <resultMap id="datosCarpetaCaja" class="domain.Carpetas">
+    <result property="suma1"                     column="suma1"/>
+    <result property="suma2"                     column="suma2"/>
+    <result property="suma3"                     column="suma3"/>
+    <result property="suma4"                     column="suma4"/>
+    <result property="suma5"                     column="suma5"/>
+    <result property="suma6"                     column="suma6"/>
+    <result property="suma7"                     column="suma7"/>
+    <result property="suma8"                     column="suma8"/>
+    <result property="suma9"                     column="suma9"/>
+    <result property="fecha_ini"                 column="fecha_ini"/>
+    <result property="fecha_fin"                 column="fecha_fin"/>
+    <result property="suma10"                    column="suma10"/>
+    <result property="cadena1"                   column="cadena1"/>
+    <result property="cadena2"                   column="cadena2"/>
+    <result property="cadena3"                   column="cadena3"/>
+    <result property="cadena4"                   column="cadena4"/>
+    <result property="cadena5"                   column="cadena5"/>
+    <result property="cadena6"                   column="cadena6"/>
+  </resultMap>
+  
+  <select id="getListarDependientes" resultMap="datosCarpetaCaja">
+    SELECT tgrupofamiliarid as suma1,taseguradoid as suma2,tpersonaid as suma3,tnombres||' '||tpaterno||' '||tmaterno as cadena1,
+       tfechanacimiento as fecha_ini, tmatricula as cadena2, tdocumentoidentidad as cadena3, tsexo as suma4,tparametrotipoparentescoid as suma5,
+       baseguradoid as suma6,bpersonaid as suma7,bnombres||' '||bpaterno||' '||bmaterno as cadena4,bfechanacimiento as fecha_fin,
+       bmatricula as cadena5, tdocumentoidentidad as cadena6, bsexo as suma8,bparametrotipoparentescoid as suma9,bparametroestadoid as suma10 
+    FROM asegurados
+    where tmatricula like #nro_registro#
+  </select>
+  
+  <resultMap id="datosCarpeta" class="domain.Carpetas">
+    <result property="id_carpeta"                 column="id_carpeta"/>
+    <result property="id_paciente"                column="id_paciente"/>
+    <result property="nombres"                    column="nombres"/>
+    <result property="carpeta"                    column="carpeta"/>
+    <result property="id_estado"                  column="id_estado"/>
+    <result property="nro_registro"               column="nro_registro"/>
+  </resultMap>
+
+  <select id="getListarCarpetas" resultMap="datosCarpeta">
+    SELECT a.id_carpeta,id_paciente,nombres, a.carpeta, a.id_estado, a.nro_registro
+    FROM carpetas a
+    join pacientes using(id_paciente)
+    where nombres like #nombres#
+    ORDER BY nombres LIMIT 100
+  </select>
+  
+  <select id="getListarCarpetasFam" resultMap="datosCarpeta">
+    SELECT id_carpeta,id_paciente,nombres, 1 as carpeta, nro_registro as id_estado, nro_registro
+    FROM pacientes
+    where pacientes.id_carpeta=#id_carpeta#
+  </select>
+  
+  <select id="getListarCarpetasAse" resultMap="datosCarpeta">
+    SELECT id_carpeta,id_paciente,nombres, 1 as carpeta, nro_registro as id_estado, nro_registro
+    FROM pacientes
+    where pacientes.nro_registro like UPPER (#nro_registro#) and id_tipo_parentesco=1
+  </select>
+  
+  <select id="getListarCarpetasId" resultMap="datosCarpeta">
+    SELECT a.id_carpeta,id_paciente,nombres, a.carpeta, a.id_estado, a.nro_registro
+    FROM carpetas a
+    join pacientes using(id_paciente)
+    where pacientes.id_carpeta=#id_carpeta# and id_tipo_parentesco=1
+  </select>
+  
+  <resultMap id="datoCarpeta" class="domain.Carpetas">
+    <result property="id_carpeta"                 column="id_carpeta"/>
+    <result property="id_paciente"                column="id_paciente"/>
+    <result property="carpeta"                    column="carpeta"/>
+    <result property="id_estado"               column="id_estado"/>
+  </resultMap>
+
+  <select id="getDatosCarpeta" resultMap="datoCarpeta">
+    SELECT id_carpeta, id_paciente,carpeta, id_estado
+    FROM carpetas
+    where id_carpeta=#id_carpeta#
+    ORDER BY carpeta
+  </select>
+  
+  <select id="getDatosCarpetaPac" resultMap="datoCarpeta">
+    SELECT id_carpeta, id_paciente,carpeta, id_estado
+    FROM carpetas
+    where id_paciente=#id_paciente#
+  </select>
+  
+  <insert id="setCrearCarpeta" >
+    insert into carpetas (id_paciente, carpeta, id_estado)
+               values ( #id_paciente#, #carpeta#, 'A' )
+  </insert>
+
+  <update id="setModificarCarpeta" >
+    update carpetas
+    set  carpeta = #carpeta#, id_estado = #id_estado#, id_carpeta = #id_carpeta#       
+    where  id_carpeta = #id_paciente#;
+    update pacientes
+    set  id_carpeta = #id_carpeta#       
+    where  id_carpeta = #id_paciente#;
+  </update>
+
+  <delete id="setEliminarCarpeta" >
+    delete from carpetas where id_carpeta = #id_carpeta#
+  </delete>
+  <update id="setEliminarCarpetaD" >
+    update pacientes
+    set  id_carpeta =0,         
+         id_tipo_parentesco = 0       
+    where  id_carpeta = #id_carpeta#    
+  </update>
+  
+  <resultMap id="datosPacienteDep" class="domain.Carpetas">
+    <result property="id_paciente"       column="id_paciente"/>
+    <result property="hcl"               column="hcl"/>
+    <result property="nombres"           column="nombres"/>
+    <result property="direccion"         column="direccion"/>
+    <result property="carnet"            column="carnet"/>
+    <result property="fec_nacimiento"    column="fec_nacimiento"/>    
+    <result property="id_estado"         column="id_estado"/>
+    <result property="id_tipo_sexo"      column="id_tipo_sexo"/>
+     <result property="id_tipo_documento"   column="id_tipo_documento"/>
+    <result property="ocupacion"            column="ocupacion"/>  
+    <result property="id_tipo_parentesco"   column="id_tipo_parentesco"/>  
+    <result property="id_departamento"      column="id_departamento"/>
+    <result property="direccion"            column="direccion"/>
+    <result property="tipo"                 column="tipo"/>
+    <result property="id_carpeta"           column="id_carpeta"/>
+  </resultMap>
+  
+  <select id="getListarCarpetasCaja" resultMap="datosPacienteDep">
+    select id_paciente,hcl, nombres,direccion,carnet,fec_nacimiento,pacientes.id_estado,id_tipo_sexo,id_tipo_documento,ocupacion,
+        pacientes.id_tipo_parentesco,0 as id_departamento,'localidad' as direccion, descr_larga as tipo,id_carpeta
+    from pacientes inner join par_def_valor_param on id_tipo_parentesco=par_def_valor_param.codigo 
+    where id_paciente= #id_paciente# and (valor_maximo='25' or valor_maximo='15' or valor_maximo='19' or valor_maximo='60' or valor_maximo='00')
+    order by fec_nacimiento
+    <!-- se cambio id_carpeta= #id_carpeta# por  id_paciente= #id_paciente#  18-08-2015-->
+  </select>
+
+  <select id="getListarPacientesD" resultMap="datosPacienteDep">
+    select id_paciente,hcl, nombres,direccion,carnet,fec_nacimiento,pacientes.id_estado,id_tipo_sexo,id_tipo_documento,ocupacion,
+       pacientes.id_tipo_parentesco,pacientes.id_departamento,localidad as direccion, tipo_parentesco as tipo,id_carpeta
+    from pacientes,prv_localidades ,tipos_parentescos
+    where pacientes.id_tipo_parentesco=tipos_parentescos.id_tipo_parentesco and pacientes.id_localidad=prv_localidades.id_localidad and id_carpeta = #id_carpeta# 
+  </select>
+  <select id="getListarPacientesDJefe" resultMap="datosPacienteDep">
+    select id_paciente,hcl, nombres,direccion,carnet,fec_nacimiento,pacientes.id_estado,id_tipo_sexo,id_tipo_documento,ocupacion,
+       pacientes.id_tipo_parentesco,pacientes.id_departamento,localidad as direccion, tipo_parentesco as tipo,id_carpeta
+    from pacientes,prv_localidades ,tipos_parentescos
+    where pacientes.id_tipo_parentesco=tipos_parentescos.id_tipo_parentesco and pacientes.id_localidad=prv_localidades.id_localidad and id_carpeta = #id_carpeta# and pacientes.id_tipo_parentesco = 1 
+  </select>
+  
+  <update id="setCrearPacienteD" >
+      update pacientes
+      set id_carpeta=#id_carpeta#,id_tipo_parentesco=#id_tipo_parentesco#
+      where id_paciente=#id_paciente#
+  </update>  
+  
+  <update id="setEliminarPacienteD" >
+      update pacientes
+      set id_carpeta=0,id_tipo_parentesco=0
+      where id_paciente=#id_paciente#      
+  </update> 
+ 
+</sqlMap>

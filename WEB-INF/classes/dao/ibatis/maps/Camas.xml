@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Camas">
+
+   <resultMap id="datosCamaPiso" class="domain.Camas">
+    <result property="id_piso"                 column="id_piso"/>
+    <result property="piso"                    column="piso"/>
+    <result property="id_sala"                 column="id_sala"/>
+    <result property="sala"                    column="sala"/>
+    <result property="id_cama"                 column="id_cama"/>
+    <result property="cama"                    column="cama"/>
+    <result property="cama_unit"               column="cama_unit"/>
+    <result property="estado"                  column="estado"/>
+  </resultMap>
+  
+  <select id="getListarCamasEstado" resultMap="datosCamaPiso">
+     SELECT pisos.id_piso, piso,id_sala, sala, id_cama, cama, cama_unit,estado
+        FROM salas
+        JOIN camas USING(id_sala) 
+        INNER JOIN pisos on salas.id_piso=pisos.id_piso 
+        WHERE id_sala!=0 and estado=0 and pisos.cod_esta=#cod_esta# and (pisos.id_piso between #id_piso0# and #id_piso#) 
+              and (id_sala between #id_sala0# and #id_sala#)
+        ORDER BY id_piso,id_sala, id_cama
+  </select>
+  
+  <resultMap id="datosCama" class="domain.Camas">
+    <result property="id_sala"                 column="id_sala"/>
+    <result property="id_piso"                 column="id_piso"/>
+    <result property="piso"                    column="piso"/>
+    <result property="sala"                    column="sala"/>
+    <result property="id_cama"                 column="id_cama"/>
+    <result property="cama"                    column="cama"/>
+    <result property="cama_unit"               column="cama_unit"/>
+    <result property="estado"                  column="estado"/>
+    <result property="cod_esta"                  column="cod_esta"/>
+  </resultMap>
+
+  <select id="getListarCamasSala" resultMap="datosCama">
+    SELECT pisos.id_piso,piso,id_sala, sala, id_cama, cama, cama_unit,estado,pisos.cod_esta
+    FROM camas
+    JOIN salas USING(id_sala)
+    INNER JOIN pisos ON salas.id_piso=pisos.id_piso
+    where id_sala!=0  and id_cama!=0 and pisos.cod_esta=#cod_esta#
+    ORDER BY piso,sala, cama
+  </select>
+  
+  <select id="getListarCamas" resultMap="datosCama">
+    SELECT pisos.id_piso,piso,id_sala, sala, id_cama, cama, cama_unit,estado,pisos.cod_esta
+    FROM camas
+    JOIN salas USING(id_sala)
+    INNER JOIN pisos ON salas.id_piso=pisos.id_piso
+    where id_sala=#id_sala# and id_cama!=0 and estado=0
+    ORDER BY cama
+  </select>
+  
+  <select id="getListarCamaUnit" resultMap="datosCama">
+    SELECT pisos.id_piso,piso,id_sala, sala, id_cama, cama, cama_unit,estado,pisos.cod_esta
+    FROM camas
+    JOIN salas USING(id_sala)
+    INNER JOIN pisos ON salas.id_piso=pisos.id_piso
+    where id_cama=0 and id_cama=#id_cama#
+    ORDER BY cama
+  </select>
+  
+  <select id="getListarCamasTotal" resultMap="datosCama">
+    SELECT pisos.id_piso,piso,id_sala, sala, id_cama, cama, cama_unit,estado,pisos.cod_esta
+    FROM camas
+    JOIN salas USING(id_sala)
+    INNER JOIN pisos ON salas.id_piso=pisos.id_piso
+    where id_cama!=0 and id_sala=#id_sala# 
+    ORDER BY piso,cama
+  </select>
+  
+  <select id="getListarCamaPiso" resultMap="datosCama">
+    SELECT pisos.id_piso,piso,id_sala, sala, id_cama, cama, cama_unit,estado,pisos.cod_esta
+    FROM camas
+    JOIN salas USING(id_sala)
+    INNER JOIN pisos ON salas.id_piso=pisos.id_piso
+    where id_cama!=0 and id_piso=#id_piso# and pisos.cod_esta=#cod_esta#
+    ORDER BY piso,cama
+  </select>
+  
+  <select id="getDatosCama" resultMap="datosCama">
+    SELECT pisos.id_piso,piso,id_sala, sala, id_cama, cama, cama_unit,estado,pisos.cod_esta
+    FROM camas
+    JOIN salas USING(id_sala)
+    INNER JOIN pisos ON salas.id_piso=pisos.id_piso
+    where id_cama!=0 and id_cama=#id_cama#
+    ORDER BY cama
+  </select>
+  
+  <insert id="setCrearCama">
+    insert into camas ( id_sala, cama, cama_unit,estado) 
+                values ( #id_sala#, #cama#, #cama_unit#,0)
+  </insert>
+
+  <update id="setModificarCama" >
+    update camas
+    set  cama = #cama#, cama_unit = #cama_unit#, estado=#estado#
+    where  id_cama = #id_cama# 
+  </update>
+  
+  <update id="setModificarCamaVacia" >
+    update camas
+    set    estado=#estado#
+    where  id_cama = #id_cama# and cod_esta=#cod_esta#
+  </update>
+
+  <delete id="setEliminarCama" >
+    delete from camas where id_cama = #id_cama#
+  </delete>
+  
+  <resultMap id="datosReporteSala" class="domain.Camas">
+    <result property="id_sala"           column="id_sala"/>
+    <result property="sala"              column="sala"/>
+  </resultMap>
+    
+   
+</sqlMap>

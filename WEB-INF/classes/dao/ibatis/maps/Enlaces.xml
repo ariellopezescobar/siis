@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Enlaces">
+
+  <resultMap id="enlace" class="domain.Enlaces">
+    <result property="id_enlace" column="id_enlace" />
+    <result property="enlace"    column="enlace" />
+    <result property="imagen"    column="imagen" />
+    <result property="ruta"      column="ruta" />
+    <result property="tabla"     column="tabla" />
+    <result property="permiso"   column="permiso" />
+  </resultMap>
+
+  <select id="getListarEnlaces" resultMap="enlace">
+    SELECT * FROM ctg_listar_enlaces(#id_categoria#, #id_rol#)
+    ORDER BY orden, enlace;
+  </select>
+
+  <select id="getBuscarEnlaces" resultMap="enlace">
+    SELECT *
+    FROM ctg_buscar_enlace(#id_enlace#);
+  </select>
+
+  <!-- INICIO Combustible -->
+  <select id="getEnlBuscarEnlace" resultMap="enlace">
+    SELECT *
+    FROM enl_buscar_enlace(#id_enlace#);
+  </select>
+  <!-- FIN Combustible -->
+ 
+</sqlMap>

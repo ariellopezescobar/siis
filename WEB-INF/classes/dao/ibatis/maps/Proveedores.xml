@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Proveedores">
+
+  <resultMap id="datosProveedor" class="domain.Proveedores">
+    <result property="id_proveedor"          column="id_proveedor"/>
+    <result property="razonsocial"           column="razonsocial"/>
+    <result property="encargado"             column="encargado"/>
+    <result property="direccion"             column="direccion"/>
+    <result property="fonos"                 column="fonos"/>
+    <result property="nit"                   column="nit"/>
+    <result property="email"                 column="email"/>
+    <result property="ciudad"                column="ciudad"/>
+    <result property="fecha_ing"             column="fecha_ing"/>
+    <result property="cod_esta"              column="cod_esta"/>
+    <result property="id_estado"             column="id_estado"/>
+  </resultMap>
+  
+  <select id="getListarProveedores" resultMap="datosProveedor">
+    SELECT id_proveedor,razonsocial,encargado,direccion,fonos,nit,email,ciudad,fecha_ing,cod_esta,id_estado
+    FROM proveedores
+    where cod_esta=#cod_esta# and  id_proveedor !=0
+    ORDER BY razonsocial
+  </select>
+  
+  <select id="getDatosProveedor" resultMap="datosProveedor">
+    SELECT id_proveedor,razonsocial,encargado,direccion,fonos,nit,email,ciudad,fecha_ing,cod_esta,id_estado
+    FROM proveedores
+    where id_proveedor=#id_proveedor# and cod_esta=#cod_esta#  
+  </select>
+  
+  <insert id="setCrearProveedor" >
+    INSERT INTO public.proveedores(razonsocial, encargado, direccion, id_estado, fonos, nit, email, ciudad, fecha_ing, cod_esta)
+    VALUES ( #razonsocial#, #encargado#, #direccion#, 'A', #fonos#, #nit#, #email#, #ciudad#, now(), #cod_esta#);
+  </insert>
+
+  <update id="setModificarProveedor" >
+    update proveedores
+    set  razonsocial = #razonsocial#,encargado= #encargado#,direccion=#direccion#,ciudad=#ciudad#,
+         id_estado = #id_estado#,fonos=#fonos#, nit=#nit#, email=#email#     
+    where  id_proveedor = #id_proveedor# and cod_esta=#cod_esta#
+    
+  </update>
+
+  <delete id="setEliminarProveedor" >
+    delete from proveedores where id_proveedor = #id_proveedor# and cod_esta=#cod_esta# and  id_proveedor !=0;
+  </delete>
+  
+</sqlMap>

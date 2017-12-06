@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Sexos">
+
+  <resultMap id="datosSexo" class="domain.Sexos">
+    <result property="id_sexo"                 column="id_sexo"/>
+    <result property="sexo"                    column="sexo"/>
+    <result property="id_estado"               column="id_estado"/>
+  </resultMap>
+
+  <select id="getListarSexos" resultMap="datosSexo">
+    SELECT id_tipo_sexo as id_sexo,tipo_sexo as sexo,id_estado
+    FROM tipos_sexos
+    ORDER BY tipo_sexo
+  </select>
+  
+  <select id="getDatosSexo" resultMap="datosSexo">
+    SELECT id_tipo_sexo as id_sexo,tipo_sexo as sexo,id_estado
+    FROM tipos_sexos
+    where id_tipo_sexo=#id_sexo#
+    ORDER BY tipo_sexo   
+  </select>
+  
+  <insert id="setCrearSexo" >
+    insert into tipos_sexos (id_tipo_sexo, tipo_sexo,  id_estado, ult_usuario) 
+                      values ( #id_sexo#, #sexo#, 'A', #ult_usuario# )
+  </insert>
+
+  <update id="setModificarSexo" >
+    update tipos_sexos
+    set  tipo_sexo = #sexo#,
+         id_estado = #id_estado#       
+    where  id_tipo_sexo = #id_sexo#
+    
+  </update>
+
+  <delete id="setEliminarSexo" >
+    delete from tipos_sexos where id_tipo_sexo = #id_sexo#
+  </delete>
+  
+</sqlMap>

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Laboratorios">
+  
+  <resultMap id="datosLaboratorioGrupo" class="domain.Laboratorios">
+    <result property="id_laboratoriog"          column="id_laboratoriog"/>
+    <result property="id_costo"                 column="id_costo"/>
+    <result property="laboratorio"              column="laboratorio"/>
+    <result property="id_estado"               column="id_estado"/>
+    <result property="cod_esta"                column="cod_esta"/>
+  </resultMap>
+
+  <select id="getListarLabGrupo" resultMap="datosLaboratorioGrupo">
+    SELECT id_labgrupos as id_laboratoriog, id_consultorio as id_costo, titulo as laboratorio, cod_esta, consultorio as id_estado
+      FROM public.laboratorios_grupos
+      WHERE cod_esta=#cod_esta# and id_consultorio=#id_costo#
+  </select>
+  
+  <resultMap id="datosLaboratorioGrupoD" class="domain.Laboratorios">
+    <result property="id_laboratoriog"          column="id_laboratoriog"/>  
+    <result property="id_laboratorio"           column="id_laboratorio"/>
+    <result property="id_costo"                 column="id_costo"/>
+    <result property="laboratorio"              column="laboratorio"/>
+    <result property="id_estado"                column="id_estado"/>
+    <result property="cadena"                   column="cadena"/>
+    <result property="cod_esta"                 column="cod_esta"/>
+  </resultMap>
+
+  <select id="getListarLabGrupoDet" resultMap="datosLaboratorioGrupoD">
+    SELECT l.id_laboratorio, id_labgrupos as id_laboratoriog, laboratorio, d.cod_esta, 
+           id_costo,c.costo as id_estado,titulo as cadena
+      FROM public.laboratorios_grupos g
+      JOIN laboratorios_grupos_detalle d using(id_labgrupos)
+      JOIN costos c using(id_costo)
+      JOIN laboratorios l using(id_laboratorio)
+    WHERE d.cod_esta=#cod_esta# and id_consultorio=#id_costo# and id_labgrupos=#id_laboratoriog#
+  </select>
+      
+  <resultMap id="datosLaboratorio" class="domain.Laboratorios">
+    <result property="id_laboratorio"                 column="id_laboratorio"/>
+    <result property="laboratorio"                    column="laboratorio"/>
+    <result property="id_estado"               column="id_estado"/>
+  </resultMap>
+
+  <select id="getListarLaboratorios" resultMap="datosLaboratorio">
+    SELECT id_laboratorio, laboratorio, id_estado
+    FROM laboratorios where id_estado like #id_estado#
+    ORDER BY id_laboratorio
+  </select>
+  
+  <select id="getDatosLaboratorio" resultMap="datosLaboratorio">
+    SELECT id_laboratorio, laboratorio, id_estado
+    FROM laboratorios
+    where id_laboratorio=#id_laboratorio#
+  </select>
+  
+  <select id="getDatosLaboratorioNombre" resultMap="datosLaboratorio">
+    SELECT id_laboratorio, laboratorio, id_estado
+    FROM laboratorios
+    where laboratorio=#laboratorio#
+  </select>
+  
+  <select id="getDatosLaboratorioRayos" resultMap="datosLaboratorio">
+    SELECT id_laboratorio,normales as laboratorio,'A'::text as id_estado
+    FROM costos WHERE id_laboratorio=13 and quimicas=100 
+    group by id_laboratorio,normales order by normales
+  </select>
+  
+  <insert id="setCrearLaboratorio">
+    insert into laboratorios(laboratorio, id_estado,ult_usuario) 
+                      values(#laboratorio#, 'A', #ult_usuario#)
+  </insert>
+  
+   <insert id="setCrearLaboratorioGrupo" >
+     INSERT INTO public.laboratorios_grupos(id_consultorio, titulo, idusuario, cod_esta, consultorio)
+     VALUES ( #id_consultorio#, #laboratorio#, #ult_usuario#, #cod_esta#, #cadena#);
+  </insert>
+  
+  <insert id="setCrearLaboratorioGrupoDet">
+     INSERT INTO public.laboratorios_grupos_detalle(id_labgrupos, id_costo, idusuario, cod_esta, costo, emergencia)
+      VALUES (#id_laboratoriog#, #id_costo#, #ult_usuario#, #cod_esta#, #cadena#,0); 
+  </insert>
+
+  <update id="setModificarLaboratorio" >
+    update laboratorios
+    set  laboratorio = #laboratorio#,
+         id_estado = #id_estado#       
+    where  id_laboratorio = #id_laboratorio#
+    
+  </update>
+
+  <delete id="setEliminarLaboratorio" >
+    delete from laboratorios where id_laboratorio = #id_laboratorio#
+  </delete>
+  
+  <delete id="setEliminarLaboratorioGrupoDet" >
+    DELETE from public.laboratorios_grupos_detalle 
+    WHERE id_labgrupos_detalle = #id_laboratoriog# and cod_esta=#cod_esta# and id_costo=#id_costo#
+  </delete>
+  
+  <delete id="setEliminarLaboratorioGrupo" >
+    delete from public.laboratorios_grupos where id_labgrupos = #id_laboratoriog# and cod_esta=#cod_esta# and id_consultorio=#id_consultorio#
+  </delete>
+  
+</sqlMap>

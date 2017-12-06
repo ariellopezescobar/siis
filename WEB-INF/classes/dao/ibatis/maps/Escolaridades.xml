@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Escolaridades">
+
+  <resultMap id="datosEscolaridad" class="domain.Escolaridades">
+    <result property="id_escolaridad"                 column="id_escolaridad"/>
+    <result property="escolaridad"                    column="escolaridad"/>
+    <result property="id_estado"                      column="id_estado"/>
+  </resultMap>
+
+  <select id="getListarEscolaridades" resultMap="datosEscolaridad">
+    SELECT id_escolaridad,escolaridad ,id_estado
+    FROM tipos_escolaridades
+    ORDER BY escolaridad
+  </select>
+  
+  <select id="getDatosEscolaridad" resultMap="datosEscolaridad">
+    SELECT id_escolaridad ,escolaridad ,id_estado
+    FROM tipos_escolaridades
+    where id_escolaridad=#id_escolaridad#
+    ORDER BY escolaridad   
+  </select>
+  
+  <insert id="setCrearEscolaridad" >
+    insert into tipos_escolaridades (id_escolaridad, escolaridad,  id_estado, ult_usuario) 
+                      values ( #id_escolaridad#, #escolaridad#, 'A', #ult_usuario# )
+  </insert>
+
+  <update id="setModificarEscolaridad" >
+    update tipos_escolaridades
+    set  escolaridad = #escolaridad#,
+         id_estado = #id_estado#       
+    where  id_escolaridad = #id_escolaridad#
+    
+  </update>
+
+  <delete id="setEliminarEscolaridad" >
+    delete from tipos_escolaridades where id_escolaridad = #id_escolaridad#
+  </delete>
+  
+</sqlMap>

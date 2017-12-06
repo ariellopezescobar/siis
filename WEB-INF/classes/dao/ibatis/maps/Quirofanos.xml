@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Quirofanos">
+
+  <resultMap id="datosQuirofanos" class="domain.Quirofanos">
+    <result property="id_quirofano"             column="id_quirofano"/>
+    <result property="id_historial"             column="id_historial"/>
+    <result property="cod_esta"                 column="cod_esta"/>
+    <result property="id_paciente"              column="id_paciente"/>
+    <result property="id_estado"                column="id_estado"/>
+    <result property="quirofano"                column="quirofano"/>
+    <result property="fecha"                    column="fecha"/>
+    <result property="fechap"                   column="fechap"/>
+    <result property="cadena1"                  column="cadena1"/>
+    <result property="cadena2"                  column="cadena2"/>
+    <result property="cadena3"                  column="cadena3"/>
+    <result property="cadena4"                  column="cadena4"/>
+    <result property="cadena5"                  column="cadena5"/>
+    <result property="cadena6"                  column="cadena6"/>
+    <result property="cadena7"                  column="cadena7"/>
+    <result property="cadena8"                  column="cadena8"/>
+    <result property="cadena9"                  column="cadena9"/>
+    <result property="cadena10"                 column="cadena10"/>
+    <result property="cadena11"                 column="cadena11"/>
+    <result property="cadena14"                 column="cadena14"/>
+    <result property="suma1"                    column="suma1"/>
+    <result property="suma2"                    column="suma2"/>
+    <result property="suma3"                    column="suma3"/>
+    <result property="suma4"                    column="suma4"/>
+    <result property="suma5"                    column="suma5"/>
+  </resultMap>
+
+  <select id="getListarQuirofanosLibres" resultMap="datosQuirofanos">
+    SELECT id_prog as suma1,id_quirofano,quirofano,p.fecha,p.fecha_propuesta as fechap,a.nombres as cadena1,(e.nombres||' '||e.paterno||' '||e.materno) as cadena2, 
+           id_historial,id_paciente,p.id_estado,p.id_empresa as suma2,tipocirugia as cadena3,observacion as cadena4,pulso as cadena5,
+           p.temperatura as cadena6,presion_art as cadena7,corazon as cadena8,pulmon as cadena9,nempresa as cadena10,h.cod_esta,
+           diagnostico_quir as cadena14,codigoempresa as cadena11,ayucirujano as suma3,anastecista as suma4, ayuanastecista as suma5
+		FROM prog_quirofano p
+		    INNER JOIN personas e ON e.id_persona = p.cirujano
+		    JOIN quirofanos q using(id_quirofano)
+		    JOIN historiales h using(id_historial)
+		    JOIN pacientes a using(id_paciente)
+		WHERE p.id_estado='A' and q.id_quirofano!=0 and p.cod_esta=#cod_esta# 
+     ORDER BY fecha desc limit 14            
+  </select>
+  
+  <select id="getListarQuirofanosLibres1" resultMap="datosQuirofanos">
+    SELECT id_prog as suma1,id_quirofano,quirofano,p.fecha,p.fecha_propuesta as fechap,a.nombres as cadena1,(e.nombres||' '||e.paterno||' '||e.materno) as cadena2, 
+           id_historial,id_paciente,p.id_estado,p.id_empresa as suma2,tipocirugia as cadena3,observacion as cadena4,pulso as cadena5,
+           p.temperatura as cadena6,presion_art as cadena7,corazon as cadena8,pulmon as cadena9,nempresa as cadena10,h.cod_esta,
+           diagnostico_quir as cadena14,codigoempresa as cadena11,ayucirujano as suma3,anastecista as suma4, ayuanastecista as suma5
+		FROM prog_quirofano p
+		    INNER JOIN personas e ON e.id_persona = p.cirujano
+		    JOIN quirofanos q using(id_quirofano)
+		    JOIN historiales h using(id_historial)
+		    JOIN pacientes a using(id_paciente)
+	   WHERE p.id_estado='A' and q.id_quirofano!=0 and p.cod_esta=#cod_esta# and p.id_quirofano=#id_quirofano#
+          ORDER BY fecha desc limit 30            
+  </select>
+  
+  <select id="getListarQuirofanosLibres2" resultMap="datosQuirofanos">
+    SELECT id_prog as suma1,id_quirofano,quirofano,p.fecha,p.fecha_propuesta as fechap,a.nombres as cadena1,(e.nombres||' '||e.paterno||' '||e.materno) as cadena2, 
+           id_historial,id_paciente,p.id_estado,p.id_empresa as suma2,tipocirugia as cadena3,observacion as cadena4,pulso as cadena5,
+           p.temperatura as cadena6,presion_art as cadena7,corazon as cadena8,pulmon as cadena9,nempresa as cadena10,h.cod_esta,
+           diagnostico_quir as cadena14,codigoempresa as cadena11,ayucirujano as suma3,anastecista as suma4, ayuanastecista as suma5
+		FROM prog_quirofano p
+		    INNER JOIN personas e ON e.id_persona = p.cirujano
+		    JOIN quirofanos q using(id_quirofano)
+		    JOIN historiales h using(id_historial)
+		    JOIN pacientes a using(id_paciente)
+	   WHERE p.id_estado='A' and q.id_quirofano!=0 and p.cod_esta=#cod_esta# and p.id_historial=#id_historial# and p.id_quirofano=#id_quirofano#
+          ORDER BY fecha desc limit 1            
+  </select>
+  
+  <resultMap id="datosQuirofano" class="domain.Quirofanos">
+    <result property="id_quirofano"             column="id_quirofano"/>
+    <result property="quirofano"                column="quirofano"/>
+    <result property="id_estado"                column="id_estado"/>
+    <result property="cod_esta"                 column="cod_esta"/>
+  </resultMap>
+
+  <select id="getListarQuirofanos" resultMap="datosQuirofano">
+    SELECT id_quirofano,quirofano,id_estado,cod_esta 
+    FROM quirofanos
+    WHERE id_estado='A' and id_quirofano!=0 and cod_esta=#cod_esta#
+    order by quirofano
+  </select>
+      
+  <select id="getDatosQuirofano" resultMap="datosQuirofano">
+    SELECT id_quirofano,quirofano,id_estado,cod_esta
+    FROM quirofanos
+    where id_quirofano=#id_quirofano# and id_quirofano!=0
+    ORDER BY quirofano   
+  </select>
+  
+  <insert id="setCrearQuirofano" >
+    insert into quirofanos (quirofano,  id_estado, cod_esta) 
+                      values ( #quirofano#, 'A', #cod_esta# )
+  </insert>
+  
+  <insert id="setCrearReservaQuirofano" >
+    INSERT INTO prog_quirofano( fecha, id_quirofano, id_historial,id_empresa,cirujano, ayucirujano, anastecista, ayuanastecista, 
+                tipocirugia, observacion, fecha_propuesta, id_estado, pulso, temperatura, presion_art, corazon, pulmon, id_persona,
+                diagnostico_quir,cod_esta)
+    VALUES (now(),#id_quirofano#,#id_historial#,#id_empresa#,#suma1#,#suma2#,#suma3#,#suma4#,#cadena1#,#cadena2#,#fecha#,'A',
+           #cadena3#,#cadena4#,#cadena5#,#cadena6#,#cadena7#,#ult_usuario#,#cadena15#,#cod_esta#);  
+  </insert>
+
+  <update id="setModificarQuirofano" >
+    update quirofanos
+    set  quirofano = #quirofano#,
+         id_estado = #id_estado#       
+    where  id_quirofano = #id_quirofano#
+  </update>
+
+  <delete id="setEliminarQuirofano" >
+    delete from quirofanos where id_quirofano = #id_quirofano#
+  </delete>
+  
+</sqlMap>

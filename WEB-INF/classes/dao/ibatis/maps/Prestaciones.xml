@@ -1,0 +1,647 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Prestaciones">
+    
+  <resultMap id="listaPresOdon" class="domain.Prestaciones">
+    <result property="prestacion"              column="prestacion"/>
+    <result property="cantidad"                column="cantidad"/>
+  </resultMap>
+
+  <select id="getListarPresOdonGen" resultMap="listaPresOdon">
+    select PRESTACION ,COUNT(*) as cantidad from recetass 
+    where prestacion like '%' AND (fecha BETWEEN #fecha_ini#  and #fecha_fin#)
+    GROUP BY PRESTACION;  
+  </select>  
+  
+  <select id="getListarPresOdon" resultMap="listaPresOdon">
+    select PRESTACION ,COUNT(*) as cantidad from recetass 
+    where prestacion like '%' AND (fecha BETWEEN #fecha_ini#  and #fecha_fin#) and id_persona=#id_persona#
+    GROUP BY PRESTACION;  
+  </select>  
+    
+  <resultMap id="listaNivelPrestacion" class="domain.Prestaciones">
+    <result property="id_prestacion"           column="id_prestacion"/>
+    <result property="prestacion"              column="prestacion"/>
+    <result property="id_grupo"              column="id_grupo"/>
+  </resultMap>
+  
+  <select id="getListarNivelPrestacion" resultMap="listaNivelPrestacion">
+    select id_prestacion,prestacion, id_grupo
+    from prestaciones
+    where id_prestacion = #id_prestacion#
+    ORDER BY prestacion
+  </select>
+  
+  <delete id="setEliminarNivelPaque" >
+    delete from prestaciones where id_prestacion = #id_prestacion# and prestacion = #prestacion#
+  </delete>  
+  
+  <insert id="setCrearNivelPaque" >  
+    insert into prestaciones (id_grupo,prestacion,id_prestacion) values (#id_grupo#,#prestacion#,#id_prestacion#)
+  </insert>
+  
+   <resultMap id="PrestacionGen"   class="domain.Prestaciones">
+    <result property="id_historial"      column="id_historial"/>
+    <result property="prestacion"        column="prestacion"/>    
+    <result property="descripcion"       column="descripcion"/>        
+    <result property="costo"             column="costo"/>
+  </resultMap>
+  
+   <select id="getPrestacionGen" resultMap="PrestacionGen">
+    select id_historial,prestacion,descripcion,costo from recetass
+      join prestacion using(id_prestacion)
+      where cod_esta=#cod_esta# and id_historial in
+      (select id_historial from historiales where (fecha::date BETWEEN #fecha_ini#  and #fecha_fin#) and cod_esta=#cod_esta#)
+  </select>   
+ 
+  <resultMap id="datoPrestacion" class="domain.Prestaciones">
+    <result property="id_prestacion"           column="id_prestacion"/>
+    <result property="prestacion"           column="prestacion"/>
+    <result property="descripcion"              column="descripcion"/>
+    <result property="costo"                   column="costo"/> 
+    <result property="paquete"              column="paquete"/>
+    <result property="id_grupo"              column="id_grupo"/>
+  </resultMap>
+  
+  <select id="getListarPrestacionesSumi" resultMap="datoPrestacion">
+    select id_prestacion, s.prestacion, descripcion, costo,paquete,p.id_grupo
+    from prestacion p
+    JOIN prestaciones s USING(id_prestacion)
+    where descripcion like UPPER(#prestacion#) and paquete='N2012'
+    ORDER BY descripcion
+  </select>
+  
+  <select id="getListarPrestacionesSumiH" resultMap="datoPrestacion">
+    select id_prestacion, s.prestacion, descripcion, costo,paquete,p.id_grupo
+    from prestacion p
+    JOIN prestaciones s USING(id_prestacion)
+    where descripcion like UPPER(#prestacion#) and id_prestacion>2999
+    ORDER BY descripcion
+  </select>
+  
+  <select id="getListarMedicamentosSumi" resultMap="datoPrestacion">
+    select id_prestacion, s.prestacion, descripcion, costo,paquete,p.id_grupo
+    from prestacion p
+    JOIN prestaciones s USING(id_prestacion)
+    JOIN paquetes q USING(id_prestacion)
+    JOIN medicamentos m USING(id_medicamento)
+    where medicamento like UPPER(#value#) and paquete='N2012'
+    GROUP BY id_prestacion, s.prestacion, descripcion, costo,paquete,p.id_grupo
+    ORDER BY descripcion
+  </select>
+  
+  <resultMap id="datoPresta" class="domain.Prestaciones">
+    <result property="id_prestacion"           column="id_prestacion"/>
+    <result property="descripcion"              column="descripcion"/>
+    <result property="costo"                   column="costo"/> 
+    <result property="paquete"              column="paquete"/>
+    <result property="id_grupo"              column="id_grupo"/>
+  </resultMap>
+  
+  <select id="getDatosPrestacion" resultMap="datoPresta">
+    select id_prestacion, descripcion, costo,paquete,id_grupo
+    from prestacion
+    where id_prestacion = #id_prestacion#
+  </select>
+  
+  <insert id="setCrearPrestacion" >
+    insert into prestacion ( descripcion, costo,paquete,id_grupo) values ( #descripcion#, #costo#,#paquete#,1)
+  </insert>
+    
+  <update id="setModificarPrestacion" >
+    update prestacion
+    set  descripcion = #descripcion#,
+         costo = #costo#,
+         paquete= #paquete#               
+    where  id_prestacion = #id_prestacion#    
+  </update>
+  <update id="setHabilitaPrestacion" >
+    update prestacion
+    set  paquete =  #descripcion#             
+    where  id_prestacion = #id_prestacion#    
+  </update>
+  
+  <delete id="setEliminarPrestacion" >
+    delete from prestacion where id_prestacion = #id_prestacion#
+  </delete>
+  
+  <resultMap id="datosPrestacion" class="domain.Prestaciones">
+    <result property="id_prestacion"           column="id_prestacion"/>
+    <result property="prestacion"              column="prestacion"/>
+    <result property="descripcion"             column="descripcion"/>
+    <result property="costo"                   column="costo"/> 
+    <result property="id_persona"              column="id_persona"/>
+  </resultMap>
+
+  <select id="getListarPrestaciones" resultMap="datosPrestacion">
+    select id_prestacion,prestacion,descripcion,costo,internado as id_persona
+    from prestaciones
+    JOIN prestacion USING(id_prestacion)
+    where prestacion like UPPER(#value#) and paquete='N2012'
+    ORDER BY prestacion   
+  </select>
+  <select id="getListarPrestaciones22" resultMap="datosPrestacion">
+    select id_prestacion,prestacion,descripcion,costo,internado as id_persona
+    from prestaciones
+    JOIN prestacion USING(id_prestacion)
+    where prestacion like UPPER(#value#) and paquete='NUEVO'
+    ORDER BY prestacion   
+  </select>
+  
+  <select id="getListarPrestacionesDes" resultMap="datosPrestacion">
+    select id_prestacion,prestacion,descripcion,costo,internado as id_persona
+    from prestaciones
+    JOIN prestacion USING(id_prestacion)
+    where descripcion like UPPER(#value#) and paquete='N2012'
+    ORDER BY prestacion   
+  </select>
+  <select id="getListarPrestacionesDes22" resultMap="datosPrestacion">
+    select id_prestacion,prestacion,descripcion,costo,internado as id_persona
+    from prestaciones
+    JOIN prestacion USING(id_prestacion)
+    where descripcion like UPPER(#value#) and paquete='NUEVO'
+    ORDER BY prestacion   
+  </select>
+  
+  <select id="getListarPrestacionesCot22" resultMap="datosPrestacion">
+     select recetass.id_prestacion,prestaciones.prestacion,descripcion,costo,internado as id_persona
+     from recetass
+     JOIN prestaciones USING(id_prestacion)
+     JOIN prestacion USING(id_prestacion)
+     where paquete='NUEVO'  and id_persona=#id_persona#                  
+     group by recetass.id_prestacion,prestaciones.prestacion,descripcion,costo,internado
+     order by -count(*)
+     limit 40 
+  </select>
+  <select id="getListarPrestacionesCot" resultMap="datosPrestacion">
+     select recetass.id_prestacion,prestaciones.prestacion,descripcion,costo,internado as id_persona
+     from recetass
+     JOIN prestaciones USING(id_prestacion)
+     JOIN prestacion USING(id_prestacion)
+     where paquete='N2012'  and id_persona=#id_persona#                  
+     group by recetass.id_prestacion,prestaciones.prestacion,descripcion,costo,internado
+     order by -count(*)
+     limit 40 
+  </select>
+   
+  <resultMap id="datosSumiRecetaPresDup"        class="domain.Prestaciones">
+    <result property="id_prestacion"              column="id_prestacion"/>
+    <result property="prestacion"                 column="prestacion"/>
+    <result property="descripcion"                column="descripcion"/>    
+    <result property="fecha_fin"                  column="fecha_fin"/>  
+    <result property="id_paciente"                 column="id_paciente"/>
+    <result property="paquete"                    column="paquete"/>
+    <result property="hcl"                        column="hcl"/>
+    <result property="cantidad"                   column="cantidad"/>
+  </resultMap>
+
+  <select id="getListarPrestacionesDuplis" resultMap="datosSumiRecetaPresDup">
+    select id_prestacion,prestacion,descripcion,r.fecha::date as fecha_fin,id_paciente,nombres as paquete,hcl,count(*) as cantidad 
+      from recetass r
+      join historiales using(id_historial)
+      join pacientes using(id_paciente)
+      join prestacion using(id_prestacion)
+    where prestacion not like 'PL%' and prestacion not like 'IG%' and prestacion!='PC135' and prestacion!='PC25' and prestacion!='K46'
+          and prestacion!='PC137' and prestacion!='K042' and prestacion!='K041' and prestacion!='K044' and prestacion!='K045' 
+          and prestacion!='PC28' and prestacion!='PC139' and prestacion!='PC140' and prestacion!='K040' and prestacion!='PC132' 
+          and prestacion!='PC135' and prestacion!='PC37' and prestacion!='K021' and prestacion!='PC29'
+          and r.fecha::date between #fecha_ini# and #fecha_fin# and r.cod_esta=#cod_esta#
+    group by id_prestacion,prestacion,descripcion,r.fecha::date,id_paciente,nombres,hcl
+    having      count(*)>1
+  </select>
+  
+  <resultMap id="datosSumiRecetaPres"        class="domain.Prestaciones">
+    <result property="fecha_fin"                  column="fecha_fin"/>  
+    <result property="id_historial"               column="id_historial"/>
+    <result property="id_persona"                 column="id_persona"/>
+    <result property="id_detalle"                 column="id_detalle"/>
+    <result property="fecha_ini"                  column="fecha_ini"/>
+    <result property="id_prestacion"              column="id_prestacion"/>
+    <result property="prestacion"                 column="prestacion"/>
+    <result property="descripcion"                column="descripcion"/>
+    <result property="costo"                      column="costo"/>
+    <result property="paquete"                    column="paquete"/>
+    <result property="cantidad"                   column="cantidad"/>
+    <result property="referido"                   column="referido"/>
+    <result property="hcl"                        column="hcl"/>
+    <result property="anio"                       column="anio"/>
+  </resultMap>
+
+  <select id="getListarPrestacionSinMed" resultMap="datosSumiRecetaPres">
+    select r.fecha as fecha_fin,id_historial,p.id_persona,id_detalle,r.fecha as fecha_ini,id_prestacion,prestacion,
+          descripcion, costo, (p.nombres||' ' ||p.paterno||' ' ||p.materno) as paquete,cantidad ,a. nombres as referido,hcl, edad as anio
+        from recetass r
+        JOIN prestacion USING(id_prestacion)
+        JOIN personas p USING(id_persona)
+        JOIN historiales USING(id_historial)
+        JOIN pacientes a USING(id_paciente)
+    where r.fecha between #fecha_ini# and #fecha_fin# and id_prestacion in 
+    (select id_prestacion from prestacion where id_prestacion>2999 and id_prestacion in 
+    (select id_prestacion from paquetes ) ) and id_prestacion not in
+    (select id_prestacion from recetas where fecha between #fecha_ini# and #fecha_fin# ) and
+    (id_prestacion!=3445 and id_prestacion!=3442 and id_prestacion!=3438 and id_prestacion!=3488 and id_prestacion!=3238 
+          and prestacion!='PC132' and prestacion!='PC135' and prestacion!='PC37' and prestacion!='PC137' and prestacion!='K040' 
+          and prestacion!='K020' and prestacion!='PC139' and prestacion!='Z012' and prestacion!='PC33'
+      and id_prestacion!=3440 and id_prestacion!=3245 and id_prestacion!=3485 and id_prestacion!=3487 and id_prestacion!=3258)
+      Order by r.fecha
+  </select>
+  
+  <select id="getListarSumiRecetasPres" resultMap="datosSumiRecetaPres">
+    select r.fecha as fecha_fin,id_historial,p.id_persona,id_detalle,r.fecha as fecha_ini,id_prestacion,prestacion,
+      descripcion, costo, (p.nombres||' ' ||p.paterno||' ' ||p.materno) as paquete,cantidad ,a. nombres as referido,hcl, edad as anio
+    from recetass r
+    JOIN prestacion USING(id_prestacion)
+    JOIN personas p USING(id_persona)
+    JOIN historiales USING(id_historial)
+    JOIN pacientes a USING(id_paciente)
+    where id_historial in (SELECT id_historial FROM recetas where expedido='S' and fecha::date BETWEEN #fecha_ini# and #fecha_fin#)
+          and id_prestacion in (select id_prestacion from prestacion join paquetes using(id_prestacion))
+     Order by r.fecha
+  </select>
+  
+  <select id="getListarSumiRecetasPres2" resultMap="datosSumiRecetaPres">
+    select r.fecha as fecha_fin,id_historial,p.id_persona,id_detalle,r.fecha as fecha_ini,id_prestacion,prestacion,
+      descripcion, costo, (p.nombres||' ' ||p.paterno||' ' ||p.materno) as paquete,cantidad ,a. nombres as referido,hcl, edad as anio
+    from recetass r
+    JOIN prestacion USING(id_prestacion)
+    JOIN personas p USING(id_persona)
+    JOIN historiales USING(id_historial)
+    JOIN pacientes a USING(id_paciente)
+    where id_historial in 
+    (select id_historial from recetass where (prestacion='O80' or prestacion='O00' or prestacion='Z381' or prestacion='PC120' or prestacion='O820' or prestacion='O410' or 
+	   prestacion='O84' or prestacion='PC122' or prestacion='PC123' or prestacion='PC124' or 
+	   prestacion='PC125' or prestacion='O63' or prestacion='O64' or prestacion='O65' or 
+	   prestacion='O68' or prestacion='O69') and 
+	   fecha::date BETWEEN #fecha_ini# and #fecha_fin#) 
+        order by id_historial,r.fecha,a.nombres,codigo
+  </select>
+  
+  <resultMap id="datosSumiReceta"        class="domain.Prestaciones">
+    <result property="fecha_fin"                  column="fecha_fin"/>  
+    <result property="id_historial"                 column="id_historial"/>
+    <result property="id_persona"                 column="id_persona"/>
+    <result property="id_detalle"                 column="id_detalle"/>
+    <result property="fecha_ini"                  column="fecha_ini"/>
+    <result property="id_prestacion"              column="id_prestacion"/>
+    <result property="prestacion"                 column="prestacion"/>
+    <result property="descripcion"                column="descripcion"/>
+    <result property="costo"                      column="costo"/>
+    <result property="paquete"                    column="paquete"/>
+    <result property="cantidad"                   column="cantidad"/>
+  </resultMap>
+  
+   <select id="getListarSumiRecetas" resultMap="datosSumiReceta">
+    select fecha as fecha_fin,id_historial,id_persona,id_detalle,fecha as fecha_ini,id_prestacion,prestacion,
+      descripcion, costo, (nombres||' ' ||paterno||' ' ||materno) as paquete,cantidad 
+    from recetass
+    JOIN prestacion USING(id_prestacion)
+    JOIN personas USING(id_persona)
+    where id_historial =#id_historial# and id_persona=#id_persona#
+    order by fecha
+  </select>
+  
+  <select id="getPrestacionExisteYa" resultMap="datosSumiReceta">
+    select fecha as fecha_fin,id_historial,id_persona,id_detalle,fecha as fecha_ini,id_prestacion,prestacion,
+      descripcion,costo, (nombres||' ' ||paterno||' ' ||materno) as paquete,cantidad 
+    from recetass
+    JOIN prestacion USING(id_prestacion)
+    JOIN personas USING(id_persona)
+    where id_historial =#id_historial# and id_prestacion=#id_prestacion# 
+    and id_prestacion in (select id_prestacion from recetass where id_historial =#id_historial#)
+    order by fecha
+  </select>
+  
+  <select id="getPrestacionExisteYaDia" resultMap="datosSumiReceta">
+   select r.fecha as fecha_fin,id_historial,r.id_persona,id_detalle,r.fec_reg as fecha_ini,id_prestacion,prestacion,
+      descripcion,costo, (nombres||' ' ||paterno||' ' ||materno) as paquete,cantidad 
+    from recetass r
+    JOIN prestacion USING(id_prestacion)
+    JOIN personas USING(id_persona)
+    JOIN historiales USING(id_historial)
+    where r.cod_esta=#cod_esta# and id_prestacion=#id_prestacion# and id_paciente =#id_paciente# and date(r.fecha)=current_date
+    order by r.fecha
+  </select>
+  
+  <select id="getListarSumiRecetasIntImp" resultMap="datosSumiReceta">
+    select fecha as fecha_fin,id_historial,id_persona,id_detalle,fecha as fecha_ini,id_prestacion,prestacion,
+      descripcion,costo, (nombres||' ' ||paterno||' ' ||materno) as paquete,cantidad 
+    from recetass
+    JOIN prestacion USING(id_prestacion)
+    JOIN personas USING(id_persona)
+    where id_historial =#id_historial# and id_persona =#id_persona#
+    order by fecha
+  </select>
+  
+  <select id="getListarSumiRecetasI" resultMap="datosSumiReceta">
+    select fecha as fecha_fin,id_historial,id_persona,id_detalle,fecha as fecha_ini,id_prestacion,prestacion,
+      descripcion,costo, (nombres||' ' ||paterno||' ' ||materno) as paquete ,cantidad 
+    from recetass
+    JOIN prestacion USING(id_prestacion)
+    JOIN personas USING(id_persona)
+    where id_historial =#id_historial# and (prestacion not like 'IG%' and prestacion not like 'PL%')
+    order by fecha
+  </select>
+  
+  <select id="getListarSumiPresta" resultMap="datosSumiReceta">
+    select fecha as fecha_fin,id_historial,id_persona,id_detalle,fecha as fecha_ini,id_prestacion,prestacion,
+      descripcion,costo, (nombres||' ' ||paterno||' ' ||materno) as paquete ,cantidad 
+    from recetass
+    JOIN prestacion USING(id_prestacion)
+    JOIN personas USING(id_persona)
+    where id_historial =#id_historial# and recetass.cod_esta=#cod_esta#
+    order by fecha
+  </select>
+  
+  <insert id="setCrearRecetaSumi" >
+    insert into recetass (id_prestacion,prestacion,id_historial,fecha,id_persona,cantidad,cod_esta,id_por) 
+                 values (#id_prestacion#,#prestacion#, #id_historial#,#fecha_ini#,#id_persona#,#cantidad#,#cod_esta#,#id_grupo#);
+    update historiales set fechalab=#fecha_ini# where id_historial=#id_historial#;
+    update historiales set n_475=(select count(*) from recetass where id_historial=#id_historial# and cod_esta=#cod_esta#  ) 
+                        where id_historial=#id_historial# and cod_esta=#cod_esta# ; 
+  </insert>
+             
+  <delete id="setEliminarRecetaSumi">
+     DELETE from recetass 
+     WHERE id_prestacion = #id_prestacion# and id_historial = #id_historial# and id_persona = #id_persona#;
+     update historiales set n_475=(select count(*) from recetass where id_historial=#id_historial# and cod_esta=#cod_esta#  ) 
+                        where id_historial=#id_historial# and cod_esta=#cod_esta# ;
+  </delete>
+  
+  <delete id="setEliminarPresDupli">
+     delete from recetass r
+        where r.cod_esta=#cod_esta# and id_prestacion=#id_prestacion# and date(r.fecha)=date(#fecha_ini#)
+        and id_detalle in
+        (select max(id_detalle) from recetass r
+        join historiales using(id_historial)
+        join pacientes using(id_paciente)
+        where r.cod_esta=#cod_esta# and id_paciente=#id_paciente# and id_prestacion=#id_prestacion# and date(r.fecha)=date(#fecha_ini#)
+        and id_detalle in 
+        (select id_detalle from recetass r
+        join historiales using(id_historial)
+        join pacientes using(id_paciente)
+        where r.cod_esta=#cod_esta# and id_paciente=#id_paciente# and id_prestacion=#id_prestacion# and date(r.fecha)=date(#fecha_ini#) )
+        and id_historial not in 
+        (select id_historial from recetas where id_historial in 
+        (select id_historial from recetass r
+        join historiales using(id_historial)
+        join pacientes using(id_paciente)
+        where r.cod_esta=#cod_esta# and id_paciente=#id_paciente# and id_prestacion=#id_prestacion# and date(r.fecha)=date(#fecha_ini#) )))
+  </delete>
+  
+   <delete id="setEliminarRecetaSumiI">
+       INSERT INTO recetassupdate (id_detalle, id_historial, id_prestacion, fecha, prestacion, id_persona, fec_reg, cantidad, cod_esta, 
+                id_por, fechamod, modi_por, tipop, ip, nameip)
+           (SELECT id_detalle, id_historial, id_prestacion, fecha, prestacion, id_persona, fec_reg, cantidad, cod_esta, id_por, 
+             now(),#id_grupo#,#referido#,#paquete#,#prestacion# FROM recetass 
+      WHERE id_detalle= #id_detalle# and cod_esta=#cod_esta# and id_persona!=#id_grupo#);
+      
+      UPDATE historiales set n_475=(select count(*) from recetass where id_historial=#id_historial# and cod_esta=#cod_esta#  ) 
+                        where id_historial=#id_historial# and cod_esta=#cod_esta# ; 
+                        
+      DELETE from recetass 
+      WHERE id_prestacion = #id_prestacion# and id_historial = #id_historial# ;
+  </delete>
+  
+  <delete id="setEliminarRecetaMedSumi" >
+      INSERT INTO recetasupdate (id_detalle, fecha, salida, expedido, id_medicamento, id_historial,id_estado, id_prestacion, indicacion, 
+                  id_historia, id_persona,fec_reg, cod_esta, dosifica, id_farmacia, numeracion, id_por, fechamod, modi_por, tipop, ip, nameip)
+           (SELECT id_detalle, fecha, salida, expedido, id_medicamento, id_historial, id_estado, id_prestacion, indicacion, id_historia, 
+                  id_persona, fec_reg, cod_esta, dosifica, id_farmacia, numeracion, id_por, now(),#id_grupo#,#referido#,#paquete#,#prestacion# 
+      FROM recetas 
+      WHERE id_prestacion = #id_prestacion# and id_historial = #id_historial# and cod_esta=#cod_esta# and id_estado='B');
+      
+      DELETE from recetas 
+      WHERE id_prestacion = #id_prestacion# and id_historial = #id_historial# and cod_esta=#cod_esta# 
+  </delete>
+  
+  <delete id="setEliminarRecetaMedSumiKardex">
+      delete from kardex where id_receta in 
+      (select id_detalle as id_receta from recetas where id_prestacion = #id_prestacion# and id_historial = #id_historial#)
+  </delete>
+ 
+  <resultMap id="listaRepes" class="domain.Prestaciones">
+    <result property="mes"           column="mes"/>
+    <result property="gestion"       column="gestion"/>
+  </resultMap>
+
+  <select id="getListarRepes" resultMap="listaRepes">
+   (select gestion,mes from repes
+    where gestion = extract (year from now())-1
+    group by mes,gestion order by gestion,mes )
+   UNION 
+    (select gestion,mes from repes
+    where gestion = extract (year from now())
+    group by mes,gestion order by gestion,mes )
+   ORDER BY gestion,mes 
+  </select>
+  
+  <select id="getListarFaltanRepes" resultMap="listaRepes">  
+    select extract (month from fecha) as mes,extract (year from fecha) as gestion from recetass 
+    where extract (year from fecha) = extract (year from now())
+          and not extract (month from fecha)+extract (year from fecha) in ( select gestion+mes from repes where gestion = extract (year from now()) )
+    group by extract (month from fecha) ,extract (year from fecha) 
+    order by gestion,mes 
+  </select>   
+
+  
+  <resultMap id="datosFopos" class="domain.Prestaciones">
+    <result property="descripcion"             column="descripcion"/>
+    <result property="prestacion"              column="prestacion"/>
+    <result property="cantidad"                column="cantidad"/>
+    <result property="costo"                   column="costo"/> 
+  </resultMap>
+
+  <select id="getListarFopos" resultMap="datosFopos">
+     select descripcion,prestacion,cantidad,costo 
+     from repes
+     where mes=#mes#
+       and gestion=#anio#
+     order by prestacion   
+  </select>
+  <select id="getListarActRepes" resultMap="datosFopos">
+      <!--UPDATE pacientes 
+       SET nro_registro=to_char(fec_nacimiento,'ddMMYY')||'-'||substring(nombre,1,1)||(CASE WHEN substring(paterno,1,1) ='' THEN substring(materno,1,1) ELSE substring(paterno,1,1) END)||substring(materno,1,1) 
+       WHERE (nro_registro!=null or nro_registro!='' or nro_registro!='0');
+     update historiales set codigo='Z000' where codigo is null;
+     update historiales set accion='' where accion is null;
+     update historiales set diagnostico='' where diagnostico is null;
+     update pedidos set nit='0' where nit is null;
+     update pedidos set num_cladoc='0' where num_cladoc is null;
+     update cuaderno4 set tipoconsulta='N' where tipoconsulta is null;
+     -->
+      SELECT descripcion,prestacion,cantidad,costo 
+      FROM _repes(#mes#,#gestion#) AS ( descripcion text, prestacion text,cantidad int4,  costo float)
+      order by descripcion;
+  </select>
+  
+  <resultMap id="datosMorbilidad" class="domain.Prestaciones">
+    <result property="suma12"                  column="suma12"/>  
+    <result property="anio"                    column="anio"/>
+    <result property="mes"                     column="mes"/>
+    <result property="id_historial"            column="id_historial"/>
+    <result property="edad_ini"                column="edad_ini"/>
+    <result property="gestion"                 column="gestion"/>
+    <result property="hcl"                     column="hcl"/>
+    <result property="id_detalle"              column="id_detalle"/>
+    <result property="id_grupo"                column="id_grupo"/>
+    <result property="edad_fin"                column="edad_fin"/>
+    <result property="descripcion"             column="descripcion"/>
+    <result property="paquete"                 column="paquete"/>
+    <result property="prestacion"              column="prestacion"/>
+    <result property="referido"                column="referido"/>
+    <result property="id_persona"              column="id_persona"/>
+    <result property="id_prestacion"           column="id_prestacion"/>
+    <result property="suma1"                   column="suma1"/>
+    <result property="suma2"                   column="suma2"/>
+    <result property="suma3"                   column="suma3"/>
+    <result property="suma4"                   column="suma4"/>
+    <result property="suma5"                   column="suma5"/>
+    <result property="suma6"                   column="suma6"/>
+    <result property="suma7"                   column="suma7"/>
+    <result property="suma8"                   column="suma8"/>
+    <result property="suma9"                   column="suma9"/>
+    <result property="suma10"                  column="suma10"/>
+    <result property="cantidad"                column="cantidad"/>
+  </resultMap>
+  
+  <select id="getListarMorbilidad" resultMap="datosMorbilidad">
+    select * from __morbilidad(#mes#,#gestion#) as (suma12 integer,anio integer,mes integer,id_historial integer,edad_ini integer,
+       gestion integer,hcl integer,id_detalle integer,id_grupo integer,edad_fin integer,descripcion text,paquete text,
+       prestacion text,referido text,id_persona integer,id_prestacion integer,suma1 integer,suma2 integer,suma3 integer,
+   suma4 integer,suma5 integer,suma6 integer,suma7 integer,suma8 integer,suma9 integer,suma10 integer,cantidad integer) 
+  </select>
+  <resultMap id="datosSumi" class="domain.Prestaciones">
+    <result property="id_prestacion"           column="id_prestacion"/>  
+    <result property="prestacion"              column="prestacion"/>
+    <result property="cantidad"                column="cantidad"/>
+    <result property="descripcion"             column="descripcion"/>
+    <result property="paquete"                 column="paquete"/>
+    <result property="costo"                   column="costo"/>
+    <result property="hcl"                     column="hcl"/>
+  <!--  <result property="suma12"                     column="suma12"/>  -->
+  </resultMap>
+  
+  <select id="getListarResumenPrest" resultMap="datosSumi">
+    select id_prestacion,prestacion,sum(cantidad) as cantidad,descripcion,paquete,costo,0 as hcl
+     from historiales 
+     join pacientes using(id_paciente)
+     join recetass using(id_historial)
+     join prestacion using(id_prestacion)
+     where (recetass.fecha::date BETWEEN #fecha_ini#  and #fecha_fin#) and recetass.id_persona = #id_persona#
+     group by id_prestacion,prestacion,descripcion,paquete,costo 
+     order by prestacion  
+  </select>
+  
+  
+  <select id="getListarPrestacionesGen" resultMap="datosSumi">
+    select id_prestacion,prestacion,count(*) as cantidad,descripcion,paquete,costo,0 as hcl
+     from historiales 
+     join pacientes using(id_paciente)
+     join recetass using(id_historial)
+     join prestacion using(id_prestacion)
+     where historiales.id_paciente=#id_persona#
+     group by id_prestacion,prestacion,descripcion,paquete,costo 
+     order by prestacion  
+  </select>
+  
+  <select id="getListarPrestacionesDadasNeo" resultMap="datosSumi">
+     select id_prestacion,prestacion,count(*) as cantidad,descripcion,paquete,costo,0 as hcl
+     from historiales 
+     join pacientes using(id_paciente)
+     join recetass using(id_historial)
+     join prestacion using(id_prestacion)
+     where (recetass.fecha::date BETWEEN #fecha_ini#  and #fecha_fin#) and recetass.id_persona = #id_persona# and edad =0 and  
+            extract(month from age( historiales.fecha,fec_nacimiento))=0 and  
+            not extract(day from age( historiales.fecha,fec_nacimiento))>28
+     group by id_prestacion,prestacion,descripcion,paquete,costo 
+     order by prestacion  
+  </select>
+  
+  <select id="getListarPrestacionesDadasPedi" resultMap="datosSumi">
+     select id_prestacion,prestacion,count(*) as cantidad,descripcion,paquete,costo,0 as hcl
+     from historiales 
+     join pacientes using(id_paciente)
+     join recetass using(id_historial)
+     join prestacion using(id_prestacion)
+     where (recetass.fecha::date BETWEEN #fecha_ini#  and #fecha_fin#) and recetass.id_persona = #id_persona# and (edad BETWEEN 0 and 5 )  
+           and not (edad =0 and  extract(month from age(historiales.fecha,fec_nacimiento))=0 
+           and  not extract(day from age( historiales.fecha,fec_nacimiento))>28) 
+     group by id_prestacion,prestacion,descripcion,paquete,costo 
+     order by prestacion  
+  </select>
+  
+   <select id="getListarPrestacionesDadasMuje" resultMap="datosSumi">
+     select id_prestacion,prestacion,count(*) as cantidad,descripcion,paquete,costo,0 as hcl
+     from historiales 
+     join pacientes using(id_paciente)
+     join recetass using(id_historial)
+     join prestacion using(id_prestacion)
+     where (recetass.fecha::date BETWEEN #fecha_ini#  and #fecha_fin#) and recetass.id_persona = #id_persona# and (edad BETWEEN 6 and 59 )
+     group by id_prestacion,prestacion,descripcion,paquete,costo 
+     order by prestacion  
+  </select>
+  
+  <select id="getListarPrestacionesDadasMayor" resultMap="datosSumi">
+     select id_prestacion,prestacion,count(*) as cantidad,descripcion,paquete,costo,0 as hcl
+     from historiales 
+     join pacientes using(id_paciente)
+     join recetass using(id_historial)
+     join prestacion using(id_prestacion)
+     where (recetass.fecha::date BETWEEN #fecha_ini#  and #fecha_fin#) and prestacion!='LECHE' and recetass.id_persona = #id_persona# and (edad BETWEEN 60 and 150 )
+     group by id_prestacion,prestacion,descripcion,paquete,costo 
+     order by prestacion  
+  </select>
+
+
+  <resultMap id="datosPacSumi" class="domain.Prestaciones">
+    <result property="id_historial"            column="id_historial"/>      
+    <result property="hcl"                     column="hcl"/>      
+    <result property="prestacion"              column="prestacion"/>
+    <result property="id_prestacion"           column="id_prestacion"/> 
+    <result property="cantidad"                column="cantidad"/> 
+  </resultMap>
+  
+   <select id="getListarPacientesPrestacionesGen" resultMap="datosPacSumi">
+    select id_historial,hcl,prestacion, id_prestacion,cantidad
+     from historiales 
+     join pacientes using(id_paciente)
+     join recetass using(id_historial)
+     where  historiales.id_paciente=#id_persona#
+  </select>
+  
+  <select id="getListarPacientesPrestacionesNeo" resultMap="datosPacSumi">
+     select id_historial,hcl,prestacion, id_prestacion,cantidad
+     from historiales 
+     join pacientes using(id_paciente)
+     join recetass using(id_historial)
+     where (recetass.fecha::date BETWEEN #fecha_ini#  and #fecha_fin#) and recetass.id_persona=#id_persona# and 
+           edad =0 and  extract(month from age( historiales.fecha,fec_nacimiento))=0 and  
+           not extract(day from age( historiales.fecha,fec_nacimiento))>28
+  </select>
+  
+  <select id="getListarPacientesPrestacionesPedi" resultMap="datosPacSumi">
+     select id_historial,hcl,prestacion, id_prestacion,cantidad
+     from historiales 
+     join pacientes using(id_paciente)
+     join recetass using(id_historial)
+     where (recetass.fecha::date BETWEEN #fecha_ini#  and #fecha_fin#) and recetass.id_persona=#id_persona# and 
+           (edad BETWEEN 0 and 5 ) and not (edad =0 and  extract(month from age(historiales.fecha,fec_nacimiento))=0 and  
+           not extract(day from age( historiales.fecha,fec_nacimiento))>28) 
+  </select>
+  
+  <select id="getListarPacientesPrestacionesMuje" resultMap="datosPacSumi">
+     select id_historial,hcl,prestacion, id_prestacion,cantidad
+     from historiales 
+     join pacientes using(id_paciente)
+     join recetass using(id_historial)
+     where (recetass.fecha::date BETWEEN #fecha_ini#  and #fecha_fin#) and recetass.id_persona=#id_persona# and (edad BETWEEN 6 and 59 )
+  </select>
+  <select id="getListarPacientesPrestacionesMayor" resultMap="datosPacSumi">
+     select id_historial,hcl,prestacion, id_prestacion,cantidad
+     from historiales 
+     join pacientes using(id_paciente)
+     join recetass using(id_historial)
+     where (recetass.fecha::date BETWEEN #fecha_ini#  and #fecha_fin#) and recetass.id_persona=#id_persona# and (edad BETWEEN 60 and 150)
+  </select>
+</sqlMap>

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Provincias">
+
+  <resultMap id="datosprovincia" class="domain.Provincias">
+    <result property="id_provincia"                 column="id_provincia"/>
+    <result property="provincia"                    column="provincia"/>
+    <result property="id_pais"                      column="id_pais"/>
+    <result property="id_departamento"              column="id_departamento"/>
+    <result property="id_estado"                    column="id_estado"/>
+    <result property="pais"                         column="pais"/>
+    <result property="departamento"                         column="departamento"/>
+  </resultMap>
+
+  <select id="getListarProvincias" resultMap="datosprovincia">
+    SELECT a.id_provincia, a.provincia, a.id_pais,a.id_departamento,a.id_estado, b.pais,c.departamento
+    FROM dpr_provincias a, paises b,pas_departamentos c
+    where  a.id_pais=b.id_pais and a.id_departamento=c.id_departamento
+    ORDER BY departamento,provincia
+  </select>
+  
+  <select id="getDatosProvincia" resultMap="datosprovincia">
+    SELECT a.id_provincia, a.provincia, a.id_pais,a.id_departamento,a.id_estado, b.pais,c.departamento
+    FROM dpr_provincias a, paises b,pas_departamentos c
+    where  a.id_pais=b.id_pais and a.id_departamento=c.id_departamento
+           and a.id_provincia=#id_provincia#    
+  </select>
+  
+  <insert id="setCrearProvincia" >
+    insert into dpr_provincias (id_provincia, provincia,  id_pais,id_departamento, id_estado,ult_usuario) 
+                         values ( #id_provincia#, #provincia#, #id_pais#,#id_departamento#, 'A', #ult_usuario# )
+  </insert>
+
+  <update id="setModificarProvincia" >
+    update dpr_provincias
+    set  provincia = #provincia#,
+         id_pais = #id_pais#,       
+         id_departamento = #id_departamento#,       
+         id_estado = #id_estado#       
+    where  id_provincia = #id_provincia#
+    
+  </update>
+
+  <delete id="setEliminarProvincia" >
+    delete from dpr_provincias where id_provincia = #id_provincia#
+  </delete>
+  
+  <resultMap id="datosdepprovincia" class="domain.Provincias">
+    <result property="id_provincia"                 column="id_provincia"/>
+    <result property="provincia"                    column="provincia"/>    
+  </resultMap>
+
+  <select id="getListarPaisDepProv" resultMap="datosdepprovincia">
+    select id_provincia,provincia 
+    from dpr_provincias 
+    where id_pais= #id_pais#
+      and id_departamento=#id_departamento#
+  </select>
+  
+</sqlMap>

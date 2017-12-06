@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<!--
+  - Application context definition for Coimata's data access layer.
+  - Accessed by business layer objects defined in "applicationContext.xml"
+  - (see web.xml's "contextConfigLocation").
+  -
+  - This version of the data access layer works on a combined database,
+  - using a local DataSource with DataSourceTransactionManager. It does not
+  - need any JTA support in the container: It will run as-is in plain Tomcat.
+  -->
+<beans>
+
+  <!-- ========================= RESOURCE DEFINITIONS ========================= -->
+
+  <!-- Local Apache Commons DBCP DataSource that refers to a combined database -->
+  <!-- (see dataAccessContext-jta.xml for an alternative) -->
+  <!-- The placeholders are resolved from jdbc.properties through -->
+  <!-- the PropertyPlaceholderConfigurer in applicationContext.xml -->
+  <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+    <property name="driverClassName" value="${jdbc.driverClassName}"/>
+    <property name="url" value="${jdbc.url}"/>
+    <property name="username" value="${jdbc.username}"/>
+    <property name="password" value="${jdbc.password}"/>
+  </bean>
+
+  <!-- Transaction manager for a single JDBC DataSource -->
+  <!-- (see dataAccessContext-jta.xml for an alternative) -->
+  <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    <property name="dataSource" ref="dataSource"/>
+  </bean>
+
+  <!-- SqlMap setup for iBATIS Database Layer -->
+  <bean id="sqlMapClient" class="org.springframework.orm.ibatis.SqlMapClientFactoryBean">
+    <property name="configLocation" value="WEB-INF/sql-map-config.xml"/>
+    <property name="dataSource" ref="dataSource"/>
+  </bean>
+
+  <!-- ========================= DAO DEFINITIONS: IBATIS IMPLEMENTATIONS ========================= -->
+
+
+  <bean id="clientesDao" class="dao.ibatis.SqlMapClientesDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+
+  <bean id="usuariosDao" class="dao.ibatis.SqlMapUsuariosDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+  
+  <bean id="enlacesDao" class="dao.ibatis.SqlMapEnlacesDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+
+  <bean id="categoriasDao" class="dao.ibatis.SqlMapCategoriasDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+
+  <bean id="rolesDao" class="dao.ibatis.SqlMapRolesDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+
+  <bean id="personasDao" class="dao.ibatis.SqlMapPersonasDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+
+  <bean id="tablerosDao" class="dao.ibatis.SqlMapTablerosDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+  
+   <bean id="menuesDao" class="dao.ibatis.SqlMapMenuesDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+  
+   <bean id="paisesDao" class="dao.ibatis.SqlMapPaisesDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+  
+   <bean id="laboratoriosDao" class="dao.ibatis.SqlMapLaboratoriosDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+  
+  <bean id="costosDao" class="dao.ibatis.SqlMapCostosDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+
+   <bean id="camasDao" class="dao.ibatis.SqlMapCamasDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+  
+  <bean id="detalleDao" class="dao.ibatis.SqlMapDetalleDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+  
+  <bean id="sexosDao" class="dao.ibatis.SqlMapSexosDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>  
+  
+   <bean id="clieentesDao" class="dao.ibatis.SqlMapClieentesDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+  
+   <bean id="proveedoresDao" class="dao.ibatis.SqlMapProveedoresDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+  
+  <bean id="parentescosDao" class="dao.ibatis.SqlMapParentescosDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean> 
+  
+  <bean id="rubrosDao" class="dao.ibatis.SqlMapRubrosDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean> 
+  
+  <bean id="salasDao" class="dao.ibatis.SqlMapSalasDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean> 
+  
+   <bean id="segurosDao" class="dao.ibatis.SqlMapSegurosDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean> 
+  
+  <bean id="empresasDao" class="dao.ibatis.SqlMapEmpresasDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean> 
+  
+  <bean id="documentosDao" class="dao.ibatis.SqlMapDocumentosDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>  
+  
+  <bean id="escolaridadesDao" class="dao.ibatis.SqlMapEscolaridadesDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean> 
+  
+  <bean id="consultoriosDao" class="dao.ibatis.SqlMapConsultoriosDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>   
+  
+  <bean id="departamentosDao" class="dao.ibatis.SqlMapDepartamentosDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>  
+  
+   <bean id="ecivilesDao" class="dao.ibatis.SqlMapEcivilesDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean> 
+  
+  <bean id="provinciasDao" class="dao.ibatis.SqlMapProvinciasDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean> 
+   <bean id="localidadesDao" class="dao.ibatis.SqlMapLocalidadesDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean> 
+  <bean id="pacientesDao" class="dao.ibatis.SqlMapPacientesDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+   <bean id="historialesDao" class="dao.ibatis.SqlMapHistorialesDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+   <bean id="medicamentosDao" class="dao.ibatis.SqlMapMedicamentosDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+  <bean id="recetasDao" class="dao.ibatis.SqlMapRecetasDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+  <bean id="prestacionesDao" class="dao.ibatis.SqlMapPrestacionesDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+   <bean id="cuadernosDao" class="dao.ibatis.SqlMapCuadernosDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+   <bean id="cuentasDao" class="dao.ibatis.SqlMapCuentasDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+   <bean id="carpetasDao" class="dao.ibatis.SqlMapCarpetasDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+  <bean id="actividadDao" class="dao.ibatis.SqlMapActividadDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+   <bean id="quirofanosDao" class="dao.ibatis.SqlMapQuirofanosDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+   <bean id="farmaciasDao" class="dao.ibatis.SqlMapFarmaciasDao">
+    <property name="sqlMapClient" ref="sqlMapClient"/>
+  </bean>
+  
+</beans>

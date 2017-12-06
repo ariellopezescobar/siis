@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Detalle">
+
+  <resultMap id="datosDetalleEmp" class="domain.Detalle">
+    <result property="id_detalle"               column="id_detalle"/>
+    <result property="fecha"                    column="fecha"/>
+    <result property="entrada"                  column="entrada"/>
+    <result property="expedido"                 column="expedido"/>
+    <result property="id_empresa"               column="id_empresa"/>
+    <result property="id_pedido"                column="id_pedido"/>
+    <result property="mes"                      column="mes"/>
+    <result property="gestion"                  column="gestion"/>
+  </resultMap>
+  
+  <select id="getListarDetallePagoEmpresa" resultMap="datosDetalleEmp">
+    SELECT id_detalle,fecha,entrada,expedido,id_empresa,id_pedido,mes,gestion
+    FROM detallepagos 
+    order by gestion,mes desc
+  </select>
+  
+  <resultMap id="datosDetallePago" class="domain.Detalle">
+    <result property="cadena1"                    column="cadena1"/>
+    <result property="cadena2"                    column="cadena2"/>
+  </resultMap>
+  
+  <select id="getListarDetallePago" resultMap="datosDetallePago">
+     select fecha as cadena1, fecha as cadena2 from aporte limit 3 
+    <!--select fechahasta as fecha ,fecha as expedido,substring(fechahasta,6,2)::int as mes,substring(fechahasta,1,4)::int as gestion
+       from aporte where eempresaafiliadaid =#id_pedido# and aporteid in 
+     (select aporteid from aporte where eempresaafiliadaid =#id_pedido# order by aporteid desc limit 3)
+     order by fechahasta
+     -->
+  </select>
+  
+  <resultMap id="datosDetalle" class="domain.Detalle">
+    <result property="id_detalle"               column="id_detalle"/>
+    <result property="fecha"                    column="fecha"/>
+    <result property="costo"                    column="costo"/>
+    <result property="costo_unit"               column="costo_unit"/>
+    <result property="entrada"                  column="entrada"/>
+    <result property="salida"                   column="salida"/>
+    <result property="expedido"                 column="expedido"/>
+    <result property="id_costo"                 column="id_costo"/>
+    <result property="id_pedido"                column="id_pedido"/>
+    <result property="id_estado"                column="id_estado"/>
+    <result property="id_rubro"                 column="id_rubro"/>
+    <result property="indicacion"               column="indicacion"/>
+    <result property="id_carpeta"               column="id_carpeta"/>
+    <result property="rubro"                    column="rubro"/>
+    <result property="id_dispensa"              column="id_dispensa"/>
+    <result property="id_empresa"              column="id_empresa"/>
+  </resultMap>
+
+   <select id="getListarDetalle" resultMap="datosDetalle">
+    SELECT id_detalle,fecha,costos.costo,costo_unit,entrada,salida,expedido,detalle.id_costo,id_pedido,detalle.id_estado,
+    costos.id_rubro,indicacion, id_historial as id_carpeta,'A'::text as rubro,0 as id_dispensa, detalle.id_factura as id_empresa
+    FROM detalle 
+    join pedidos using(id_pedido)
+    join costos ON costos.id_costo = detalle.id_costo 
+    where id_pedido in (select id_pedido from pedidos where id_paciente=#id_pedido#)
+    order by id_detalle
+  </select>
+  
+   <select id="getListarDetalleGen" resultMap="datosDetalle">
+    SELECT p.id_historial as id_detalle,fecha,costos.costo,costo_unit,entrada,salida,expedido,detalle.id_costo,id_pedido,
+     detalle.id_estado,costos.id_rubro,(CASE WHEN (indicacion='' or indicacion is null) THEN '0' ELSE indicacion END) as indicacion, 
+     id_historial as id_carpeta,'A'::text as rubro,0 as id_dispensa, detalle.id_factura as id_empresa
+    FROM detalle 
+    join costos using(id_costo)
+    join pedidos p using(id_pedido)
+    where (p.tipo='C' or p.tipo='E') and p.id_historial in (select id_paciente from historiales 
+           where (fecha::date BETWEEN #fecha_ini#  and #fecha_fin#) )
+  </select>
+  
+  <select id="getListarDetHistorial" resultMap="datosDetalle">
+    SELECT p.id_historial as id_detalle,fecha,costos.costo,costo_unit,entrada,salida,expedido,detalle.id_costo,id_pedido,
+     detalle.id_estado,costos.id_rubro,(CASE WHEN (indicacion='' or indicacion is null) THEN '0' ELSE indicacion END) as indicacion, 
+     id_historial as id_carpeta,'A'::text as rubro,0 as id_dispensa, detalle.id_factura as id_empresa
+    FROM detalle 
+    join costos using(id_costo)
+    join pedidos p using(id_pedido)
+    where p.id_pedido in (select id_pedido from pedidos where id_historial=#id_pedido#)
+  </select>
+  
+  <select id="getListarDetTotal" resultMap="datosDetalle">
+    SELECT p.id_historial as id_detalle,fecha,costos.costo,costo_unit,entrada,salida,expedido,detalle.id_costo,id_pedido,
+     detalle.id_estado,costos.id_rubro,indicacion, id_historial as id_carpeta,'A'::text as rubro,0 as id_dispensa, detalle.id_factura as id_empresa
+    FROM detalle 
+    join costos using(id_costo)
+    join pedidos p using(id_pedido)
+    where p.tipo='C' and detalle.entrada>0 and (p.fec_registro::date BETWEEN #fecha_ini# and #fecha_fin#)
+  </select>
+  
+  <select id="getListarDetIndividual" resultMap="datosDetalle">
+    SELECT p.id_historial as id_detalle,fecha,costos.costo,costo_unit,entrada,salida,expedido,detalle.id_costo,id_pedido,
+     detalle.id_estado,costos.id_rubro,indicacion, id_historial as id_carpeta,'A'::text as rubro,0 as id_dispensa, detalle.id_factura as id_empresa
+    FROM detalle 
+    join costos using(id_costo)
+    join pedidos p using(id_pedido)
+    where p.tipo='C' and detalle.entrada>0 and p.id_persona =#id_detalle# and p.id_rubro=#id_costo# and 
+          (p.fec_registro::date BETWEEN #fecha_ini#  and #fecha_fin#)
+  </select>
+  
+  <select id="getListarCobroDetalle" resultMap="datosDetalle">
+    SELECT id_detalle,fecha,costo,costo_unit, entrada,salida,pedidos.id_estado as expedido,d.id_costo,id_pedido,
+       d.id_estado,costos.id_rubro,indicacion, id_historial as id_carpeta,rubro,id_dispensa, d.id_factura as id_empresa
+    FROM detalle d
+    join rubros using(id_rubro)
+    join costos using(id_costo)
+    join pedidos using(id_pedido)
+    where id_pedido=#id_pedido# and pedidos.cod_esta=#cod_esta#
+    ORDER BY fecha 
+  </select>
+  
+  <select id="getListarCobroDetalleInt" resultMap="datosDetalle">
+    SELECT id_detalle,fecha,costo,costo_unit, entrada,salida,pedidos.id_estado as expedido,d.id_costo,id_pedido,
+       d.id_estado,costos.id_rubro,indicacion, id_historial as id_carpeta,rubro,id_dispensa, d.id_factura as id_empresa
+    FROM detalle d
+    join rubros using(id_rubro)
+    join pedidos using(id_pedido)
+    join costos ON costos.id_costo = d.id_costo 
+    where d.id_factura=0 and id_pedido in (select id_pedido from pedidos where id_factura=0 and id_historial=#id_dispensa#)
+    ORDER BY fecha 
+  </select>
+  
+  <select id="getListarCobroDetalleInterFact" resultMap="datosDetalle">
+    SELECT id_detalle,fecha,costo,costo_unit, entrada,salida,pedidos.id_estado as expedido,d.id_costo,id_pedido,
+       d.id_estado,costos.id_rubro,indicacion, id_historial as id_carpeta,rubro,id_dispensa, d.id_factura as id_empresa
+    FROM detalle d
+    join rubros using(id_rubro)
+    join pedidos using(id_pedido)
+    join costos ON costos.id_costo = d.id_costo
+    where id_pedido in (select id_pedido from pedidos where id_historial=#id_carpeta# and id_factura=#id_empresa#) 
+                     <!--es el id_historial que encuentra todos los pedidos internado-->
+    ORDER BY fecha
+  </select>
+  
+  <select id="getDatosDetalle" resultMap="datosDetalle">
+    SELECT id_detalle,fecha,entrada,salida,expedido,id_costo,id_pedido,id_estado,indicacion,'A'::text as rubro,0 as id_dispensa, detalle.id_factura as id_empresa
+    FROM detalle
+    where id_detalle=#id_detalle#
+    ORDER BY fecha  
+  </select>
+  
+  <insert id="setCrearDetalle" >
+    insert into detalle (fecha, entrada, salida, expedido, id_costo, id_pedido, id_estado, indicacion,id_rubro,cod_esta) 
+                      values (now(), #entrada#, #salida#, 'A', #id_costo#, #id_pedido#,'A', #indicacion#, #id_rubro#, #cod_esta# )
+  </insert>
+  
+  <insert id="setCrearDetallePago" >
+    insert into detallepagos (fecha, entrada, expedido, id_carpeta, id_empresa, id_pedido, mes, gestion, id_estado) 
+                     values ( now(), #entrada#, 'A', #id_carpeta#,#id_empresa#,#id_pedido#,#mes#,#gestion#,'A' )
+  </insert>
+
+  <delete id="setEliminarDetalle" >
+    INSERT INTO detalleupdate (id_detalle, fecha, entrada, salida, expedido, id_costo, id_pedido,id_estado, indicacion, 
+             id_rubro,id_factura, tipo, fec_reg, id_por,ip,nameip,fec_mod)
+       (SELECT id_detalle, fecha, entrada, salida, expedido, id_costo, id_pedido, id_estado, indicacion, 
+            id_rubro,id_factura,'E',fec_reg,#id_dispensa#,#cadena1#,#cadena2#,now() 
+        FROM detalle WHERE id_detalle=#id_detalle#);  
+    delete from detalle where id_detalle = #id_detalle#;
+    delete from laboratorio where id_historial=#id_carpeta# and id_laboratorio=#id_costo#;
+  </delete>
+  <delete id="setEliminarDetalleLab" >
+    delete from detalle where id_detalle = #id_detalle#;
+  </delete>
+  
+  <resultMap id="datosDetalleSaldo" class="domain.Detalle">
+    <result property="entrada"                  column="entrada"/>
+    <result property="salida"                   column="salida"/>
+    <result property="saldo"                    column="saldo"/>
+  </resultMap>
+
+   <select id="getListarDetalleSaldo" resultMap="datosDetalleSaldo">
+    select sum(entrada) as entrada, sum(salida) as salida, sum(entrada)-sum(salida) as saldo 
+    from detalle 
+    where id_pedido in (select id_pedido from pedidos where id_paciente=#id_pedido#)
+
+  </select>
+  
+</sqlMap>

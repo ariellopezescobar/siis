@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Actividad">
+    
+  <resultMap id="datosActividad" class="domain.Actividad">
+    <result property="id_actividad"             column="id_actividad"/>
+    <result property="fecha"                    column="fecha"/>
+    <result property="actividad"                column="actividad"/>
+    <result property="tema"                     column="tema"/>
+    <result property="numero"                   column="numero"/>
+    <result property="id_estado"                column="id_estado"/>
+    <result property="id_persona"               column="id_persona"/>
+  </resultMap>
+
+  <select id="getListarActividad" resultMap="datosActividad">
+    SELECT id_actividad, fecha, actividad, tema, numero, id_estado,id_persona
+        FROM actividad
+      where id_estado='A' and id_persona=#id_persona#
+        ORDER BY fecha,actividad
+  </select>
+  
+   <select id="getListarActividadTot" resultMap="datosActividad">
+    SELECT id_actividad, fecha, actividad, tema, numero, id_estado,id_persona
+        FROM actividad
+      where id_estado='A' and id_persona=#id_persona# and fecha between #fecha# and #fecha2#
+        ORDER BY fecha,actividad
+  </select>
+  
+   <select id="getListarActividadTodos" resultMap="datosActividad">
+    SELECT id_actividad, fecha, actividad, tema, numero, id_estado,id_persona
+        FROM actividad
+      where id_estado='A' and fecha between #fecha# and #fecha2#
+        ORDER BY fecha,actividad
+  </select>
+  
+  <select id="getDatosActividad" resultMap="datosActividad">
+    SELECT id_actividad, fecha, actividad, tema, numero, id_estado
+         FROM actividad
+    where id_actividad=#id_actividad#
+  </select>
+  
+  <insert id="setCrearActividad">
+    insert into actividad (fecha,actividad,tema,numero,id_estado,id_persona) 
+                values ( #fecha#, #actividad#, #tema#, #numero#,'A',#id_persona#)
+  </insert>
+  
+  <update id="setEliminarActividad" >
+    update actividad
+         set  id_estado = 'B'
+    where  id_actividad = #id_actividad#
+  </update>
+
+</sqlMap>

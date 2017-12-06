@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Menues">
+
+  
+    <resultMap id="listarenlaces" class="domain.Menues">
+    <result property="id_enlace"         column="ID_ENLACE" />    
+    <result property="id_categoria"      column="ID_CATEGORIA" />  
+    <result property="id_estado"         column="ID_ESTADO" />
+    <result property="orden"             column="ORDEN" />
+    <result property="enlace"            column="ENLACE" />
+    <result property="ruta"              column="RUTA" />    
+    <result property="imagen"            column="IMAGEN" /> 
+    <result property ="categoria"        column="CATEGORIA" />  
+    <result property ="estado"           column="ESTADO" />  
+  </resultMap>
+
+  <select id="getListar_Enlaces" resultMap="listarenlaces">
+      SELECT en.*, c.categoria, e.estado
+      FROM _enlaces en, _categorias c, _estados e
+      WHERE  en.id_estado = e.id_estado
+       AND  en.id_estado != 'X'
+       AND en.id_categoria = c.id_categoria
+      ORDER BY enlace;
+  </select>  
+  
+   <resultMap id="buscarcategoria" class="domain.Menues">
+    <result property="id_categoria"      column="ID_CATEGORIA" />  
+    <result property="id_estado"         column="ID_ESTADO" />
+    <result property="categoria"         column="CATEGORIA" />
+    <result property="imagen"            column="IMAGEN" />
+    <result property="fec_registro"      column="FEC_REGISTRO" />  
+    <result property="fec_modificacion"  column="FEC_MODIFICACION" />
+    <result property="ult_usuario"       column="ULT_USUARIO" />    
+  </resultMap>
+  
+  <select id="getCategoria" resultMap="buscarcategoria">
+    SELECT * FROM  tr_buscar_categoria(#id_categoria#::int4)
+    where id_categoria is not null;
+  </select>
+  
+   <resultMap id="buscarenlace" class="domain.Menues">
+    <result property="id_enlace"         column="ID_ENLACE" />    
+    <result property="id_categoria"      column="ID_CATEGORIA" />  
+    <result property="id_estado"         column="ID_ESTADO" />
+    <result property="orden"             column="ORDEN" />
+    <result property="enlace"            column="ENLACE" />
+    <result property="ruta"              column="RUTA" />    
+    <result property="imagen"            column="IMAGEN" />
+  </resultMap>    
+
+  <select id="getEnlace" resultMap="buscarenlace">
+    SELECT * FROM buscar_enlaces(#id_enlace#)
+    WHERE id_enlace is not null;
+  </select>
+  
+  <select id="setCrearEnlace" resultClass="java.lang.Integer">
+     SELECT insertar_enlaces(#id_categoria#, #enlace# ,#ruta#, #orden#, #imagen#)as valor;
+  </select>
+  
+  <select id="setModificarEnlace" resultClass="java.lang.Integer">
+    SELECT tr_modifica_enlace(#id_enlace#, #id_categoria#,#enlace#, #ruta#, #imagen#, #orden#, #id_estado#) as valor;
+  </select>
+  
+  <select id="setEliminarEnlace" resultClass="java.lang.Integer">
+     SELECT tr_eliminar_enlace(#id_enlace#::int4) as valor;
+  </select> 
+  
+   <resultMap id="enlaces" class="domain.Menues">
+    <result property="id_enlace"     column="ID_ENLACE"/>
+    <result property="enlace"        column="ENLACE"/>
+    
+    <result property="ruta"          column="RUTA"/>
+    <result property="orden"         column="ORDEN"/>
+    <result property="id_estado"     column="ID_ESTADO"/>
+  </resultMap>
+
+  <select id="getListaEnlaces" resultMap="enlaces">
+    SELECT id_enlace, enlace, ruta, orden, id_estado 
+    FROM _enlaces
+    WHERE id_categoria=#id_categoria# AND id_estado='A' ORDER BY ORDEN
+  </select>
+  
+    <resultMap id="listarcategorias" class="domain.Menues">
+    <result property="id_categoria"      column="ID_CATEGORIA" />  
+    <result property="id_estado"         column="ID_ESTADO" />
+    <result property="categoria"         column="CATEGORIA" />
+    <result property="imagen"            column="IMAGEN" />  
+    <result property="estado"            column="ESTADO" />        
+  </resultMap>
+
+  <select id="getListaCategorias" resultMap="listarcategorias">
+      SELECT c.*, e.estado
+      FROM _categorias c, _estados e
+      WHERE c.id_estado = e.id_estado
+      AND c.id_estado != 'X'
+      ORDER BY categoria   
+  </select>
+  
+  <resultMap id="menus"        class="domain.Menues">
+    <result property="fec_registro"  column="FEC_REGISTRO"  columnIndex="1"/>
+    <result property="id_rol"        column="ID_ROL"        columnIndex="3"/>
+    <result property="id_enlace"     column="ID_ENLACE"     columnIndex="4"/>
+    <result property="ult_usuario"   column="ULT_USUARIO"   columnIndex="5"/>
+  </resultMap>
+
+  <resultMap id="usr_enlaces"  class="domain.Menues">
+    <result property="id_enlace"     column="ID_ENLACE"       columnIndex="1"/>
+    <result property="enlace"        column="ENLACE"          columnIndex="2"/>
+  </resultMap>
+
+  <insert id="setCrearMenu">
+   INSERT INTO _menues( id_rol, id_enlace, ult_usuario) VALUES(#id_rol# ,#id_enlace#, #ult_usuario#)    
+  </insert>
+  
+  <delete id="setEliminarMenu">
+    DELETE FROM _menues WHERE id_rol     = #id_rol# 
+			  AND id_enlace  = #id_enlace#     
+  </delete>
+
+  <select id="getUsrRolEnlace" resultMap="menus">
+   SELECT fec_registro, id_rol, id_enlace, ult_usuario 
+      FROM _menues 
+    WHERE  id_rol = #id_rol# 
+      AND id_enlace = #id_enlace# 
+  </select>
+
+  <select id="getListaUsrRolEnlaces" resultMap="usr_enlaces">
+    SELECT m.id_enlace, e.enlace  
+   FROM _menues m, _enlaces e  
+    WHERE m.id_rol = #id_rol#
+      AND m.id_enlace = e.id_enlace
+      AND e.id_categoria = #id_categoria#
+  </select>
+
+  <resultMap id="usr_roles_lista"  class="domain.Menues">
+    <result property="id_usuario"     column="ID_USUARIO"   columnIndex="1"/>
+    <result property="id_rol"         column="ID_ROL"       columnIndex="2"/>
+    <result property="rol"            column="ROL"          columnIndex="3"/>
+    <result property="id_estado"      column="ID_ESTADO"    columnIndex="4"/>
+  </resultMap>
+  
+  <select id="getListaUsrRoles" resultMap="usr_roles_lista">
+  SELECT u.id_usuario, u.id_rol, r.rol, r.id_estado
+   FROM _roles r JOIN _usr_roles u USING(id_rol)
+   WHERE r.id_estado = 'A'
+    AND u.id_estado = 'A'
+    AND u.id_usuario = #id_usuario#
+    AND u.fec_expiracion >= now()
+  GROUP BY u.id_usuario, u.id_rol, r.rol,r.id_estado;
+  </select>
+  
+  <select id="setEliminarCategoria" resultClass="java.lang.Integer">
+     SELECT tr_eliminar_categoria(#id_categoria#::int4) as valor;
+  </select>
+   
+  <select id="setModificarCategoria" resultClass="java.lang.Integer">
+    SELECT modificar_categoria(#id_categoria#::integer, #categoria#::varchar , #imagen#::varchar, #id_estado#::text, #ult_usuario#::integer) as valor ;
+  </select>
+ 
+  <select id="setCrearCategoria" resultClass="java.lang.Integer">
+    SELECT registrar_categoria( #imagen#,#categoria# ,#ult_usuario#) as valor;
+  </select>
+   
+  <select id="getBuscarIdCategoriaRepetido" resultClass="java.lang.Integer">
+    SELECT * FROM  tr_buscar_id_categoria(#id_categoria#::integer) ;
+  </select> 
+  
+  <resultMap id="dusuario_rol"  class="domain.Menues">
+    <result property="id_usuario"     column="ID_USUARIO"     columnIndex="1"/>
+    <result property="id_rol"         column="ID_ROL"         columnIndex="2"/>
+    <result property="rol"            column="ROL"            columnIndex="3"/>
+    <result property="fec_expiracion" column="FEC_EXPIRACION" columnIndex="4"/>
+    <result property="id_estado"      column="ID_ESTADO"      columnIndex="5"/>
+  </resultMap>
+  
+  <select id="getUsrRol" resultMap="dusuario_rol">
+      SELECT u.id_usuario, u.id_rol, r.rol, u.fec_expiracion, u.id_estado 
+      FROM _usr_roles u, _roles r 
+      WHERE u.id_usuario = #id_usuario# 
+       AND u.id_rol = #id_rol# 
+       AND u.id_rol = r.id_rol; 
+   </select>
+   
+  <insert id="setCrearUsrRol" >
+    insert into _usr_roles (id_usuario, id_rol,fec_expiracion,  id_estado, ult_usuario,id_nivel_acceso) 
+                      values (#id_usuario#, #id_rol#, #fec_expiracion#, 'A', #ult_usuario#,1 )
+  </insert>
+
+  <update id="setModificarUsrRol" >
+    update _usr_roles
+    set  fec_expiracion = #fec_expiracion#,
+         id_estado = #id_estado#       
+    where  id_usuario = #id_usuario#  AND id_rol = #id_rol#
+  </update>
+
+  <delete id="setEliminarUsrRol" >
+    delete from _usr_roles 
+           where id_usuario = #id_usuario#  AND id_rol = #id_rol#
+  </delete>
+  
+</sqlMap>

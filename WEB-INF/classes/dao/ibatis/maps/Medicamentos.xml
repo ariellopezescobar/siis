@@ -1,0 +1,860 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Medicamentos">
+  
+  <select id="getActualizarMedicamentos">
+    select * from _select_medicamentosm(#cod_esta#,#id_farmacia#);  
+    <!--select * from _act_kardex_medicamentos();-->
+  </select> 
+  
+  <select id="getActualizarMedicamentos_med">
+    select * from _select_medicamentos_med(#cod_esta#,#id_medicamento#,#id_farmacia#);  
+    <!--select * from _act_kardex_medicamentos();-->
+  </select> 
+  
+  <resultMap id="datosMedicamentoMicro" class="domain.Medicamentos">
+    <result property="id_medicamento"           column="id_medicamento"/>
+    <result property="medicamento"              column="medicamento"/>
+    <result property="forma_far"                column="forma_far"/>
+    <result property="concentra"                column="concentra"/>
+  </resultMap>
+  
+  <select id="getListarMedicamentosMicro" resultMap="datosMedicamentoMicro">
+    SELECT id_medicamento, medicamento, forma_far,concentra
+    FROM medicamentos
+    where codigo=#codigo#
+    ORDER BY medicamento
+  </select>
+  
+  <resultMap id="datosCarmelos" class="domain.Medicamentos">
+    <result property="medicamento"            column="medicamento"/>
+    <result property="forma_far"              column="forma_far"/>
+    <result property="concentra"              column="concentra"/>
+    <result property="codsumi"                column="codsumi"/>
+    <result property="nro_lote"               column="nro_lote"/>
+    <result property="expedido"               column="expedido"/>
+    <result property="cod_tipo"               column="cod_tipo"/>
+    <result property="cod_espe"               column="cod_espe"/>
+    <result property="tipo"                   column="tipo"/>
+    <result property="b1"                     column="b1"/>
+    <result property="b2"                     column="b2"/>
+    <result property="b3"                     column="b3"/>
+    <result property="cod_cta"                column="cod_cta"/>
+    <result property="cod_material"           column="cod_material"/>
+  </resultMap>
+  
+  <select id="getListarCarmelosExel" resultMap="datosCarmelos">
+    select nro_registro as medicamento,paterno as forma_far,materno as concentra,nombre as codsumi,carnet as nro_lote,lugarci as expedido,
+           to_char(fec_nacimiento, 'DD/MM/YYYY') as cod_tipo,codcns as tipo,r.cod_esta as b1,codigo as cod_cta,
+           to_char(r.fecha, 'DD/MM/YYYY') as cod_espe,salida::int as b2,r.id_persona as b3,
+           (CASE WHEN r.cod_esta =200098 THEN 'POL. MANCO KAPAC' ELSE (CASE WHEN r.cod_esta =200580 THEN 'CLINICA GERIATRICA' ELSE 
+           (CASE WHEN r.cod_esta =200097 THEN 'POL.CENTRAL' ELSE (CASE WHEN r.cod_esta =200007 THEN 'Poli 9 de Abril' ELSE 
+           (CASE WHEN r.cod_esta =200362 THEN 'Hopsital Viacha' ELSE (CASE WHEN r.cod_esta =200648 THEN 'RENTISTAS JUBILADOS CNS' ELSE 
+           (CASE WHEN r.cod_esta =200083 THEN 'Poli Villa Fatima' ELSE (CASE WHEN r.cod_esta =200104 THEN 'Centro Especialidades' ELSE 
+           (CASE WHEN r.cod_esta =200721 THEN 'Poli Villa Tunari' ELSE (CASE WHEN r.cod_esta =200781 THEN 'Poli Achacachi' ELSE 
+           (CASE WHEN r.cod_esta =200096 THEN 'Poli 18 de Mayo' ELSE 'Poli Villa Adela' END) END) END)  END)  END)  END)  END)  END)  END)  END) END) as cod_material
+    from recetas r
+    join historiales h using(id_historial)
+    join pacientes p using(id_paciente)
+    where h.cod_esta=#cod_esta# and h.fecha between #fecha_ini# and #fecha_fin# and id_medicamento=1999 and id_detalle in 
+    (select id_receta from kardex where cod_esta=#cod_esta# and id_medicamento=1999 and fecha between #fecha_ini# and #fecha_fin# )
+    order by h.fecha
+  </select>
+  
+  <resultMap id="datosMedicamentoAsig" class="domain.Medicamentos">
+    <result property="id_medicamento"           column="id_medicamento"/>
+    <result property="medicamento"              column="medicamento"/>
+    <result property="forma_far"                column="forma_far"/>
+    <result property="concentra"                column="concentra"/>
+    <result property="codsumi"                column="codsumi"/>
+  </resultMap>
+  
+  <select id="getListarMedicamentosAsignados" resultMap="datosMedicamentoAsig">
+    SELECT id_medicamento, medicamento,forma_far,concentra,codsumi 
+    FROM medica_select
+    where cod_esta=#cod_esta# and id_farmacia=#id_farmacia# and id_medicamento in 
+          (select id_medicamento from medicasignacion where id_persona=#id_persona# and cod_esta=#cod_esta#) 
+    order by medicamento, id_medicamento 
+  </select>
+  
+  <resultMap id="datosMedicamentoPas" class="domain.Medicamentos">
+    <result property="b1"                       column="b1"/>
+    <result property="fecha_ven"                column="fecha_ven"/>
+    <result property="id_medicamento"           column="id_medicamento"/>
+    <result property="medicamento"              column="medicamento"/>
+    <result property="forma_far"                column="forma_far"/>
+    <result property="concentra"                column="concentra"/>
+    <result property="id_persona"               column="id_persona"/> 
+    <result property="ubicacion"                column="ubicacion"/>
+    <result property="tipo"                     column="tipo"/>
+    <result property="codsumi"                  column="codsumi"/> 
+    <result property="mes"                      column="mes"/> 
+    <result property="gestion"                  column="gestion"/>
+    <result property="suma1"                    column="suma1"/> 
+    <result property="suma2"                    column="suma2"/> 
+  </resultMap>
+
+  <select id="getDatosMedicamentoPasado" resultMap="datosMedicamentoPas">
+   select date (now()) - date (recetas.fecha) as b1, 
+        date(recetas.fecha) as fecha_ven,id_medicamento,medicamento,forma_far,concentra,recetas.id_persona,
+        (nombres||' '||paterno||' '||materno) as ubicacion,consultorio as tipo,establecimiento as codsumi,
+        salida::int as mes,dosifica as gestion,id_historial as suma1,id_historia as suma2
+    from recetas 
+    join personas using(id_persona)
+    join medicamentos using(id_medicamento)
+    join consultorios using(id_consultorio)
+    inner join establecimientos on establecimientos.cod_esta=recetas.cod_esta
+    where id_medicamento=#id_medicamento# and id_historial in 
+         (select id_historial from historiales where id_paciente =#id_programa#)
+    order by recetas.fecha desc limit 1
+  </select>
+  
+  <resultMap id="datosMedicamentoListAlma" class="domain.Medicamentos">
+    <result property="id_medicamento"           column="id_medicamento"/>
+    <result property="id_farmacia"              column="id_farmacia"/>     
+    <result property="b1"                       column="b1"/>   
+    <result property="mes"                      column="mes"/>
+  </resultMap>
+
+  <select id="getListarMedicamentosAlma" resultMap="datosMedicamentoListAlma">
+    select * from _inventario_medica(#cod_esta#,#id_persona#)
+     as (id_medicamento integer,id_farmacia integer,b1 integer,mes integer)
+     order by id_medicamento,id_farmacia
+  </select>
+  
+  <resultMap id="datosMedicamentoInvAlma" class="domain.Medicamentos">
+    <result property="id_medicamento"           column="id_medicamento"/>
+    <result property="id_farmacia"              column="id_farmacia"/>     
+    <result property="b1"                       column="b1"/>   
+    <result property="mes"                      column="mes"/>
+    <result property="gestion"                  column="gestion"/>
+  </resultMap>
+
+  <select id="getListarInvAlma" resultMap="datosMedicamentoInvAlma">
+     select * from _inventario_fecha_almacen(#cod_esta#,#id_persona#,#fecha_fin#)
+        as (id_medicamento integer,id_farmacia integer,b1 integer,mes integer,gestion integer)
+     order by id_medicamento,id_farmacia
+  </select>
+      
+  <resultMap id="datosMedicamento" class="domain.Medicamentos">
+    <result property="id_medicamento"           column="id_medicamento"/>
+    <result property="medicamento"              column="medicamento"/>
+    <result property="forma_far"                column="forma_far"/>
+    <result property="ubicacion"                column="ubicacion"/>
+    <result property="concentra"                column="concentra"/>
+    <result property="stockv"                   column="stockv"/>     
+    <result property="stocks"                   column="stocks"/>         
+    <result property="stockp"                   column="stockp"/>         
+    <result property="stock"                    column="stock"/>     
+    <result property="precio_venta"             column="precio_venta"/> 
+    <result property="costo_unit"               column="costo_unit"/> 
+    <result property="fecha_ven"                column="fecha_ven"/>     
+    <result property="nro_lote"                 column="nro_lote"/>   
+    <result property="codsumi"                  column="codsumi"/>      
+    <result property="mes"                      column="mes"/> 
+    <result property="codigo"                   column="codigo"/> 
+    <result property="b1"                       column="b1"/> 
+    <result property="tipo"                     column="tipo"/>
+    <result property="max_emerg"                column="max_emerg"/>
+    <result property="max_exter"                column="max_exter"/>
+    <result property="max_inter"                column="max_inter"/>
+    <result property="min_emerg"                column="min_emerg"/>
+    <result property="min_exter"                column="min_exter"/>
+    <result property="min_inter"                column="min_inter"/>
+    <result property="restringido"              column="restringido"/>
+    <result property="cod_cta"                  column="cod_cta"/>
+    <result property="cod_tipo"                 column="cod_tipo"/>
+    <result property="cod_espe"                 column="cod_espe"/>
+    <result property="cod_material"             column="cod_material"/>
+    <result property="id_farmacia"              column="id_farmacia"/>
+    <result property="cod_esta"                 column="cod_esta"/>
+  </resultMap>
+
+  <select id="getListarMedicamentosCNS" resultMap="datosMedicamento">
+    (SELECT codsumi,id_medicamento, medicamento, forma_far,'A' as ubicacion,concentra,stockv,stocks,stockp,stock, 
+    precio_venta, costo_unit,fecha_ven,nro_lote, 1 as mes,codigo, cod_esta as b1,tipo,max_emerg,max_exter,max_inter,
+    min_emerg,min_exter,min_inter,restringido,cod_cta,cod_tipo,cod_espe,cod_material,id_farmacia,cod_esta
+    FROM medica_select
+    where codigo=-1 and UPPER(medicamento||codsumi) like UPPER(#medicamento#) and id_farmacia=#id_farmacia# and 
+          cod_esta=#cod_esta# and  (fecha_ven>=date(now())+182))
+  UNION
+    (SELECT codsumi,id_medicamento, medicamento, forma_far,'A' as ubicacion,concentra,stockv,stocks,stockp,stock, 
+    precio_venta, costo_unit,fecha_ven,nro_lote, 2 as mes,codigo, cod_esta as b1,tipo,max_emerg,max_exter,max_inter,
+    min_emerg,min_exter,min_inter,restringido, cod_cta,cod_tipo,cod_espe,cod_material,id_farmacia,cod_esta
+    FROM medica_select
+    where codigo=-1 and UPPER(medicamento||codsumi) like UPPER(#medicamento#) and id_farmacia=#id_farmacia# and 
+          cod_esta=#cod_esta# and fecha_ven>=now() and not(fecha_ven>=date(now())+182))
+  UNION
+    (SELECT codsumi,id_medicamento, medicamento, forma_far,'A' as ubicacion,concentra,stockv,stocks,stockp,stock, 
+    precio_venta, costo_unit,fecha_ven,nro_lote, 0 as mes,codigo, cod_esta as b1,tipo,max_emerg,max_exter,max_inter,
+    min_emerg,min_exter,min_inter,restringido, cod_cta,cod_tipo,cod_espe,cod_material,id_farmacia,cod_esta
+    FROM medica_select
+    where codigo=-1 and UPPER(medicamento||codsumi) like UPPER(#medicamento#) and id_farmacia=#id_farmacia# and 
+          cod_esta=#cod_esta# and not(fecha_ven>=now()))
+    order by codsumi limit 800
+  </select>
+  
+  <select id="getListarMedicamentos" resultMap="datosMedicamento">
+    (SELECT codsumi,id_medicamento, medicamento, forma_far,'A' as ubicacion,concentra,stockv,stocks,stockp,stock, 
+    precio_venta, costo_unit,fecha_ven,nro_lote, 1 as mes,codigo, cod_esta as b1,tipo,max_emerg,max_exter,max_inter,
+    min_emerg,min_exter,min_inter,restringido,cod_cta,cod_tipo,cod_espe,cod_material,id_farmacia,cod_esta
+    FROM medica_select
+    where codigo=-1 and UPPER(medicamento||codsumi) like UPPER(#medicamento#) and id_farmacia=#id_farmacia# and 
+          cod_esta=#cod_esta# and  (fecha_ven>=date(now())+182))
+  UNION
+    (SELECT codsumi,id_medicamento, medicamento, forma_far,'A' as ubicacion,concentra,stockv,stocks,stockp,stock,  
+    precio_venta, costo_unit,fecha_ven,nro_lote, 2 as mes,codigo, cod_esta as b1,tipo,max_emerg,max_exter,max_inter,
+    min_emerg,min_exter,min_inter,restringido, cod_cta,cod_tipo,cod_espe,cod_material,id_farmacia,cod_esta
+    FROM medica_select
+    where codigo=-1 and UPPER(medicamento||codsumi) like UPPER(#medicamento#) and id_farmacia=#id_farmacia# and 
+          cod_esta=#cod_esta# and fecha_ven>=now() and not(fecha_ven>=date(now())+182))
+  UNION
+    (SELECT codsumi,id_medicamento, medicamento, forma_far,'A' as ubicacion,concentra,stockv,stocks,stockp,stock, 
+    precio_venta, costo_unit,fecha_ven,nro_lote, 0 as mes,codigo, cod_esta as b1,tipo,max_emerg,max_exter,max_inter,
+    min_emerg,min_exter,min_inter,restringido, cod_cta,cod_tipo,cod_espe,cod_material,id_farmacia,cod_esta
+    FROM medica_select
+    where codigo=-1 and UPPER(medicamento||codsumi) like UPPER(#medicamento#) and id_farmacia=#id_farmacia# and 
+          cod_esta=#cod_esta# and not(fecha_ven>=now()))
+    order by medicamento limit 800
+  </select>
+
+  <select id="getListarMedicamentosAlmaGral" resultMap="datosMedicamento">
+    SELECT id_medicamento, medicamento, forma_far,'A' as ubicacion,concentra,0 as stockv,0 as stocks,0 as stockp,0 as stock, 
+    0 as precio_venta,0 as costo_unit,now() as fecha_ven,'A'::text nro_lote,codsumi, 1 as mes,codigo, cod_esta as b1,tipo,0 as max_emerg,
+    0 as max_exter,0 as max_inter,0 as min_emerg,0 as min_exter,0 as min_inter,0 as restringido, cod_cta,cod_tipo,cod_espe,cod_material,0 as id_farmacia,cod_esta
+    FROM medica_select
+    where codigo=-1 and UPPER(medicamento||codsumi) like UPPER(#medicamento#) and cod_esta=#cod_esta# and id_farmacia in 
+    (select id_farmacia from farmaciasignacion where cod_esta=#cod_esta#) and id_medicamento in 
+    (select id_medicamento from kardex where cod_esta=#cod_esta# group by id_medicamento)
+    group by id_medicamento, medicamento, forma_far,concentra,codsumi, codigo, cod_esta,tipo,
+    cod_cta,cod_tipo,cod_espe,cod_material
+    order by cod_cta,cod_tipo,cod_espe,cod_material,id_farmacia
+    <!--2016-04-27 se borra and id_persona=#id_persona# de una vez todo las farmacias del hospital-->
+  </select>
+  
+  <select id="getListarMedicamentosPorAsig" resultMap="datosMedicamento">
+    (SELECT id_medicamento, medicamento, forma_far,'A' as ubicacion,concentra,stockv,stocks,stockp,stock, 
+    precio_venta, costo_unit,fecha_ven,nro_lote,codsumi, 1 as mes,codigo, cod_esta as b1,tipo,max_emerg,max_exter,max_inter,
+    min_emerg,min_exter,min_inter,restringido,cod_cta,cod_tipo,cod_espe,cod_material,id_farmacia,cod_esta
+    FROM medica_select
+    where codigo=-1 and UPPER(medicamento||codsumi) like UPPER(#medicamento#) and id_farmacia=#id_farmacia# and cod_esta=#cod_esta# 
+          and (fecha_ven>=date(now())+182) and id_medicamento in 
+          (select id_medicamento from medicasignacion where cod_esta=#cod_esta# and id_persona=#id_persona#))
+  UNION
+    (SELECT id_medicamento, medicamento, forma_far,'A' as ubicacion,concentra,stockv,stocks,stockp,stock, 
+    precio_venta, costo_unit,fecha_ven,nro_lote,codsumi, 2 as mes,codigo, cod_esta as b1,tipo,max_emerg,max_exter,max_inter,
+    min_emerg,min_exter,min_inter,restringido, cod_cta,cod_tipo,cod_espe,cod_material,id_farmacia,cod_esta
+    FROM medica_select
+    where codigo=-1 and UPPER(medicamento||codsumi) like UPPER(#medicamento#) and id_farmacia=#id_farmacia# and cod_esta=#cod_esta#
+          and fecha_ven>=now() and not(fecha_ven>=date(now())+182) and id_medicamento in 
+          (select id_medicamento from medicasignacion where cod_esta=#cod_esta# and id_persona=#id_persona#))
+  UNION
+    (SELECT id_medicamento, medicamento, forma_far,'A' as ubicacion,concentra,stockv,stocks,stockp,stock, 
+    precio_venta, costo_unit,fecha_ven,nro_lote,codsumi, 0 as mes,codigo, cod_esta as b1,tipo,max_emerg,max_exter,max_inter,
+    min_emerg,min_exter,min_inter,restringido,cod_cta,cod_tipo,cod_espe,cod_material,id_farmacia,cod_esta
+    FROM medica_select
+    where codigo=-1 and UPPER(medicamento||codsumi) like UPPER(#medicamento#) and id_farmacia=#id_farmacia# and cod_esta=#cod_esta# 
+          and not(fecha_ven>=now()) and id_medicamento in 
+          (select id_medicamento from medicasignacion where cod_esta=#cod_esta# and id_persona=#id_persona#))
+    order by medicamento, id_medicamento limit 400
+    <!--2016-04-27 se borra and id_persona=#id_persona# de una vez todo las farmacias del hospital-->
+  </select>
+  
+  <select id="getListarMedicamentosTotal" resultMap="datosMedicamento">
+    SELECT id_medicamento, medicamento, forma_far,'A' as ubicacion,concentra,stockv,stocks,stockp,stock, 
+    precio_venta, costo_unit,fecha_ven,nro_lote,codsumi, 0 as mes,codigo, 0 as b1,tipo,0 as max_emerg,0 as max_exter,0 as max_inter,
+    0 as min_emerg, 0 as min_exter,0 as min_inter,0 as restringido, cod_cta,cod_tipo,cod_espe,cod_material,0 as id_farmacia,
+    0 as cod_esta
+    FROM medicamentos
+    where UPPER(medicamento||codsumi) like UPPER(#medicamento#) 
+    order by medicamento, id_medicamento limit 200
+  </select>
+  
+  <select id="getListarMedicamentosb1" resultMap="datosMedicamento">
+    SELECT id_medicamento, medicamento, forma_far,'A' as ubicacion,concentra,stockv,stocks,stockp,stock, 
+    precio_venta, costo_unit,fecha_ven,nro_lote,codsumi, 1 as mes,codigo, 0 as b1,tipo,max_emerg,max_exter,max_inter,min_emerg,
+    min_inter,min_exter,restringido,cod_cta,cod_tipo,cod_espe,cod_material,id_farmacia,cod_esta
+    FROM medica_select
+    where UPPER(medicamento||codsumi) like UPPER(#medicamento#) and cod_esta=#cod_esta# and id_farmacia=#id_farmacia# and codigo=-1 
+    ORDER BY medicamento
+  </select>  
+  
+   <select id="getListarMedicamentosRe" resultMap="datosMedicamento">
+   SELECT id_medicamento, medicamento, forma_far,'A' as ubicacion,concentra,stockv,stocks,stockp,
+          stock, precio_venta, costo_unit,fecha_ven,nro_lote,codsumi, 1 as mes,codigo, cod_esta as b1,tipo,
+          max_emerg,max_exter,max_inter,min_emerg,min_exter,min_inter,restringido,cod_cta,cod_tipo,cod_espe,cod_material,id_farmacia,cod_esta
+    FROM medica_select 
+    where UPPER(medicamento||codsumi) like UPPER(#medicamento#) and cod_esta=#cod_esta# and id_farmacia=#id_farmacia#
+    ORDER BY medicamento
+  </select>
+  
+  <select id="getListarMedicamentosCotSSpam" resultMap="datosMedicamento">
+    SELECT id_medicamento, medicamento, forma_far,ubicacion,concentra,stockv,stocks,stockp,stock, 
+    precio_venta, costo_unit,fecha_ven,nro_lote,codsumi, 1 as mes,codigo,0 as b1,tipo,0 as max_emerg,0 as max_exter,0 as max_inter,
+    0 as min_emerg,0 as min_exter,0 as min_inter,0 as restringido, cod_cta,cod_tipo,cod_espe,cod_material,0 as id_farmacia,
+    0 as cod_esta
+    FROM medicamentos
+    where (id_medicamento between 0 and 2000) and id_medicamento in (select id_medicamento 
+         from recetas
+         join historiales using(id_historial)
+         where recetas.id_persona=#id_persona#
+         group by id_medicamento order by -count(*) limit 30)
+    ORDER BY medicamento
+  </select>
+  
+  <select id="getListarMedicamentosCot" resultMap="datosMedicamento">
+    SELECT id_medicamento, medicamento, forma_far,'U' as ubicacion,concentra,stockv,stocks,stockp,stock, 
+    precio_venta, costo_unit,fecha_ven,nro_lote,codsumi, 1 as mes,codigo,0 as b1,tipo, max_emerg, max_exter,max_inter, min_emerg, 
+    min_exter,min_inter, restringido,cod_cta,cod_tipo,cod_espe,cod_material,id_farmacia,cod_esta
+    FROM medica_select
+    where cod_esta=#cod_esta# and id_farmacia=#id_farmacia# and id_medicamento in 
+         (select id_medicamento from recetas join historiales using(id_historial)
+         where recetas.id_persona=#id_persona# and recetas.cod_esta=#cod_esta# and recetas.id_farmacia=#id_farmacia# 
+         group by id_medicamento order by -count(*) )
+    ORDER BY medicamento limit 30
+  </select>
+  
+  <select id="getListarMedicamentosCotFar" resultMap="datosMedicamento">
+    SELECT id_medicamento, medicamento, forma_far,'U' as ubicacion,concentra,stockv,stocks,stockp,stock, 
+    precio_venta, costo_unit,fecha_ven,nro_lote,codsumi, 1 as mes,codigo,0 as b1,tipo, max_emerg, max_exter,max_inter, min_emerg, 
+    min_exter,min_inter, restringido, cod_cta,cod_tipo,cod_espe,cod_material,id_farmacia,cod_esta
+    FROM medica_select
+    where cod_esta=#cod_esta# and id_farmacia=#id_farmacia# and id_medicamento in 
+         (select id_medicamento from kardex where id_persona=#id_persona# and cod_esta=#cod_esta# and id_farmacia=#id_farmacia#
+         group by id_medicamento order by -count(*) )
+    ORDER BY medicamento limit 30
+  </select>
+  
+  <select id="getListarMedicamentosCotb1" resultMap="datosMedicamento">
+    SELECT id_medicamento, medicamento, forma_far,'A' as ubicacion,concentra,stockv,stocks,stockp,stock, 
+    precio_venta, costo_unit,fecha_ven,nro_lote,codsumi, 1 as mes,codigo, 0 as b1,tipo,max_emerg,max_exter,max_inter, min_emerg, 
+    min_exter,min_inter,restringido, cod_cta,cod_tipo,cod_espe,cod_material,id_farmacia,cod_esta
+    FROM medica_select
+    where cod_esta=#cod_esta# and id_farmacia=#id_farmacia# and id_medicamento in (select id_medicamento 
+         from recetas
+         join historiales using(id_historial)
+         where recetas.id_persona=#id_persona#
+         group by id_medicamento order by -count(*) limit 30)
+    ORDER BY medicamento
+  </select>
+  
+  <select id="getDatosMedicamento" resultMap="datosMedicamento">
+   SELECT id_medicamento, medicamento, forma_far,'A'::text as ubicacion,concentra,stockv,stocks,stockp,(stockv+stocks+stockp) as  stock,
+    precio_venta,costo_unit,fecha_ven,nro_lote,codsumi, 1 as mes,codigo, 0 as b1,tipo, max_emerg, max_exter,max_inter, min_emerg, 
+    min_emerg, min_exter, min_exter,min_inter, restringido, cod_cta,cod_tipo,cod_espe,cod_material,id_farmacia,cod_esta
+    FROM medica_select
+    where id_medicamento=#id_medicamento# and cod_esta=#cod_esta# and id_farmacia=#id_farmacia#
+    ORDER BY medicamento
+  </select>
+  
+  <select id="getDatosMedicamentoUnico" resultMap="datosMedicamento">
+   SELECT id_medicamento, medicamento, forma_far,'A'::text as ubicacion,concentra,stockv,stocks,stockp,(stockv+stocks+stockp) as stock,
+    precio_venta,costo_unit,fecha_ven,nro_lote,codsumi, 1 as mes,codigo, 0 as b1,tipo, 0 as max_emerg, 0 as max_exter,0 as max_inter,
+    0 as min_emerg,0 as min_exter, 0 as min_inter,0 as restringido, cod_cta,cod_tipo,cod_espe,cod_material,0 as id_farmacia,0 as cod_esta
+    FROM medicamentos
+    where id_medicamento=#id_medicamento# 
+    ORDER BY medicamento
+  </select>
+  
+  <select id="getDatosMedicamentoExiste" resultMap="datosMedicamento">
+   SELECT id_medicamento, medicamento, forma_far,'A'::text as ubicacion,concentra,stockv,stocks,stockp,(stockv+stocks+stockp) as  stock,
+    precio_venta,costo_unit,fecha_ven,nro_lote,codsumi, 1 as mes,codigo, 0 as b1,tipo, 0 as max_emerg, 0 as max_exter,0 as max_inter,
+    0 as min_emerg,0 as min_exter,0 as min_inter,0 as restringido, cod_cta,cod_tipo,cod_espe,cod_material,0 as id_farmacia,0 as cod_esta
+    FROM medicamentos
+    where id_medicamento in
+    (select id_medicamento from recetas where id_medicamento=#id_medicamento# and id_historia=#b2# and id_historial=#b1# and cod_esta=#cod_esta# )
+  </select>
+  
+  <select id="getDatosMedicamentoAsig" resultMap="datosMedicamento">
+   SELECT id_medicamento, medicamento, forma_far,'A'::text as ubicacion,concentra,stockv,stocks,stockp,(stockv+stocks+stockp) as  stock,
+    precio_venta,costo_unit,fecha_ven,nro_lote,codsumi, 1 as mes,codigo, 0 as b1,tipo, max_emerg, max_exter,max_inter, min_emerg, 
+    min_exter,min_inter,restringido, cod_cta,cod_tipo,cod_espe,cod_material,id_farmacia,cod_esta
+    FROM medica_select 
+    where cod_esta=#cod_esta# and id_farmacia=#id_farmacia# and id_medicamento in 
+          (select id_medicamento from medicasignacion where id_medicamento=#id_medicamento# and id_persona= #id_persona#)
+    ORDER BY medicamento
+  </select>
+  
+  <select id="getDatosMedicamentoB" resultMap="datosMedicamento">
+   SELECT id_medicamento, medicamento, forma_far,'A'::text as ubicacion,concentra,stockv,stocks,stockp,
+       stock,precio_venta,costo_unit,fecha_ven,nro_lote,codsumi, 1 as mes,codigo, cod_esta as b1,tipo,
+       max_emerg,max_exter,max_inter, min_emerg, min_exter,min_inter,restringido,cod_cta,cod_tipo,cod_espe,cod_material,
+       id_farmacia,cod_esta
+    FROM medica_select
+    where id_medicamento=#id_medicamento# and cod_esta=#cod_esta# and id_farmacia=#id_farmacia#
+    ORDER BY medicamento
+  </select>
+  
+  <insert id="setCrearMedicamento">
+    insert into medicamentos (medicamento,  ubicacion,forma_far, concentra,precio_venta,costo_unit,stockv,stocks,stockp,stock,
+                fecha_ven,nro_lote,codsumi)
+     values ( #medicamento#, #ubicacion#,  #forma_far#,#concentra#,#precio_venta#,#costo_unit#,#stockv#,#stocks#,#stockp#,#stock#,
+              #fecha_ven#,#nro_lote#,#codsumi#)
+  </insert>
+  
+  <insert id="setCrearMedicamentoAsignacion">
+    insert into medicasignacion (id_medicamento,id_persona,cod_esta,fechamod,observacion)
+                     values ( #id_medicamento#, #id_persona#, #cod_esta#,now(),'O')
+  </insert>
+  
+  <insert id="setCrearMedicamentoLocal">
+    insert into medica_select (id_medicamento, medicamento,forma_far, concentra,precio_venta,costo_unit,stockv,stocks,stockp,stock,
+             fecha_ven,nro_lote,codigo,codsumi,id_farmacia,cod_esta,cod_cta,cod_tipo,cod_espe,cod_material)
+       values(#id_medicamento#,#medicamento#, #forma_far#,#concentra#,#precio_venta#,#costo_unit#,#stockv#,#stocks#,#stockp#,#stock#,
+             current_date+200,#nro_lote#,-1,#codsumi#,#id_farmacia#,#codigo#,#cod_cta#,#cod_tipo#,#cod_espe#,#cod_material#);
+    update medicamentos set codigo=-1 where id_medicamento=#id_medicamento#;        
+  </insert>
+
+<update id="setModificarMedicamento">
+    update medica_select
+    set  medicamento = #medicamento#, forma_far=#forma_far#, concentra = #concentra#, 
+         precio_venta= #precio_venta#, costo_unit= #costo_unit#, stockv=#stockv#, stocks=#stocks#, 
+         stockp=#stockp#,stock=#stock#,fecha_ven=#fecha_ven#,nro_lote=#nro_lote#,codigo=#codigo#,
+         tipo=#tipo#,max_emerg=#max_emerg#,max_exter=#max_exter#,max_inter=#max_inter#,min_emerg=#min_emerg#,
+         min_exter=#min_exter#,min_inter=#min_inter#,restringido=#restringido#
+    where  id_medicamento = #id_medicamento# and cod_esta=#cod_esta# and id_farmacia=#id_farmacia#; 
+    update medicamentos
+    set  medicamento = #medicamento#, ubicacion = #ubicacion#, forma_far=#forma_far#, concentra = #concentra#,  
+         codigo=#codigo#,stock=#stock#,stocks=#stocks#,stockp=#stockp#,stockv=#stockv#
+    where  id_medicamento = #id_medicamento# and #cod_esta#!=200010; 
+  </update>
+  
+  <update id="setModificarMedicamentoTotal">
+    update medicamentos
+    set  medicamento = #medicamento#, ubicacion = #ubicacion#, forma_far=#forma_far#, concentra = #concentra#,  
+         precio_venta= #precio_venta#, costo_unit= #costo_unit#, stockv=#stockv#, stocks=#stocks#, stockp=#stockp#,
+         stock=#stock#, fecha_ven=#fecha_ven#, codsumi=#codsumi#, nro_lote=#nro_lote#, codigo=#codigo#
+    where  id_medicamento = #id_medicamento#;  
+    <!--esto el el general de medicamentos solo uno codigo de cada medicamento-->
+  </update>
+  
+  <update id="setModificarCie10" >
+    update cie10
+            set  generalidades = UPPER(#forma_far#)||' '||generalidades  
+    where  codigo = #codsumi#    
+  </update>
+
+  <delete id="setEliminarMedicamento" >
+    delete from medicamentos 
+    where id_medicamento > 2000 and id_medicamento = #id_medicamento#
+  </delete>
+  
+  <delete id="setEliminarMedicamentoAsignado" >
+    delete from medicasignacion
+    where cod_esta = #cod_esta# and id_persona = #id_persona# and id_medicamento = #id_medicamento#
+  </delete>
+  
+  <delete id="setEliminarMedicamentoLocal" >
+    delete from medica_select
+    where cod_esta=#codigo# and id_medicamento = #id_medicamento#
+  </delete>
+  
+  <resultMap id="datosIMMS"         class="domain.Medicamentos">
+    <result property="id_medicamento"                 column="id_medicamento"/>
+    <result property="medicamento"                    column="medicamento"/> 
+    <result property="forma_far"                      column="forma_far"/> 
+    <result property="concentra"                      column="concentra"/> 
+    <result property="codsumi"                        column="codsumi"/> 
+    <result property="suma1"                          column="suma1"/> 
+    <result property="suma2"                          column="suma2"/> 
+    <result property="suma3"                          column="suma3"/> 
+    <result property="suma4"                          column="suma4"/> 
+    <result property="suma5"                          column="suma5"/> 
+    <result property="suma6"                          column="suma6"/> 
+    <result property="suma7"                          column="suma7"/> 
+    <result property="suma8"                          column="suma8"/> 
+    <result property="suma9"                          column="suma9"/>
+  </resultMap>
+  
+  <select id="getListarDatosImmCNS2" resultMap="datosIMMS">
+   SELECT id_medicamento,medicamento,forma_far,concentra,codsumi,
+       astockv+astocks+astockp as suma1,
+       sum((CASE WHEN entrada is null THEN 0 ELSE entrada::int END)*(CASE WHEN (p.id_estado='R' and id_tipo_far=1 and tag='E') THEN 1 ELSE 0 END))::int as suma2,
+       sum((CASE WHEN entrada is null THEN 0 ELSE entrada::int END)*(CASE WHEN (p.id_estado='R' and id_tipo_far=1 and tag='C') THEN 1 ELSE 0 END))::int as suma3,
+       sum((CASE WHEN ajuste is null THEN 0 ELSE ajuste::int END)*(CASE WHEN (p.id_estado='R' and id_tipo_far=2 and tag='A') THEN 1 ELSE 0 END))::int as suma4,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (p.id_estado!='R' and id_tipo_far=0 and (tag='E' or tag='N' or tag='P') ) THEN 1 ELSE 0 END))::int as suma5,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (p.id_estado!='R' and id_tipo_far=0 and tag='I' or tag='M' or tag='Q') THEN 1 ELSE 0 END))::int as suma6,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (p.id_estado!='R' and id_tipo_far=0 and tag='U') THEN 1 ELSE 0 END))::int as suma7,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN ((p.id_estado='S' or p.tag='S') and id_tipo_far=0) THEN 1 ELSE 0 END))::int as suma8,
+       sum((CASE WHEN ajuste is null THEN 0 ELSE ajuste::int END)*(CASE WHEN (p.id_estado='R' and id_tipo_far=3 ) THEN 1 ELSE 0 END))::int as suma9
+       FROM kardex k join medicamentos m using(id_medicamento) join pedidos p using(id_pedido) join kardexmes i using(id_medicamento) 
+       WHERE id_receta>-1 and k.cod_esta=#cod_esta# and i.cod_esta=#cod_esta# and i.mes=#mes# and gestion=#gestion# 
+             and extract(month from fecha)=#mes# and extract(year from fecha)=#gestion#
+      group by id_medicamento,medicamento,forma_far,concentra,codsumi,astockv+astocks+astockp
+      order by codsumi
+  </select>
+  
+  <resultMap id="datoscie10" class="domain.Medicamentos">
+    <result property="ubicacion"                column="ubicacion"/>
+    <result property="concentra"                column="concentra"/>
+    <result property="forma_far"                column="forma_far"/>
+  </resultMap>
+
+  <select id="getListarEnfermedades" resultMap="datoscie10">
+    SELECT codigo as ubicacion, generalidades as concentra, generalidades as forma_far
+    FROM cie10
+    where generalidades like UPPER(#value#)
+    ORDER BY literal
+    limit 100
+  </select>
+  <select id="getListarEnfermedadesOtra" resultMap="datoscie10">
+    SELECT codigo as ubicacion, generalidades as concentra, generalidades as forma_far
+    FROM cie10
+    where generalidades like UPPER(#value#)
+    ORDER BY literal
+    limit 100
+  </select>
+  <select id="getListarEnfermedadesCod" resultMap="datoscie10">
+    SELECT codigo as ubicacion, generalidades as concentra, generalidades as forma_far
+    FROM cie10
+    where codigo like UPPER(#value#)
+    ORDER BY literal
+    limit 100
+  </select>
+  <select id="getListarEnfermedadesCot" resultMap="datoscie10">
+    select d.codigo as ubicacion, generalidades as concentra, generalidades as forma_far
+     from detallecie10 d
+     INNER JOIN cie10 c ON  c.codigo = d.codigo
+     where d.codigo in (select d.codigo
+     from detallecie10 d
+     where id_historial in (select id_historial from historiales where id_persona= #id_persona#)
+     group by d.codigo order by -count(*) limit 60)
+     group by d.codigo,c.generalidades,c.generalidades
+     order by generalidades
+  </select>
+  
+<resultMap id="listaProg"    class="domain.Medicamentos">
+    <result property="id_programa"     column="id_programa"/>
+    <result property="ubicacion"       column="ubicacion"/>
+    <result property="concentra"       column="concentra"/>
+    <result property="b1"       column="b1"/>
+  </resultMap>
+  
+  <select id="getListarProgramas" resultMap="listaProg">
+    SELECT id_programa, lower(nombre) as ubicacion, sigla as concentra,id_seguro as b1 
+      FROM programa_select 
+      WHERE id_estado='A' and cod_esta=#cod_esta#
+      ORDER by id_programa;
+  </select>
+  
+  <select id="getDatoPrograma" resultMap="listaProg">
+    SELECT id_programa, lower(nombre) as ubicacion, sigla as concentra,id_seguro as b1 
+      FROM programas 
+      WHERE id_programa!=0 and id_programa=#id_programa#;
+  </select>
+  
+  <resultMap id="listaImm" class="domain.Medicamentos">
+    <result property="mes"           column="mes"/>
+    <result property="gestion"       column="gestion"/>
+  </resultMap>
+
+  <select id="getListarImm" resultMap="listaImm">
+    (select gestion,mes from kardexmes 
+    where cod_esta=#cod_esta# and gestion = extract (year from now())-1 
+    group by mes,gestion order by gestion,mes )
+    UNION 
+    (select gestion,mes from kardexmes 
+    where cod_esta=#cod_esta# and gestion = extract (year from now())    
+    group by mes,gestion order by gestion,mes) 
+    order by gestion desc,mes desc
+  </select>
+  
+  <select id="getListarImmFarma" resultMap="listaImm">
+    (select gestion,mes from kardexmes 
+    where cod_esta=#cod_esta# and gestion = extract (year from now() )-1 
+    group by mes,gestion order by gestion,mes )
+    UNION 
+    (select gestion,mes from kardexmes 
+    where cod_esta=#cod_esta# and gestion = extract (year from now() )    
+    group by mes,gestion order by gestion,mes) 
+    order by gestion desc,mes desc Limit 13
+  </select>
+  
+  <select id="getListarFaltanImm" resultMap="listaImm">  
+    select extract (month from fecha) as mes,extract (year from fecha) as gestion from kardex 
+    where cod_esta=#cod_esta# and extract (year from fecha) = extract (year from now())
+          and not extract (month from fecha)+extract (year from fecha) in ( select gestion+mes from kardexmes 
+    where cod_esta=#cod_esta# and gestion = extract (year from now()) )
+    group by extract (month from fecha) ,extract (year from fecha) 
+    order by gestion ,mes  
+</select>    
+
+  <resultMap id="datosImmCNS" class="domain.Medicamentos">
+    <result property="id_medicamento"           column="id_medicamento"/>
+    <result property="medicamento"              column="medicamento"/>
+    <result property="forma_far"                column="forma_far"/>
+    <result property="concentra"                column="concentra"/>
+    <result property="codsumi"                  column="codsumi"/>
+    <result property="suma1"                    column="suma1"/>
+    <result property="suma2"                    column="suma2"/>
+    <result property="suma3"                    column="suma3"/>
+    <result property="suma4"                    column="suma4"/>
+    <result property="suma5"                    column="suma5"/>
+    <result property="suma6"                    column="suma6"/>
+    <result property="suma7"                    column="suma7"/>
+    <result property="suma8"                    column="suma8"/>
+    <result property="suma10"                   column="suma10"/>
+  </resultMap>
+  
+  <select id="getListarImmCNS2" resultMap="datosImmCNS">
+    SELECT codsumi,id_medicamento,medicamento,forma_far,concentra,
+       0 as suma1,0 as suma2,0 as suma3,0 as suma4,0 as suma5,0 as suma6,0 as suma7,0 as suma8,0 as suma10
+       FROM kardex k join medicamentos m using(id_medicamento)  
+       WHERE k.cod_esta=#cod_esta# and (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#)
+      group by codsumi,id_medicamento,medicamento,forma_far,concentra
+      order by codsumi
+  </select>
+  
+  <select id="getListarImmCNSsaldo" resultMap="datosImmCNS">
+      (SELECT codsumi,id_medicamento,medicamento,forma_far,concentra,
+       sum((CASE WHEN entrada is null THEN 0 ELSE entrada::int END))::int as suma1,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END))::int as suma2,
+       sum((CASE WHEN ajuste is null THEN 0 ELSE ajuste::int END))::int as suma3,
+       (sum(entrada)-sum(salida)+sum(ajuste))::int as suma4,0 as suma5,0 as suma6,0 as suma7,0 as suma8,0 as suma10
+       FROM kardex k join medicamentos m using(id_medicamento)    
+       WHERE id_receta>-1 and k.cod_esta=#cod_esta#  and fecha::timestamp without time zone!=#fecha_ini# 
+       and (fecha::timestamp without time zone between '2015-01-01 00:00:00' and #fecha_ini#  )
+      group by codsumi,id_medicamento,medicamento,forma_far,concentra order by id_medicamento)
+   UNION
+      (SELECT m.codsumi,m.id_medicamento,m.medicamento,m.forma_far,m.concentra, 0::int as suma1,0::int as suma2,0::int as suma3,0::int as suma4,
+       0::int as suma5,0::int as suma6,0::int as suma7,0::int as suma8,0::int as suma10
+       from medicamentos m join medica_select using(id_medicamento) 
+       where cod_esta=#cod_esta# and id_medicamento not in 
+       (SELECT id_medicamento FROM kardex k join medicamentos m using(id_medicamento)    
+       WHERE id_receta>-1 and k.cod_esta=#cod_esta#  and fecha::timestamp without time zone!=#fecha_ini# 
+       and (fecha::timestamp without time zone between '2015-01-01 00:00:00' and #fecha_ini#  ) group by id_medicamento ) 
+       group by m.codsumi,m.id_medicamento,m.medicamento,m.forma_far,m.concentra order by id_medicamento)      
+      order by codsumi   
+  </select>
+  
+  <select id="getListarImmCNSsaldo2" resultMap="datosImmCNS">
+   SELECT id_medicamento,codsumi,medicamento,forma_far,concentra,
+       sum(CASE WHEN salida is null THEN 0 ELSE salida::int END)::int as suma1,
+       extract(month from fecha)::int as suma2,extract(year from fecha)::int as suma3,
+       0 as suma4,0 as suma5,0 as suma6,0 as suma7,0 as suma8,0 as suma10
+       FROM kardex k join medicamentos m using(id_medicamento)  join pedidos p using(id_pedido)   
+       WHERE salida>0 and id_receta>0 and k.cod_esta=#cod_esta# and (k.id_farmacia between 0 and 1000 ) and 
+             (fecha::timestamp without time zone between #fecha_ini# and #fecha_fin# )  
+      group by id_medicamento,medicamento,forma_far,concentra,codsumi,extract(month from fecha),extract(year from fecha)
+      order by codsumi   
+  </select>
+  
+  <select id="getListarImmCNS" resultMap="datosImmCNS">
+      (SELECT codsumi,id_medicamento,medicamento,forma_far,concentra,
+       sum((CASE WHEN entrada is null THEN 0 ELSE entrada::int END)*(CASE WHEN (p.id_estado='R' and tag='E' and id_tipo_far=1) THEN 1 ELSE 0 END))::int as suma1,
+       sum((CASE WHEN entrada is null THEN 0 ELSE entrada::int END)*(CASE WHEN (p.id_estado='R' and tag='C' and id_tipo_far=1) THEN 1 ELSE 0 END))::int as suma2,
+       sum((CASE WHEN ((ajuste between -9999999 and -1) or ajuste is null) THEN 0 ELSE ajuste::int END)*(CASE WHEN (p.id_estado='R' and tag='A' and id_tipo_far=2) THEN 1 ELSE 0 END))::int as suma3,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='T' or tag='W' or tag='E' or tag='N' or tag='P') THEN 1 ELSE 0 END))::int as suma4,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='I' or tag='M' or tag='Q') THEN 1 ELSE 0 END))::int as suma5,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='U' THEN 1 ELSE 0 END))::int as suma6,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='S' THEN 1 ELSE 0 END))::int as suma7,
+       sum((CASE WHEN ajuste is null THEN 0 ELSE ajuste::int END)*(CASE WHEN (p.id_estado='R' and tag='A' and id_tipo_far=3) THEN 1 ELSE 0 END))::int as suma8,0 as suma10
+       FROM kardex k join medicamentos m using(id_medicamento)  join pedidos p using(id_pedido)   
+       WHERE id_receta>-1 and k.cod_esta=#cod_esta#       
+       and (fecha::timestamp without time zone between #fecha_ini# and #fecha_fin# ) 
+      group by codsumi,id_medicamento,medicamento,forma_far,concentra order by id_medicamento)
+      UNION
+      (SELECT codsumi,id_medicamento,medicamento,forma_far,concentra, 0::int as suma1,0::int as suma2,0::int as suma3,0::int as suma4,
+       0::int as suma5,0::int as suma6,0::int as suma7,0::int as suma8,0::int as suma10
+       from medicamentos 
+       WHERE id_medicamento in (select id_medicamento from medica_select where cod_esta=#cod_esta# group by id_medicamento) and id_medicamento not in
+               (SELECT id_medicamento FROM kardex k join medicamentos m using(id_medicamento)  join pedidos p using(id_pedido)
+               WHERE id_receta>-1 and k.cod_esta=#cod_esta# and (fecha::timestamp without time zone between #fecha_ini# and #fecha_fin# ) group by id_medicamento )
+       group by codsumi,id_medicamento,medicamento,forma_far,concentra order by id_medicamento)
+      order by codsumi 
+      <!--14-09-2016 se quita sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='T' or tag='E' or tag='N') THEN 1 ELSE 0 END))::int as suma4,  -->
+  </select>
+
+ <resultMap id="datosImm" class="domain.Medicamentos">
+    <result property="id_medicamento"           column="id_medicamento"/>
+    <result property="medicamento"              column="medicamento"/>
+    <result property="forma_far"                column="forma_far"/>
+    <result property="concentra"                column="concentra"/>
+    <result property="codsumi"                  column="codsumi"/>
+    <result property="cod_cta"                  column="cod_cta"/>
+    <result property="cod_tipo"                 column="cod_tipo"/>
+    <result property="cod_espe"                 column="cod_espe"/>
+    <result property="cod_material"             column="cod_material"/>
+    <result property="costo_unit"               column="costo_unit"/> 
+    <result property="precio_venta"             column="precio_venta"/> 
+    <result property="fecha_ven"                column="fecha_ven"/> 
+    <result property="astockv"                  column="astockv"/>     
+    <result property="astocks"                  column="astocks"/>         
+    <result property="astockp"                  column="astockp"/>         
+    <result property="estockv"                  column="estockv"/>     
+    <result property="estocks"                  column="estocks"/>         
+    <result property="estockp"                  column="estockp"/>         
+    <result property="cstockv"                  column="cstockv"/>     
+    <result property="cstocks"                  column="cstocks"/>         
+    <result property="cstockp"                  column="cstockp"/>         
+    <result property="stockv"                   column="stockv"/>     
+    <result property="stocks"                   column="stocks"/>         
+    <result property="stockp"                   column="stockp"/>         
+    <result property="aneg"                     column="aneg"/>         
+    <result property="apost"                    column="apost"/>     
+  </resultMap>
+
+  <select id="getListarDatosImm" resultMap="datosImm">
+    SELECT p.id_medicamento, p.medicamento, p.forma_far,p.concentra,codsumi,cod_cta,cod_tipo,cod_espe,cod_material,costo_unit, precio_venta,
+        fecha_ven,astockv,astocks,astockp,estockv,estocks,estockp,cstockv,cstocks,cstockp,q.stockv,q.stocks,q.stockp,aneg,apost
+    FROM kardexmes q
+    JOIN medicamentos p USING(id_medicamento)
+    where mes=#mes# and gestion=#gestion# and cod_esta=#cod_esta# 
+    ORDER BY medicamento
+  </select>
+  
+  <select id="getListarDatosImmCNS" resultMap="datosImm">
+    SELECT p.id_medicamento, p.medicamento, p.forma_far,p.concentra,codsumi,cod_cta,cod_tipo,cod_espe,cod_material,costo_unit, precio_venta,
+        fecha_ven,astockv,astocks,astockp,estockv,estocks,estockp,cstockv,cstocks,cstockp,q.stockv,q.stocks,q.stockp,aneg,apost
+    FROM kardexmes q
+    JOIN medicamentos p USING(id_medicamento)
+    where mes=#mes# and gestion=#gestion# and cod_esta=#cod_esta# 
+    ORDER BY codsumi
+  </select>
+  
+  <select id="getListarActImm" resultMap="datosImm">
+      SELECT id_medicamento, medicamento, forma_far,concentra,codsumi,cod_cta,cod_tipo,cod_espe,cod_material,costo_unit,precio_venta,
+            fecha_ven,astockv,astocks,astockp,estockv,estocks, estockp,cstockv,cstocks,cstockp,stockv,stocks,stockp,aneg,apost
+      FROM _imm(#mes#,#gestion#,#cod_esta#) AS (id_medicamento integer,medicamento text, forma_far text,concentra text,
+            codsumi text,cod_cta text,cod_tipo text,cod_espe text,cod_material text,costo_unit float,precio_venta float,fecha_ven date, 
+            astocks float,astockp float,astockv float,estocks float,cstocks float, estockv float,cstockv float,estockp float,cstockp float,
+            aneg float,apost float,stocks float,stockv float,stockp float)
+      ORDER BY medicamento;
+  </select>
+  
+  <select id="getListarActImmCNS" resultMap="datosImm">
+      SELECT id_medicamento, medicamento, forma_far,concentra,codsumi,cod_cta,cod_tipo,cod_espe,cod_material,costo_unit,precio_venta,
+            fecha_ven,astockv,astocks,astockp,estockv,estocks, estockp,cstockv,cstocks,cstockp,stockv,stocks,stockp,aneg,apost
+      FROM _imm(#mes#,#gestion#,#cod_esta#) AS (id_medicamento integer,medicamento text, forma_far text,concentra text,
+            codsumi text,cod_cta text,cod_tipo text,cod_espe text,cod_material text,costo_unit float,precio_venta float,fecha_ven date, 
+            astocks float,astockp float,astockv float,estocks float,cstocks float, estockv float,cstockv float,estockp float,cstockp float,
+            aneg float,apost float,stocks float,stockv float,stockp float)
+      ORDER BY codsumi
+  </select>
+  
+   <resultMap id="datosImmInv" class="domain.Medicamentos">
+    <result property="id_medicamento"           column="id_medicamento"/>
+    <result property="medicamento"              column="medicamento"/>
+    <result property="forma_far"                column="forma_far"/>
+    <result property="concentra"                column="concentra"/>
+    <result property="codsumi"                  column="codsumi"/>
+    <result property="costo_unit"               column="costo_unit"/> 
+    <result property="precio_venta"             column="precio_venta"/> 
+    <result property="fecha_ven"                column="fecha_ven"/> 
+    <result property="stocks"                   column="stocks"/>         
+    <result property="stockp"                   column="stockp"/>
+    <result property="stockv"                   column="stockv"/>     
+  </resultMap>
+  
+  <select id="getListarImmFechaDada" resultMap="datosImmInv">
+      select * from _act_inventario_medicamentos(#cod_esta#,#id_farmacia#,#fecha_fin#) 
+           as (id_medicamento integer,codsumi text,medicamento text,forma_far text,concentra text,fecha_ven date,
+           costo_unit float,precio_venta float,stocks float,stockp float,stockv float)
+      ORDER BY medicamento;
+  </select>
+  
+  <select id="getListarImmFechaDadaCNS" resultMap="datosImmInv">
+      select * from _act_inventario_medicamentos(#cod_esta#,#id_farmacia#,#fecha_fin#) 
+           as (id_medicamento integer,codsumi text,medicamento text,forma_far text,concentra text,fecha_ven date,
+           costo_unit float,precio_venta float,stocks float,stockp float,stockv float)
+      ORDER BY codsumi,medicamento;
+  </select>
+  
+  <select id="getListarImmFechaDadaUsua" resultMap="datosImmInv">
+      select * from _act_inventario_medicamentos_usua(#cod_esta#,#id_farmacia#,#id_persona#,#fecha_fin#) 
+           as (id_medicamento integer,codsumi text,medicamento text,forma_far text,concentra text,fecha_ven date,
+           costo_unit float,precio_venta float,stocks float,stockp float,stockv float)
+      ORDER BY codsumi,medicamento;
+  </select>
+  
+   <resultMap id="datosImmInvP"          class="domain.Medicamentos">
+    <result property="id_medicamento"          column="id_medicamento"/>
+    <result property="codsumi"                  column="codsumi"/>
+    <result property="medicamento"             column="medicamento"/>
+    <result property="forma_far"               column="forma_far"/>
+    <result property="concentra"               column="concentra"/>
+    <result property="fecha_ven"               column="fecha_ven"/> 
+    <result property="costo_unit"              column="costo_unit"/> 
+    <result property="precio_venta"            column="precio_venta"/> 
+    <result property="stock"                   column="stock"/>         
+    <result property="id_programa"             column="id_programa"/>     
+  </resultMap>
+  
+  <select id="getListarImmFechaDadaProg" resultMap="datosImmInvP">
+      select * from _act_inventario_medicamentos_prog(#cod_esta#,#fecha_fin#) 
+           as (id_medicamento integer,codsumi text,medicamento text,forma_far text,concentra text,fecha_ven date,
+           costo_unit float,precio_venta float,stock float,id_programa integer)
+      ORDER BY medicamento;
+  </select>
+  
+ <resultMap id="datosCpt" class="domain.Medicamentos">
+    <result property="id_medicamento"           column="id_medicamento"/>
+    <result property="medicamento"              column="medicamento"/>
+    <result property="forma_far"                column="forma_far"/>
+    <result property="concentra"                column="concentra"/>
+    <result property="stocks"                   column="stocks"/>         
+    <result property="stockp"                   column="stockp"/>         
+    <result property="stockv"                   column="stockv"/>         
+    <result property="astocks"                  column="astocks"/>         
+    <result property="estocks"                  column="estocks"/>         
+    <result property="cstocks"                  column="cstocks"/>         
+    <result property="astockp"                  column="astockp"/>         
+    <result property="estockp"                  column="estockp"/>         
+    <result property="cstockp"                  column="cstockp"/>         
+    <result property="astockv"                  column="astockv"/>         
+    <result property="estockv"                  column="estockv"/>     
+    <result property="cstockv"                  column="cstockv"/>    
+    <result property="cstockv"                  column="cstockv"/> 
+    <result property="codsumi"                  column="codsumi"/> 
+    <result property="cod_cta"                  column="cod_cta"/> 
+    <result property="cod_espe"                 column="cod_espe"/> 
+    <result property="cod_tipo"                 column="cod_tipo"/> 
+    <result property="cod_material"             column="cod_material"/> 
+    <result property="suma1"                   column="suma1"/> 
+    <result property="suma2"                   column="suma2"/> 
+    <result property="suma3"                   column="suma3"/> 
+    <result property="suma4"                    column="suma4"/> 
+    <result property="suma5"                    column="suma5"/> 
+    <result property="suma6"                    column="suma6"/> 
+    <result property="suma7"                    column="suma7"/> 
+    <result property="suma8"                    column="suma8"/> 
+    <result property="suma9"                    column="suma9"/> 
+  </resultMap>
+
+ <select id="getListarActCpt" resultMap="datosCpt">    
+   SELECT *
+   FROM _cpt(#mes#,#gestion#,#cod_esta#) AS (id_medicamento integer,medicamento text, forma_far text,concentra text, 
+   codsumi text,cod_cta text,cod_espe text, cod_tipo text,cod_material text, 
+   stocks float,stockp float,stockv float,
+   astocks float,estocks float,cstocks float,
+   astockp float,estockp float,cstockp float,
+   astockv float,estockv float,cstockv float,
+   suma1 float,suma2 float,suma3 float,suma4 float,suma5 float,suma6 float,suma7 float,suma8 float,suma9 float)  
+   ORDER BY medicamento
+  </select>
+  
+  <select id="getListarCptPsico" resultMap="datosCpt">    
+   SELECT * 
+   FROM _cpt_psico(#mes#,#gestion#,#cod_esta#) AS (id_medicamento integer,medicamento text, forma_far text,concentra text, 
+   codsumi text,cod_cta text,cod_espe text, cod_tipo text,cod_material text, 
+   stocks float,stockp float,stockv float,   astocks float,estocks float,cstocks float,
+   astockp float,estockp float,cstockp float,   astockv float,estockv float,cstockv float,
+   suma1 float,suma2 float,suma3 float,suma4 float,suma5 float,suma6 float,suma7 float,suma8 float,suma9 float)  
+   ORDER BY codsumi
+  </select>
+  
+  <select id="getListarActCptII" resultMap="datosCpt">    
+   SELECT *
+   FROM _cpt(#mes#,#gestion#,#cod_esta#) AS (id_medicamento integer,medicamento text, forma_far text,concentra text, 
+   codsumi text,cod_cta text,cod_espe text, cod_tipo text,cod_material text, 
+   stocks float,stockp float,stockv float,
+   astocks float,estocks float,cstocks float,
+   astockp float,estockp float,cstockp float,
+   astockv float,estockv float,cstockv float,
+   suma1 float,suma2 float,suma3 float,suma4 float,suma5 float,suma6 float,suma7 float,suma8 float,suma9 float)  
+   where (((astocks+estocks+cstocks+astockp+estockp+cstockp+astockv+estockv+cstockv)/3)*5.5)-(stocks+stockp+stockv)>0
+   ORDER BY medicamento
+  </select>
+  
+</sqlMap>

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Rubros">
+
+  <resultMap id="datosRubro" class="domain.Rubros">
+    <result property="id_rubro"                 column="id_rubro"/>
+    <result property="rubro"                    column="rubro"/>
+    <result property="id_estado"               column="id_estado"/>
+  </resultMap>
+
+  <select id="getListarRubros" resultMap="datosRubro">
+    SELECT id_rubro,rubro,id_estado
+    FROM rubros WHERE id_estado='A'
+    ORDER BY rubro
+  </select>
+  
+  <select id="getListarRubrosT" resultMap="datosRubro">
+    SELECT id_rubro,rubro,id_estado
+    FROM rubros
+    WHERE id_estado='A' and rubro like #rubro#
+  </select>
+  
+  <select id="getDatosRubro" resultMap="datosRubro">
+    SELECT id_rubro,rubro,id_estado
+    FROM rubros
+    where id_rubro=#id_rubro#
+    ORDER BY rubro   
+  </select>
+  
+  <insert id="setCrearRubro" >
+    insert into rubros (rubro,  id_estado, ult_usuario) 
+                      values ( #rubro#, 'A', #ult_usuario# )
+  </insert>
+
+  <update id="setModificarRubro" >
+    update rubros
+    set  rubro = #rubro#,
+         id_estado = #id_estado#       
+    where  id_rubro = #id_rubro#
+    
+  </update>
+
+  <delete id="setEliminarRubro" >
+    delete from rubros where id_rubro = #id_rubro#
+  </delete>
+  
+</sqlMap>

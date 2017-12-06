@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Usuarios">
+
+  <resultMap id="datosUsuario" class="domain.Usuarios">
+    <result property="id_usuario"   column="id_usuario" />
+    <result property="id_persona"   column="id_persona" />
+    <result property="apodo"        column="apodo" />
+    <result property="clave"        column="clave" />
+    <result property="recordatorio" column="recordatorio" />
+    <result property="id_estado"    column="id_estado" />
+  </resultMap>
+
+  <select id="getDatosUsuario" resultMap="datosUsuario">
+    SELECT u.id_usuario,u.id_persona, u.apodo, u.clave, u.recordatorio,u.id_estado
+    FROM _usuarios u 
+    WHERE u.id_usuario = #id_usuario#
+    AND u.id_estado = 'A'        
+  </select>
+
+  <resultMap id="listadoUsuarios" class="domain.Usuarios">
+    <result property="id_usuario"            column="id_usuario" />
+    <result property="id_ubicacion_organica" column="id_ubicacion_organica" />
+    <result property="ubicacion_organica"    column="ubicacion_organica" />
+    <result property="nombres"               column="usuario" />
+  </resultMap>
+
+  <select id="getListarUsuariosUbicacionOrganica" resultMap="listadoUsuarios">
+    SELECT DISTINCT * FROM tr_listar_usuarios_ubicacion_organica(#id_usuario#)
+    AS (id_usuario int4, id_ubicacion_organica int4, ubicacion_organica text, usuario text)
+    ORDER BY ubicacion_organica, usuario;
+  </select>
+ 
+  <select id="getVerificarUsuario" resultClass="java.lang.Integer">
+    SELECT usr_verificar_usuario(#id_usuario#, #clave#) AS valor;
+  </select>
+
+  <select id="setRegistrarNuevaClave" resultClass="java.lang.Integer">
+    SELECT usr_registrar_nueva_clave(#id_usuario#, #clave#) AS valor;
+  </select>
+  
+   <resultMap id="usuar" class="domain.Usuarios">
+    <result property="id_usuario"      column="ID_USUARIO"/>
+    <result property="id_persona"      column="ID_PERSONA"/>
+    <result property="id_farmacia"      column="id_farmacia"/>
+    <result property="nombres"         column="NOMBRES"/>
+    <result property="consultorio"     column="CONSULTORIO"/> 
+    <result property="id_estado"       column="ID_ESTADO"/>
+    <result property="apodo"           column="apodo" />
+    <result property="clave"           column="clave" />
+    <result property="urgencias"       column="urgencias"/>
+    <result property="cod_esta"        column="cod_esta"/>
+    <result property="suma1"           column="suma1"/>
+    <result property="ubicacion_organica"           column="ubicacion_organica" />
+  </resultMap>
+ 
+  <select id="getListaUsuarios" resultMap="usuar">
+    SELECT u.id_usuario, u.id_persona, (paterno || ' ' || materno || ' ' || nombres) AS nombres, consultorio, u.id_estado,apodo,clave,
+           establecimiento as ubicacion_organica,urgencias,e.cod_esta,count(*) OVER() as suma1,id_farmacia
+    FROM  _usuarios u, personas e, consultorios c, establecimientos b
+    WHERE e.id_persona = u.id_persona and e.id_consultorio = c.id_consultorio and e.id_estado='A' and u.id_estado='A' and e.id_persona!=1
+          and e.id_persona!=0 and  e.cod_esta = b.cod_esta
+    order by e.cod_esta,establecimiento,nombres
+    LIMIT 10  OFFSET #pagina#
+  </select>
+  
+  <select id="getListaUsuariosLocal" resultMap="usuar">
+    SELECT u.id_usuario, u.id_persona, (paterno || ' ' || materno || ' ' || nombres) AS nombres, consultorio, u.id_estado,apodo,clave,
+           establecimiento as ubicacion_organica,urgencias,e.cod_esta,count(*) OVER() as suma1,id_farmacia
+    FROM  _usuarios u, personas e, consultorios c, establecimientos b
+    WHERE e.id_persona = u.id_persona and e.id_consultorio = c.id_consultorio and e.id_estado='A' and u.id_estado='A'  and e.id_persona!=1
+          and  e.cod_esta = b.cod_esta and e.cod_esta=#cod_esta# and e.id_persona!=0 and e.id_persona!=1
+    order by e.cod_esta,establecimiento,nombres
+    LIMIT 10  OFFSET #pagina#
+  </select>
+  
+  <select id="getListaUsuariosLocal2" resultMap="usuar">
+    SELECT u.id_usuario, u.id_persona, (paterno || ' ' || materno || ' ' || nombres) AS nombres, consultorio, u.id_estado,apodo,clave,
+           establecimiento as ubicacion_organica,urgencias,e.cod_esta,count(*) OVER() as suma1,id_farmacia
+    FROM  _usuarios u, personas e, consultorios c, establecimientos b
+    WHERE e.id_persona = u.id_persona and e.id_consultorio = c.id_consultorio and e.id_estado='A' and u.id_estado='A' and e.id_persona!=1
+          and  e.cod_esta = b.cod_esta and e.cod_esta=#cod_esta# and e.id_persona!=0 and e.id_persona!=1
+    order by e.cod_esta,establecimiento,paterno,materno,nombres
+  </select>
+  
+  <select id="getListaUsuariosNombre" resultMap="usuar">
+    SELECT u.id_usuario, u.id_persona, (paterno || ' ' || materno || ' ' || nombres) AS nombres, consultorio, u.id_estado,apodo,clave,
+           establecimiento as ubicacion_organica,urgencias,e.cod_esta,count(*) OVER() as suma1,id_farmacia
+    FROM  _usuarios u, personas e, consultorios c, establecimientos b
+    WHERE e.id_persona = u.id_persona and e.id_consultorio = c.id_consultorio and e.id_estado='A' and u.id_estado='A' and  e.cod_esta = b.cod_esta
+          and UPPER(nombres||paterno||materno||dip||consultorio||e.cod_esta) like UPPER(#nombres#) and e.id_persona!=0 and e.id_persona!=1
+    order by e.cod_esta,establecimiento,nombres
+  </select>
+  
+  <select id="getListaUsuariosNombreLocal" resultMap="usuar">
+    SELECT u.id_usuario, u.id_persona, (paterno || ' ' || materno || ' ' || nombres) AS nombres, consultorio, u.id_estado,apodo,clave,
+           establecimiento as ubicacion_organica,urgencias,e.cod_esta,count(*) OVER() as suma1,id_farmacia
+    FROM  _usuarios u, personas e, consultorios c, establecimientos b
+    WHERE e.id_persona = u.id_persona and e.id_consultorio = c.id_consultorio and e.id_estado='A' and u.id_estado='A' and  e.cod_esta = b.cod_esta
+          and UPPER(nombres||paterno||materno||dip||consultorio||e.cod_esta) like UPPER(#nombres#) and e.cod_esta=#cod_esta#  
+          and e.id_persona!=0 and e.id_persona!=1
+    order by e.cod_esta,establecimiento,nombres
+  </select>
+  
+  <insert id="setCrearUsuario" >
+    insert into _usuarios (id_persona, apodo,  clave,recordatorio, id_estado,ult_usuario) 
+                  values ( #id_persona#, #apodo#, #clave#, #recordatorio#, 'A', #ult_usuario# )
+  </insert>
+
+  <update id="setModificarUsuario" >
+    update _usuarios
+    set  apodo = #apodo#,
+  	 id_persona=#id_persona#,
+         clave = #clave#,       
+         recordatorio=#recordatorio#,  
+         id_estado = #id_estado#       
+    where  id_usuario = #id_usuario#
+    
+  </update>
+
+  <delete id="setEliminarUsuario" >
+    delete from _usr_roles where id_usuario = #id_usuario#;  
+    delete from _usuarios where id_usuario = #id_usuario#;
+  </delete>
+  
+</sqlMap>

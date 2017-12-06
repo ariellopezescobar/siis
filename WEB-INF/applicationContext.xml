@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<!--
+  - Application context definition for Coimata's business layer.
+  - Contains bean references to the transaction manager and to the DAOs in
+  - dataAccessContext-local/jta.xml (see web.xml's "contextConfigLocation").
+  -->
+<beans>
+
+  <!-- ========================= GENERAL DEFINITIONS ========================= -->
+
+  <!-- Configurer that replaces ${...} placeholders with values from properties files -->
+  <!-- (in this case, mail and JDBC related properties) -->
+  <bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+    <property name="locations">
+      <list>
+        <value>WEB-INF/jdbc.properties</value>
+      </list>
+    </property>
+  </bean>
+  
+  <!-- MailSender used by EmailAdvice -->
+  <!--
+  <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+    <property name="host" value="${mail.host}"/>
+  </bean>
+  -->
+
+  <!-- ========================= BUSINESS OBJECT DEFINITIONS ======================== -->
+
+  <!-- Generic validator for Account objects, to be used for example by the Spring web tier -->
+
+
+  <!-- AOP advice used to send confirmation email after order has been submitted -->
+  <!--
+  <bean id="emailAdvice" class="org.springframework.samples.mi.domain.logic.SendOrderConfirmationEmailAdvice">
+    <property name="mailSender" ref="mailSender"/>
+  </bean>
+  -->
+
+  <!-- Advisor encapsulating email advice -->
+  <!--
+  <bean id="emailAdvisor" class="org.springframework.aop.support.RegexpMethodPointcutAdvisor">
+    <constructor-arg ref="emailAdvice"/>
+    <property name="pattern" value=".*insertOrder.*"/>
+  </bean>
+  -->
+
+  <!--
+    - A parent bean definition which is a base definition for transaction proxies.
+    - It's marked as abstract, since it's not supposed to be instantiated itself.
+    - We set shared transaction attributes here, following our naming patterns.
+    - The attributes can still be overridden in child bean definitions.
+    -->
+  <bean id="baseTransactionProxy" class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean"
+      abstract="true">
+    <property name="transactionManager" ref="transactionManager"/>
+    <property name="transactionAttributes">
+      <props>
+        <prop key="insert*">PROPAGATION_REQUIRED</prop>
+        <prop key="update*">PROPAGATION_REQUIRED</prop>
+        <prop key="*">PROPAGATION_REQUIRED</prop>
+      </props>
+    </property>
+  </bean>
+
+  <!--
+    - Coimata primary business object (default implementation), as an inner bean wrapped
+    - by an outer transactional proxy. The two bean definitions could have been separate,
+    - but this is cleaner as there is no need to ever access the unwrapped object.
+    -->
+  <bean id="mi" parent="baseTransactionProxy">
+    <property name="target">
+      <bean class="domain.logic.MiImpl">
+        <property name="clientesDao"    ref="clientesDao"/>
+	<property name="usuariosDao"    ref="usuariosDao"/>
+        <property name="rolesDao"       ref="rolesDao"/>
+        <property name="enlacesDao"     ref="enlacesDao"/>
+        <property name="categoriasDao"  ref="categoriasDao"/>
+        <property name="personasDao"    ref="personasDao"/>
+       	<property name="tablerosDao"    ref="tablerosDao"/>
+        <property name="menuesDao"        ref="menuesDao"/>
+        <property name="paisesDao"        ref="paisesDao"/>
+        <property name="laboratoriosDao"  ref="laboratoriosDao"/>
+        <property name="costosDao"        ref="costosDao"/>
+        <property name="camasDao"         ref="camasDao"/>
+        <property name="detalleDao"       ref="detalleDao"/>
+        <property name="sexosDao"         ref="sexosDao"/>    
+        <property name="clieentesDao"     ref="clieentesDao"/>   
+        <property name="proveedoresDao"   ref="proveedoresDao"/>   
+        <property name="parentescosDao"   ref="parentescosDao"/>  
+        <property name="rubrosDao"        ref="rubrosDao"/>
+        <property name="salasDao"         ref="salasDao"/>  
+        <property name="segurosDao"       ref="segurosDao"/> 
+        <property name="empresasDao"      ref="empresasDao"/> 
+        <property name="documentosDao"    ref="documentosDao"/>        
+        <property name="escolaridadesDao" ref="escolaridadesDao"/>
+        <property name="consultoriosDao"  ref="consultoriosDao"/>        
+        <property name="departamentosDao" ref="departamentosDao"/>        
+        <property name="ecivilesDao"      ref="ecivilesDao"/>        
+        <property name="provinciasDao"    ref="provinciasDao"/>        
+        <property name="localidadesDao"   ref="localidadesDao"/>        
+        <property name="pacientesDao"     ref="pacientesDao"/>        
+        <property name="historialesDao"   ref="historialesDao"/>        
+        <property name="medicamentosDao"  ref="medicamentosDao"/> 
+        <property name="recetasDao"       ref="recetasDao"/> 
+        <property name="prestacionesDao"  ref="prestacionesDao"/> 
+        <property name="cuadernosDao"     ref="cuadernosDao"/> 
+        <property name="cuentasDao"       ref="cuentasDao"/>
+         <property name="carpetasDao"     ref="carpetasDao"/>
+         <property name="actividadDao"    ref="actividadDao"/>
+        <property name="quirofanosDao"    ref="quirofanosDao"/>
+        <property name="farmaciasDao"     ref="farmaciasDao"/>
+      </bean>
+    </property>
+    <!-- Uncomment the following in order to enable mail sending aspect -->
+    <!--
+    <property name="postInterceptors">
+      <list>
+        <ref bean="emailAdvisor"/>
+      </list>
+    </property>
+     -->
+  </bean>
+
+  <!-- ========================= REMOTE EXPORTER DEFINITIONS ======================== -->
+
+  <!-- RMI exporter for the Coimata OrderService -->
+  <!-- Commented out by default to avoid conflicts with EJB containers -->
+  <!--
+  <bean id="order-rmi" class="org.springframework.remoting.rmi.RmiServiceExporter">
+    <property name="service" ref="mi"/>
+    <property name="serviceInterface" value="org.springframework.samples.mi.domain.logic.OrderService"/>
+    <property name="serviceName" value="order"/>
+    <property name="registryPort" value="1099"/>
+  </bean>
+  -->
+
+</beans>

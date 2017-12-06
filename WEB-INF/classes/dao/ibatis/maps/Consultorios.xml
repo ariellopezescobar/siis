@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Consultorios">
+  
+  <resultMap id="tiporeceta" class="domain.Consultorios">
+    <result property="consultorio"          column="consultorio"/>
+    <result property="descripcion"          column="descripcion"/>
+    <result property="cod_esta"             column="cod_esta"/>
+    <result property="id_consultorio"       column="id_consultorio"/>
+  </resultMap>
+  
+  <select id="getListarTipoRecetaCNS" resultMap="tiporeceta">
+    SELECT 0 as cod_esta,re_codigo as descripcion, re_descri as consultorio,0 as id_consultorio
+      FROM tipo_receta WHERE cod_esta=#cod_esta#
+      order by re_codigo
+  </select>
+  
+  <select id="getListarCentroCNS" resultMap="tiporeceta">
+    SELECT cod_esta,cod_cen as descripcion, establecimiento as consultorio,0 as id_consultorio
+      FROM establecimientos Where cod_cen!=''
+      order by cod_cen
+  </select>
+  
+  <select id="getListarCentroCNSFar" resultMap="tiporeceta">
+    SELECT cod_esta,cod_cen as descripcion, establecimiento as consultorio,0 as id_consultorio
+      FROM establecimientos Where id_departamento=#id_especialidad# and cod_cen!=''
+      order by establecimiento
+  </select>
+  
+  <select id="getListarServicioCNS" resultMap="tiporeceta">
+    SELECT 0 as cod_esta,cod_serv as descripcion, descrip_serv as consultorio,id_especialidad as id_consultorio
+      FROM servicio
+      order by descrip_serv
+  </select>
+  
+  <select id="getListarServicioCNSFar" resultMap="tiporeceta">
+    SELECT 0 as cod_esta,cod_serv as descripcion, descrip_serv as consultorio,id_especialidad as id_consultorio
+      FROM servicio
+      order by descrip_serv
+  </select>
+  
+  <select id="getListarServicioCNS1" resultMap="tiporeceta">
+    SELECT 0 as cod_esta,cod_serv as descripcion, descrip_serv as consultorio,id_especialidad as id_consultorio
+      FROM servicio
+      WHERE cod_serv=#cargo#
+      order by descrip_serv
+  </select>
+  
+  <select id="getListarServicioCNS2" resultMap="tiporeceta">
+    SELECT 0 as cod_esta,cod_serv as descripcion, descrip_serv as consultorio,id_especialidad as id_consultorio
+      FROM servicio
+      WHERE id_especialidad=#id_consultorio#
+      order by descrip_serv
+      limit 1
+  </select>
+  
+   <resultMap id="datosCod" class="domain.Consultorios">
+    <result property="consultorio"          column="consultorio"/>
+    <result property="descripcion"    column="descripcion"/>
+  </resultMap>
+  
+  <select id="getListarCodCNS" resultMap="datosCod">
+    SELECT be_codigo as descripcion, be_descri as consultorio
+         FROM public.tipo_ben;
+  </select>
+  
+  <resultMap id="datosconsultorio" class="domain.Consultorios">
+    <result property="id_consultorio"       column="id_consultorio"/>
+    <result property="consultorio"          column="consultorio"/>
+    <result property="descripcion"    column="descripcion"/>
+    <result property="id_estado"      column="id_estado"/>
+    <result property="id_cargo"      column="id_cargo"/>
+    <result property="id_especialidad"      column="id_especialidad"/>
+  </resultMap>
+  
+  <select id="getListarConsultoriosUrgen" resultMap="datosconsultorio">
+    SELECT id_consultorio, consultorio,id_espe_cns as  descripcion,id_estado,id_cargo,id_especialidad
+    FROM consultorios
+    WHERE id_estado='A' and (id_especialidad!=98 and id_especialidad!=99) and id_consultorio!=0 and
+    id_consultorio!=7 and id_consultorio!=14 and id_consultorio in
+    (select id_consultorio from personas where cod_esta=#cod_esta# and urgencias=#id_especialidad#  group by id_consultorio)
+    ORDER BY consultorio
+  </select>
+  
+  <select id="getListarConsultoriosEmerg" resultMap="datosconsultorio">
+    SELECT id_consultorio, consultorio,id_espe_cns as  descripcion,id_estado,id_cargo,id_especialidad
+    FROM consultorios
+    WHERE id_estado='A' and selec=#selec# and id_consultorio!=0 and id_consultorio!=1 
+    ORDER BY consultorio;
+  </select>
+  
+  <select id="getListarConsultorios" resultMap="datosconsultorio">
+    SELECT id_consultorio, consultorio,id_espe_cns as descripcion,id_estado,id_cargo,id_especialidad 
+    FROM consultorios
+    WHERE id_estado='A' and id_cargo>0 and id_consultorio!=0 and id_consultorio!=7 and id_consultorio in
+    (select id_consultorio from personas where cod_esta=#cod_esta# )
+    ORDER BY consultorio;
+  </select>
+  
+  <select id="getListarConsultoriosGen" resultMap="datosconsultorio">
+    SELECT id_consultorio, consultorio,id_espe_cns as  descripcion,id_estado,id_cargo,id_especialidad
+    FROM consultorios
+    WHERE id_estado='A' and id_consultorio!=0 and id_consultorio!=1 
+    ORDER BY consultorio;
+  </select>
+  
+  <select id="getListarConsultoriosTransf" resultMap="datosconsultorio">
+    SELECT id_consultorio, consultorio,id_espe_cns as  descripcion,id_estado,id_cargo,id_especialidad
+    FROM consultorios
+    WHERE id_estado='A' and id_consultorio!=0 and id_consultorio!=1  and id_especialidad!=99 and 
+          (id_cargo between 1 and 99) and id_especialidad>0
+    ORDER BY consultorio;
+  </select>
+
+  <select id="getDatosConsultorio" resultMap="datosconsultorio">
+    SELECT id_consultorio, consultorio,id_espe_cns as descripcion,id_estado,id_cargo,id_especialidad
+    FROM consultorios
+    where id_consultorio=#id_consultorio#
+    ORDER BY consultorio;
+  </select>
+  
+  <insert id="setCrearConsultorio" >
+    insert into consultorios (consultorio,  descripcion, id_estado,ult_usuario,id_cargo) 
+                values ( #consultorio#, #descripcion#, 'A', #ult_usuario#, #id_cargo# )
+  </insert>
+
+  <update id="setModificarConsultorio" >
+    update consultorios
+    set  consultorio = #consultorio#,
+         descripcion = #descripcion#,       
+         id_estado = #id_estado#,       
+         id_cargo = #id_cargo#       
+    where  id_consultorio = #id_consultorio#
+    
+  </update>
+
+  <delete id="setEliminarConsultorio" >
+    delete from consultorios where id_consultorio = #id_consultorio#
+  </delete>
+  
+   <resultMap id="datoscargo" class="domain.Consultorios">
+    <result property="id_cargo"       column="id_cargo"/>
+    <result property="cargo"          column="cargo"/>
+    <result property="descripcion"    column="descripcion"/>
+    <result property="id_estado"      column="id_estado"/>
+  </resultMap>
+
+  <select id="getListarCargos" resultMap="datoscargo">
+    SELECT id_cargo, cargo, descripcion,id_estado
+    FROM cargos
+    WHERE id_estado='A'
+    ORDER BY cargo;
+  </select>
+
+  <select id="getDatosCargo" resultMap="datoscargo">
+    SELECT id_cargo, cargo, descripcion,id_estado
+    FROM cargos
+    where id_cargo=#id_cargo#
+    ORDER BY cargo;
+  </select>
+  
+  <insert id="setCrearCargo" >
+    insert into cargos (cargo,  descripcion, id_estado) 
+                values ( #cargo#, #descripcion#, 'A' )
+  </insert>
+
+  <update id="setModificarCargo" >
+    update cargos
+    set   cargo = #cargo#,
+         descripcion = #descripcion#,       
+         id_estado = #id_estado#              
+    where  id_cargo = #id_cargo#
+    
+  </update>
+
+  <delete id="setEliminarCargo" >
+    delete from cargos where id_cargo = #id_cargo#
+  </delete>
+  
+  
+</sqlMap>

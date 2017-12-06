@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Farmacias">
+
+  <resultMap id="datosFarmacia" class="domain.Farmacias">
+    <result property="id_farmacia"             column="id_farmacia"/>
+    <result property="farmacia"                column="farmacia"/>
+    <result property="id_estado"               column="id_estado"/>
+    <result property="cod_esta"                column="cod_esta"/>
+  </resultMap>
+
+  <select id="getListarFarmaciasAsig" resultMap="datosFarmacia">
+    SELECT id_farmacia,farmacia,id_estado,cod_esta FROM farmacias
+    WHERE id_farmacia!=0 and cod_esta=#cod_esta# and  id_farmacia in 
+    (select id_farmacia from farmaciasignacion where cod_esta=#cod_esta# )
+    ORDER BY id_estado desc,id_farmacia
+    <!--2016-04-27 se borra and id_persona=#id_persona# de una vez todo las farmacias del hospital id_estado like #id_estado# and-->
+  </select>
+  
+  <select id="getListarFarmacias" resultMap="datosFarmacia">
+    SELECT id_farmacia,farmacia,id_estado,cod_esta FROM farmacias
+    WHERE id_farmacia!=0 and cod_esta=#cod_esta#
+    ORDER BY farmacia
+  </select>
+  
+  <select id="getListarFarmaciasHosp" resultMap="datosFarmacia">
+    SELECT id_farmacia,farmacia,id_estado,cod_esta FROM farmacias
+    WHERE cod_esta=#cod_esta#
+    ORDER BY farmacia
+  </select>
+  
+  <select id="getDatosFarmacia" resultMap="datosFarmacia">
+    SELECT id_farmacia,farmacia,id_estado,cod_esta
+    FROM farmacias
+    where id_farmacia=#id_farmacia# and cod_esta=#cod_esta#
+    ORDER BY farmacia   
+  </select>
+  
+  <insert id="setCrearFarmacia" >
+    insert into farmacias (farmacia,  id_estado, id_usuario,cod_esta,fec_registro) 
+                      values ( #farmacia#, 'A', #ult_usuario#,#cod_esta#,now() )
+  </insert>
+
+  <update id="setModificarFarmacia" >
+    update farmacias
+    set  farmacia = #farmacia#,
+         id_estado = #id_estado#       
+    where  id_farmacia = #id_farmacia# and cod_esta=#cod_esta#
+  </update>
+
+  <delete id="setEliminarFarmacia" >
+    delete from farmacias where id_farmacia = #id_farmacia# and cod_esta=#cod_esta#
+  </delete>
+  
+</sqlMap>

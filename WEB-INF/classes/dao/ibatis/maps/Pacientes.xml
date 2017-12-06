@@ -1,0 +1,1803 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Pacientes">
+    
+   <resultMap id="datosAfiliadosSumi" class="domain.Pacientes">
+    <result property="fec_registro"    column="fec_registro"/>  
+    <result property="fec_nacimiento"    column="fec_nacimiento"/>  
+    <result property="registro"        column="registro"/>       
+    <result property="paterno"         column="paterno"/>
+    <result property="materno"         column="materno"/>
+    <result property="nombre"          column="nombre"/>
+    <result property="carnet"          column="carnet"/>    
+    <result property="edad"            column="edad"/>
+    <result property="mes"             column="mes"/>
+    <result property="id_tipo_sexo"    column="id_tipo_sexo"/>
+    <result property="direccion"       column="direccion"/>
+    <result property="id_seguro"       column="id_seguro"/>
+    <result property="seguro"          column="seguro"/>
+    <result property="hcl"             column="hcl"/>
+  </resultMap>
+
+  <select id="getReporteAfiliadosSumi" resultMap="datosAfiliadosSumi">    
+     select b.fec_registro,b.registro,a.paterno,a.materno,nombre,a.carnet,extract(year from age( a.fec_nacimiento))::int as edad,
+     extract(month from age( fec_nacimiento))::int  as mes,fec_nacimiento,a.id_tipo_sexo,a.direccion,b.id_seguro,'' as seguro,hcl
+     from pacientes a
+     join pacientesumi b using(id_paciente)
+     where a.id_paciente!=0 and b.id_estado='A' and a.id_estado=#id_estado# and (b.id_seguro BETWEEN #id_pais# and #id_localidad#) and 
+            (b.fec_registro::date BETWEEN #fecha_ini# and #fecha_fin#) and id_paciente in (SELECT id_paciente 
+                                      FROM pacientesumi GROUP BY id_paciente HAVING COUNT(*) = 1) 
+     order by b.fec_registro
+  </select>   
+  
+  <select id="getOtrosAfiliados" resultMap="datosAfiliadosSumi">    
+     select b.fec_registro,b.registro,a.paterno,a.materno,nombre,a.carnet,extract(year from age( a.fec_nacimiento))::int as edad,
+     extract(month from age( fec_nacimiento))::int  as mes,fec_nacimiento,a.id_tipo_sexo,a.direccion,b.id_seguro,s.seguro,hcl
+     from pacientes a
+     join seguros s using(id_seguro)
+     join pacientesumi b using(id_paciente)
+     where a.id_paciente!=0 and a.id_estado='P' and (b.fec_registro::date BETWEEN #fecha_ini# and #fecha_fin#) and id_paciente in (SELECT id_paciente 
+                                      FROM pacientesumi GROUP BY id_paciente HAVING COUNT(*) = 1) 
+     order by b.fec_registro
+  </select>   
+  
+  <select id="getReporteAfiliados" resultMap="datosAfiliadosSumi">      
+     select fec_registro,hcl::varchar(10) as registro,paterno,materno,nombre,id_estado as carnet,extract(year from age( fec_nacimiento))::int  as edad,
+     extract(month from age( fec_nacimiento))::int  as mes,fec_nacimiento,id_tipo_sexo,direccion, 0 as id_seguro,'' as seguro,hcl
+     from pacientes 
+     where id_paciente!=0 and  fec_registro::date BETWEEN #fecha_ini# and #fecha_fin#
+     order by fec_registro
+  </select>   
+  
+  <resultMap id="datosAfiliadosCaja" class="domain.Pacientes">
+    <result property="id_paciente"       column="id_paciente"/>
+    <result property="id_carpeta"        column="id_carpeta"/>
+    <result property="hcl"               column="hcl"/>
+    <result property="nombres"           column="nombres"/>
+    <result property="paterno"           column="paterno"/>
+    <result property="materno"           column="materno"/>
+    <result property="nombre"            column="nombre"/>
+    <result property="direccion"         column="direccion"/>
+    <result property="fec_registro"      column="fec_registro"/>         
+    <result property="id_estado"         column="id_estado"/>
+    <result property="id_tipo_sexo"      column="id_tipo_sexo"/>
+    <result property="carnet"            column="carnet"/>
+    <result property="ocupacion"         column="ocupacion"/>
+    <result property="hcl"               column="hcl"/>
+    <result property="id_empresa"        column="id_empresa"/>
+    <result property="id_persona"        column="id_persona"/>
+    <result property="id_consultorio"    column="id_consultorio"/>
+    <result property="id_seguro"         column="id_seguro"/>
+    <result property="nro_registro"      column="nro_registro"/>
+    <result property="nro"               column="nro"/>
+    <result property="expedido"          column="expedido"/>
+    <result property="resultado"         column="resultado"/>
+    <result property="num_auto"          column="num_auto"/>
+    <result property="edad"              column="edad"/>
+  </resultMap>
+  
+  <select id="getOtrosAfiliadosCaja" resultMap="datosAfiliadosCaja">      
+     SELECT id_paciente,p.id_carpeta,hcl, p.nombres,p.paterno,p.materno,p.nombre,p.direccion,p.fec_registro,p.id_estado,
+          p.id_tipo_sexo,p.carnet,ocupacion,hcl,p.id_empresa,p.ult_usuario as id_persona,0 as id_consultorio,id_seguro,
+          nro_registro,codcns as nro,lugarci as expedido,empresa as resultado, cod_patronal as num_auto,
+          extract(year from age(now(),p.fec_nacimiento))::int  as edad
+    FROM pacientes p
+    inner join empresas e on e.id_empresa=p.id_empresa
+    WHERE p.id_paciente!=0 and fec_registro::date BETWEEN #fecha_ini# and #fecha_fin#
+    ORDER BY fec_registro
+  </select>   
+          
+  
+  <resultMap id="datosFaltaHcl" class="domain.Pacientes">
+    <result property="fec_registro"      column="fec_registro"/> 
+    <result property="hcl"               column="hcl"/> 
+  </resultMap>
+
+  <select id="getDatosFaltaHcl" resultMap="datosFaltaHcl">    
+    SELECT B.fec_registro,B.hcl-1 as hcl
+    FROM pacientes as A
+    RIGHT JOIN pacientes AS B ON A.hcl=B.hcl-1
+    WHERE A.hcl IS NULL AND B.hcl>1 
+    AND B.hcl BETWEEN (SELECT max(hcl) from pacientes)-100000 and (SELECT max(hcl) FROM pacientes)
+    ORDER BY hcl DESC
+  </select> 
+  <select id="getDatosFaltaHcl2" resultMap="datosFaltaHcl">    
+    SELECT B.fec_registro,B.hcl-1 as hcl
+    FROM pacientes as A
+    RIGHT JOIN pacientes AS B ON A.hcl=B.hcl-1
+    WHERE A.hcl IS NULL AND B.hcl>1 
+    AND B.hcl BETWEEN (SELECT max(hcl) from pacientes)-1000000000000 and (SELECT max(hcl) FROM pacientes)
+    ORDER BY hcl ASC limit 100
+  </select> 
+  
+  <select id="getDatosFaltaHclUlt" resultMap="datosFaltaHcl">    
+    SELECT  '2011-11-10' as fec_registro,max(B.hcl-1) as hcl
+    FROM pacientes as A
+    RIGHT JOIN pacientes AS B ON A.hcl=B.hcl-1
+    WHERE A.hcl IS NULL AND B.hcl>1 
+    AND B.hcl BETWEEN (SELECT max(hcl) from pacientes)-1000 and (SELECT max(hcl) FROM pacientes)
+    ORDER BY hcl DESC
+  </select>
+  
+  <resultMap id="datosAfiliados" class="domain.Pacientes">
+    <result property="id_paciente"     column="id_paciente"/>       
+    <result property="id_carpeta"      column="id_carpeta"/> 
+    <result property="fec_registro"    column="fec_registro"/>   
+    <result property="id_estado"       column="id_estado"/>       
+    <result property="tipo"            column="tipo"/>
+    <result property="seguro"          column="seguro"/>
+    <result property="carnet"          column="carnet"/>    
+    <result property="fec_baja"        column="fec_baja"/>
+    <result property="id_seguro"       column="id_seguro"/>
+  </resultMap>
+
+  <select id="getDatosAfiliadosNada" resultMap="datosAfiliados">    
+    select id_paciente,0 as id_carpeta,now()::date as fec_registro,'A'::text as id_estado,'A'::text as tipo,
+     'A'::text as seguro,'A'::text carnet,now()::date as fec_baja,p.id_seguro 
+     from pacientesumi p
+     where id_paciente!=0 and id_paciente=#id_paciente#
+  </select> 
+  
+  <select id="getDatosAfiliados" resultMap="datosAfiliados">    
+    select id_paciente,id_pacientesumi as id_carpeta,p.fec_registro,p.id_estado,tipo,seguro,carnet,fec_baja,p.id_seguro 
+     from pacientesumi p
+     join seguros s using(tipo)
+     where id_paciente=#id_paciente#
+     order by id_pacientesumi
+  </select> 
+  
+  <select id="getDatosAfiliadosAct" resultMap="datosAfiliados">    
+    select id_paciente,id_pacientesumi as id_carpeta,p.fec_registro,p.id_estado,tipo,seguro,carnet,fec_baja,p.id_seguro 
+     from pacientesumi p
+     join seguros s using(tipo)
+     where id_pacientesumi in (select max(id_pacientesumi) from pacientesumi where id_paciente=#id_paciente# and id_estado='A')
+     order by id_pacientesumi
+  </select> 
+  
+  <update id="setModificarPacienteSumi" >
+      update pacientesumi
+      set   fec_baja=now(), id_estado='X', ult_usuario=#ult_usuario#
+      where id_paciente=#id_paciente# and id_estado='A';
+      update pacientes set id_seguro=0 where id_paciente=#id_paciente#;
+  </update>
+  
+  <update id="setModificarPacienteSumiEmpresa">
+      update pacientesumi set id_estado='X' where id_paciente in
+            (select id_paciente from pacientes where id_carpeta=#id_carpeta#);
+      update pacientes set id_estado='A',id_empresa=#id_empresa# where id_paciente in
+            (select id_paciente from pacientes where id_carpeta=#id_carpeta#);      
+  </update>
+  
+  <update id="setModificarPedidos">
+      INSERT INTO pedidosupdate (id_pedido,nombres, nit, fec_registro,precio_total,id_historial,id_estado,num_cladoc,
+                  id_rubro,id_persona,id_dispensa,tipo,id_factura,id_paciente,id_historia,tag, centro, servicio, 
+                  especialidad, medico, sigla, matricula, cod_benef,fec_reg,ip,nameip,fechamod)
+             (SELECT id_pedido,nombres,nit,fec_registro,precio_total,id_historial,id_estado,num_cladoc,
+                    id_rubro,id_persona,id_dispensa,tipo,id_factura,id_paciente,id_historia,tag, centro, servicio, 
+                  especialidad, medico, sigla, matricula, cod_benef,fec_reg,#cadena1#,#cadena2#,now() 
+             FROM pedidos  WHERE id_pedido=#id_pedido# and cod_esta=#cod_esta# );
+              
+      update pedidos
+      set   nombres=#nombres#,fec_registro=#fec_registro#,id_factura=#id_factura#,num_cladoc=#num_cladoc#,nit=#nit#, 
+            precio_total=#precio_total#, tag=#cadena5#,id_dispensa=#id_persona#
+      where id_pedido=#id_pedido# and cod_esta=#cod_esta#;
+      update kardex set fecha=#fec_registro#,id_persona=#id_persona#,id_farmacia=#id_farmacia#  
+             where id_pedido=#id_pedido# and cod_esta=#cod_esta# and id_receta>-1;
+  </update>
+  
+  <update id="setModificarPedidoFactura">
+      INSERT INTO facturasupdate (id_factura, nit_fact, razon_social, num_fact, num_auto, fecha, importe, ice, ime, import_neto, 
+                  debito_fscal, estado, cod_control, id_pedido, id_persona, id_historial, cod_esta,fechamod,id_por,ip,nameip)
+         (SELECT id_factura, nit_fact, razon_social, num_fact, num_auto, fecha, importe, ice, ime, import_neto, debito_fscal, 
+             estado, cod_control, id_pedido, id_persona, id_historial, cod_esta,now(),#id_dispensa#,#cadena1#,#cadena2#
+         FROM facturas WHERE id_factura=#id_factura#);
+              
+      INSERT INTO kardexupdate(id_detalle, fecha, entrada,salida,ajuste,expedido,costo_unit,id_medicamento,id_pedido, precio_venta, 
+              ult_usuario, fec_mod, nro_lote,id_receta,fec_reg,id_programa,cod_esta,id_persona,id_estado,id_por,tipo,ip,nameip)
+       (SELECT id_detalle, fecha, entrada, salida, ajuste, expedido, costo_unit,id_medicamento, id_pedido, precio_venta,#id_persona#, 
+              now(),nro_lote,id_receta,fec_reg,id_programa,cod_esta,id_persona,id_estado,#id_persona#,'M',#cadena1#,#cadena2# 
+          FROM kardex where id_pedido=#id_pedido# and id_factura=#id_factura#); 
+       
+      update facturas set   estado=#nombre# where id_pedido=#id_pedido# and id_factura=#id_factura#;
+      update detalle set indicacion=''  where indicacion='"' or indicacion is null;
+      update kardex set expedido='X', id_factura=0 where id_pedido=#id_pedido# and id_factura=#id_factura# and #nombre#='A';
+      update kardex set expedido='V', id_factura=#id_factura# where id_pedido=#id_pedido# and #nombre#='V';
+  </update>
+  
+  <update id="setModificarPedidoPPago">
+      INSERT INTO pedidosupdate (id_pedido,nombres, nit, fec_registro,precio_total,id_historial,id_estado,num_cladoc,
+                          id_rubro,id_persona,id_dispensa,tipo,id_factura,id_paciente,id_historia,fec_reg,id_por,tipom,
+                          ip,nameip,fechamod)
+             (SELECT id_pedido,nombres,nit,fec_registro,precio_total,id_historial,id_estado,num_cladoc,
+                    id_rubro,id_persona,id_dispensa,tipo,id_factura,id_paciente,id_historia,fec_reg,#id_persona#,'M',
+                    #cadena1#,#cadena2#,now() 
+             FROM pedidos  WHERE id_factura=0 and cod_esta=#cod_esta# and id_historial=#id_carpeta#);
+             
+      update pedidos
+      set   id_estado=#id_estado#
+      where id_factura=0 and cod_esta=#cod_esta# and id_historial=#id_carpeta#;
+  </update>
+  
+  <update id="setModificarPedidoElimPP">
+       INSERT INTO pedidosupdate (id_pedido,nombres, nit, fec_registro,precio_total,id_historial,id_estado,num_cladoc,
+                          id_rubro,id_persona,id_dispensa,tipo,id_factura,id_paciente,id_historia,fec_reg,id_por,tipom,
+                          ip,nameip,fechamod)
+             (SELECT id_pedido,nombres,nit,fec_registro,precio_total,id_historial,id_estado,num_cladoc,
+                    id_rubro,id_persona,id_dispensa,tipo,id_factura,id_paciente,id_historia,fec_reg,#id_persona#,'M',
+                    #cadena1#,#cadena2#,now() 
+             FROM pedidos  WHERE cod_esta=#cod_esta# and id_historial=#id_carpeta# and id_estado='M');
+             
+      INSERT INTO kardexupdate(id_detalle, fecha, entrada,salida,ajuste,expedido,costo_unit,id_medicamento,id_pedido, 
+               precio_venta, ult_usuario, fec_mod, nro_lote,id_receta,fec_reg,id_programa,cod_esta,id_persona,id_estado,
+               id_por,tipo,ip,nameip)
+        (SELECT id_detalle, fecha, entrada, salida, ajuste, expedido, costo_unit,id_medicamento, id_pedido, 
+               precio_venta,#id_persona#, now(),nro_lote,id_receta,fec_reg,id_programa,cod_esta,id_persona,id_estado,
+               #id_persona#,'M',#cadena1#,#cadena2# 
+               FROM kardex where id_pedido in 
+            (select id_pedido from pedidos where cod_esta=#cod_esta# and id_historial=#id_carpeta# and id_estado='M')  );         
+             
+      update kardex set expedido='V',id_programa=0 where id_pedido in 
+            (select id_pedido from pedidos where cod_esta=#cod_esta# and id_historial=#id_carpeta# and id_estado='M');
+       
+      update pedidos
+      set   id_estado=#id_estado#
+      where cod_esta=#cod_esta# and id_historial=#id_carpeta# and id_estado='M';  
+  </update>
+  
+  <update id="setUnirHCL">
+     update historiales set id_paciente=#id_paciente# where id_paciente in (select id_paciente from pacientes where hcl=#hcl#);
+     update pacientesumi set id_paciente=#id_paciente#, id_estado='X' where id_paciente in (select id_paciente from pacientes where hcl=#hcl#);
+     update pedidos set id_paciente= #id_paciente# where id_paciente in (select id_paciente from pacientes where hcl=#hcl#);
+     delete from pacientes where id_paciente!=0 and id_paciente in (select id_paciente from pacientes where hcl=#hcl#);
+ </update> 
+
+  <insert id="setCrearPacienteSumi">
+      INSERT INTO pacientesumi (id_paciente,registro,fec_registro,fec_baja,carnet,id_estado,tipo,id_seguro,id_carpeta,id_empresa,ult_usuario)
+                  VALUES (#id_paciente#,#registro#, now(), now(),#registro#,'A',#tipo#,#id_seguro#,#id_carpeta#,#id_empresa#,#ult_usuario#);
+      update pacientes set id_seguro=#id_seguro#,id_empresa=#id_empresa# where id_paciente=#id_paciente#;           
+  </insert>
+  
+   <insert id="setCrearVigencia" >
+      INSERT INTO vigencias(fecha,num,hcl, id_paciente,id_historial, id_empresa, id_carpeta, id_consultorio,id_transferencia, nombreape, 
+            matricula, beneficiario, carnet,codigo, empresa, patronal, poli, consultorio, servicio, transferencia, zona, 
+            nropac,calle, telefono, documento, fecha2, nombre_garante, matricula_garante, empresa_garante, patronal_garante, 
+            zona_garante, calle_garante, nro_garante, telefono_garante, carnet_garante, diagnostico, dias_baja, recetas, 
+            labos, rx, ecos, alcohol, tac, trans_a, trans_de, endo, inter, id_piso, id_sala, id_cama, baja, tipo, observacion, 
+            otros, nomb_piso, nomb_sala, nomb_cama, id_persona, cod_esta)
+    VALUES (now(),#veces#,#hcl#,#id_paciente#,#dial#,#id_empresa#,#id_carpeta#,#id_consultorio#,#id_escolaridad#,#nombres#,
+            #direccion#,#expedido#,#carnet#,#codigo#,#factor_riesgo#,#id_estado#,#materno#,#nit#,#nro_registro#,#num_cladoc#,#ocupacion#,
+            #cadena9#,#paterno#,#registro#,#documento#,#fec_registro#,#nombre#,#seguro#,#telefono#,#tipo_sanguineo#,#resultado#,#cadena#,
+            #nro#,#cadena1#,#cadena2#,#cadena3#,#dia#,#id_costo#,#id_departamento#,#id_dispensa#,#id_ecivil#,#id_factura#,#id_localidad#,
+            #id_pais#,#id_pedido#,#id_provincia#,#id_rubro#,#id_seguro#,#id_tipo_documento#,#id_tipo_far#,#id_tipo_parentesco#,
+            #id_tipo_sexo#,#cadena4#,#cadena5#,#cadena6#,#cadena7#,#cadena8#,#id_persona#,#cod_esta#);
+  </insert>
+  
+  <update id="setModificarVigencia" >
+      UPDATE vigencias set num=#veces#,nombreape=#nombres#,matricula=#direccion#, beneficiario=#expedido#, carnet=#carnet#,
+            codigo=#codigo#, empresa=#factor_riesgo#,patronal=#id_estado#, poli=#materno#, consultorio=#nit#, 
+            servicio=#nro_registro#, transferencia=#num_cladoc#, nropac=#cadena10#, zona=#ocupacion#, 
+            calle=#paterno#, telefono=#registro#, documento=#documento#, fecha2=#fec_registro#, nombre_garante=#nombre#, 
+            matricula_garante=#seguro#, empresa_garante=#telefono#, patronal_garante=#tipo_sanguineo#, zona_garante=#resultado#, 
+            calle_garante=#cadena#, nro_garante=#nro#, telefono_garante=#cadena1#, carnet_garante=#cadena2#, inter=#id_rubro#, 
+            id_piso=#id_seguro#, id_sala=#id_tipo_documento#, id_cama=#id_tipo_far#, observacion=#cadena4#
+          WHERE id_vigencia=#id_vigencia# and cod_esta=#cod_esta#;
+  </update>
+  
+  <select id="getNumRegistro" resultClass="java.lang.String">
+    select to_char(fec_nacimiento,'ddMMYY')||'-'||substring(nombre,1,1)||(CASE WHEN paterno ='' THEN substring(materno,1,1) ELSE substring(paterno,1,1) END)||substring(materno,1,1) 
+     from pacientes    
+     where id_paciente=#id_paciente# 
+  </select>
+  
+  <select id="getNumAsegurado" resultClass="java.lang.String">
+    select to_char(fec_nacimiento,'YYYYMMdd')||substring(nombre,1,1)||(CASE WHEN paterno ='' THEN substring(materno,1,1) ELSE substring(paterno,1,1) END)||substring(materno,1,1) 
+     from pacientes    
+     where id_paciente=#id_paciente# 
+  </select>
+  
+  <select id="getNumSumi" resultClass="java.lang.String">
+     select (CASE WHEN (nit ='' or nit=null) THEN '0' ELSE nit END) as nit from pedidos where  cod_esta=#cod_esta# and id_pedido=
+     (SELECT max(id_pedido) from pedidos where cod_esta=#cod_esta# and tipo='B' and id_estado=#id_estado#)
+  </select>
+  
+ <!--
+  <resultMap id="datosPacienteCaja" class="domain.Pacientes">
+    <result property="id_carpeta"        column="id_carpeta"/>
+    <result property="direccion"         column="direccion"/>
+    <result property="nombre"            column="nombre"/>
+    <result property="nombres"           column="nombres"/>
+    <result property="expedido"          column="expedido"/>
+    <result property="seguro"            column="seguro"/>
+    <result property="num_cladoc"        column="num_cladoc"/>
+    <result property="materno"           column="materno"/>
+    <result property="paterno"           column="paterno"/>
+    <result property="ocupacion"         column="ocupacion"/>
+    <result property="resultado"         column="resultado"/>
+    <result property="registro"          column="registro"/>
+    <result property="id_paciente"       column="id_paciente"/>
+  </resultMap>
+  
+  <select id="getListarPacientesCaja" resultMap="datosPacienteCaja">
+    select cod_grupo_fam as id_carpeta,(CASE WHEN g.direccion is null THEN '.' ELSE g.direccion END) as direccion,nombre_depa as nombre,nombre_localidad as nombres,nombre_zona as expedido,
+        nombre_via as seguro,(CASE WHEN numero_domicilio is null THEN '.' ELSE numero_domicilio END)  as num_cladoc,
+        (CASE WHEN numero_depto is null THEN '.' ELSE numero_depto END) as materno,nombre_unidad as paterno,
+        descripcion as ocupacion,par_unidad.direccion as resultado,matricula as registro, codigo_persona as id_paciente
+        from grupo_familiar
+        inner join grupo_familiar_vivienda g on codigo_grupo_familiar=cod_grupo_fam
+        inner join par_departamento on codigo_depa=cod_depa
+        inner join par_localidad on par_localidad.codigo_localidad=cod_localidad
+        inner join par_zona on par_zona.codigo_zona=cod_zona
+        inner join par_vias on par_vias.codigo_via=cod_via
+        inner join par_zoni_cons on par_vias.codigo_via=zovi_codigo_via
+        inner join par_unidad on cons_codigo_unidad=codigo_unidad
+        inner join par_consultorio on cons_codigo_cons=codigo_consultorio
+        where par_consultorio.unid_codigo_unidad=cons_codigo_unidad and zovi_codigo_zona=cod_zona
+        and cod_grupo_fam =#id_carpeta# and codigo_persona=#id_paciente# and g.cod_localidad=loca_codi_loca and 
+      correl_vivienda=(select max(correl_vivienda) from grupo_familiar_vivienda where cod_grupo_fam=#id_carpeta#)
+      limit 1
+  </select>   cambio las bases de Caja Afiliacion y se crea nuevas consultas 24-06-2016
+  -->
+  
+  <resultMap id="datosPacienteVigencia" class="domain.Pacientes">
+    <result property="id_vigencia"         column="id_vigencia"/>
+    <result property="fecha_ini"           column="fecha_ini"/>
+    <result property="id_paciente"         column="id_paciente"/>
+    <result property="id_empresa"          column="id_empresa"/>
+    <result property="id_carpeta"          column="id_carpeta"/>
+    <result property="id_consultorio"      column="id_consultorio"/>
+    <result property="id_escolaridad"      column="id_escolaridad"/>
+    <result property="hcl"                 column="hcl"/>
+    <result property="nombres"             column="nombres"/>
+    <result property="direccion"           column="direccion"/>
+    <result property="expedido"            column="expedido"/>
+    <result property="carnet"              column="carnet"/>
+    <result property="codigo"              column="codigo"/>
+    <result property="factor_riesgo"       column="factor_riesgo"/>
+    <result property="id_estado"           column="id_estado"/>
+    <result property="materno"             column="materno"/>
+    <result property="nit"                 column="nit"/>
+    <result property="nro_registro"        column="nro_registro"/>
+    <result property="num_cladoc"          column="num_cladoc"/>
+    <result property="ocupacion"           column="ocupacion"/>
+    <result property="paterno"             column="paterno"/>
+    <result property="registro"            column="registro"/>
+    <result property="documento"           column="documento"/>
+    <result property="fec_registro"        column="fec_registro"/>
+    <result property="nombre"              column="nombre"/>
+    <result property="seguro"              column="seguro"/>
+    <result property="telefono"            column="telefono"/>
+    <result property="tipo_sanguineo"      column="tipo_sanguineo"/>
+    <result property="resultado"           column="resultado"/>
+    <result property="cadena"              column="cadena"/>
+    <result property="nro"                 column="nro"/>
+    <result property="cadena1"             column="cadena1"/>
+    <result property="cadena2"             column="cadena2"/>
+    <result property="cadena3"             column="cadena3"/>
+    <result property="cadena4"             column="cadena4"/>
+    <result property="dia"                 column="dia"/>
+    <result property="id_costo"            column="id_costo"/>
+    <result property="id_departamento"     column="id_departamento"/>
+    <result property="id_dispensa"         column="id_dispensa"/>
+    <result property="id_ecivil"           column="id_ecivil"/>
+    <result property="id_factura"          column="id_factura"/>
+    <result property="id_localidad"        column="id_localidad"/>
+    <result property="id_localidad"        column="id_localidad"/>
+    <result property="id_pais"             column="id_pais"/>
+    <result property="id_pedido"           column="id_pedido"/>
+    <result property="id_provincia"        column="id_provincia"/>
+    <result property="id_rubro"            column="id_rubro"/>
+    <result property="id_seguro"           column="id_seguro"/>
+    <result property="id_tipo_documento"   column="id_tipo_documento"/>
+    <result property="id_tipo_far"         column="id_tipo_far"/>
+    <result property="id_tipo_parentesco"  column="id_tipo_parentesco"/>
+    <result property="id_tipo_sexo"        column="id_tipo_sexo"/>
+    <result property="cadena5"             column="cadena5"/>
+    <result property="cadena6"             column="cadena6"/>
+    <result property="cadena7"             column="cadena7"/>
+    <result property="cadena8"             column="cadena8"/>
+    <result property="cadena9"             column="cadena9"/>
+    <result property="cadena10"            column="cadena10"/>
+    <result property="cadena11"            column="cadena11"/>
+    <result property="id_persona"          column="id_persona"/>
+    <result property="cod_esta"            column="cod_esta"/>
+    <result property="veces"               column="veces"/>
+  </resultMap>
+  
+  <select id="getListarPacientesVigenciaSolo" resultMap="datosPacienteVigencia">
+   SELECT id_vigencia,fecha2 as fecha_ini, id_paciente,id_empresa,id_carpeta,id_consultorio,id_transferencia as id_escolaridad, 
+       nombreape as nombres,matricula as direccion,beneficiario as expedido,codigo,carnet,nropac as cadena11, 
+       empresa as factor_riesgo,patronal as id_estado,poli as materno,consultorio as nit,hcl,
+       (CASE WHEN id_consultorio=0 THEN '.' ELSE (select consultorio from consultorios where id_consultorio in 
+             (select id_consultorio from vigencias WHERE cod_esta=#cod_esta# and id_vigencia=#id_vigencia#)) END) as nro_registro,
+       (CASE WHEN id_transferencia=0 THEN '.' ELSE (select establecimiento from establecimientos where cod_esta in 
+             (select id_transferencia from vigencias WHERE cod_esta=#cod_esta# and id_vigencia=#id_vigencia#)) END) as num_cladoc, 
+       zona as ocupacion, calle as paterno, telefono as registro, documento as documento, fecha2 as fec_registro, nombre_garante as nombre, 
+       matricula_garante as seguro,empresa_garante as telefono, patronal_garante as tipo_sanguineo, zona_garante as resultado,  
+       calle_garante as cadena, nro_garante as nro, telefono_garante as cadena1, carnet_garante as cadena2, diagnostico as cadena3, 
+       dias_baja as dia, recetas as id_costo, labos as id_departamento, rx as id_dispensa, ecos as id_ecivil, alcohol as id_factura, 
+       tac as id_localidad, trans_a as id_pais, trans_de as id_pedido, endo as id_provincia, inter as id_rubro, id_piso as id_seguro, 
+       id_sala as id_tipo_documento, id_cama as id_tipo_far, baja as id_tipo_parentesco, tipo as id_tipo_sexo, observacion as cadena4, 
+       otros as cadena5, nomb_piso as cadena6, nomb_sala as cadena7, nomb_cama as cadena8, id_persona,servicio as cadena9,
+       transferencia as cadena10, cod_esta,num as veces 
+    FROM vigencias WHERE cod_esta=#cod_esta# and id_vigencia=#id_vigencia#;      
+  </select>
+  
+  <select id="getListarPacientesVigencia" resultMap="datosPacienteVigencia">
+    SELECT id_vigencia, fecha2 as fecha_ini, id_paciente,id_empresa,id_carpeta,id_consultorio,id_transferencia as id_escolaridad, 
+       nombreape as nombres,matricula as direccion,beneficiario as expedido,codigo,carnet,nropac as cadena11, empresa as factor_riesgo,
+       patronal as id_estado,poli as materno,consultorio as nit,hcl,'.'::text as nro_registro, '.'::text  as num_cladoc, 
+       zona as ocupacion, calle as paterno, telefono as registro, documento as documento, fecha2 as fec_registro, nombre_garante as nombre, 
+       matricula_garante as seguro,empresa_garante as telefono, patronal_garante as tipo_sanguineo, zona_garante as resultado, 
+       calle_garante as cadena, nro_garante as nro, telefono_garante as cadena1, carnet_garante as cadena2, diagnostico as cadena3, 
+       dias_baja as dia, recetas as id_costo, labos as id_departamento, rx as id_dispensa, ecos as id_ecivil, alcohol as id_factura, 
+       tac as id_localidad, trans_a as id_pais, trans_de as id_pedido, endo as id_provincia, inter as id_rubro, id_piso as id_seguro, 
+       id_sala as id_tipo_documento, id_cama as id_tipo_far, baja as id_tipo_parentesco, tipo as id_tipo_sexo, observacion as cadena4, 
+       otros as cadena5, nomb_piso as cadena6, nomb_sala as cadena7, nomb_cama as cadena8, id_persona,servicio as cadena9,
+       transferencia as cadena10, cod_esta,num as veces 
+    FROM vigencias WHERE cod_esta=#cod_esta# and tipo between #veces# and #dial# ORDER BY fecha desc LIMIT 50;      
+  </select>
+  
+  <select id="getListarPacientesVigenciaBuscar" resultMap="datosPacienteVigencia">
+   SELECT id_vigencia, fecha2 as fecha_ini, id_paciente,id_empresa,id_carpeta,id_consultorio,id_transferencia as id_escolaridad, 
+       nombreape as nombres,matricula as direccion,beneficiario as expedido,codigo,carnet,nropac as cadena11, empresa as factor_riesgo,
+       patronal as id_estado,poli as materno,consultorio as nit,hcl,'.'::text as nro_registro, '.'::text  as num_cladoc, 
+       zona as ocupacion, calle as paterno, telefono as registro, documento as documento, fecha2 as fec_registro, nombre_garante as nombre, 
+       matricula_garante as seguro,empresa_garante as telefono, patronal_garante as tipo_sanguineo, zona_garante as resultado,  
+       calle_garante as cadena, nro_garante as nro, telefono_garante as cadena1, carnet_garante as cadena2, diagnostico as cadena3, 
+       dias_baja as dia, recetas as id_costo, labos as id_departamento, rx as id_dispensa, ecos as id_ecivil, alcohol as id_factura, 
+       tac as id_localidad, trans_a as id_pais, trans_de as id_pedido, endo as id_provincia, inter as id_rubro, id_piso as id_seguro, 
+       id_sala as id_tipo_documento, id_cama as id_tipo_far, baja as id_tipo_parentesco, tipo as id_tipo_sexo, observacion as cadena4, 
+       otros as cadena5, nomb_piso as cadena6, nomb_sala as cadena7, nomb_cama as cadena8, id_persona,servicio as cadena9,
+       transferencia as cadena10, cod_esta,num as veces 
+    FROM vigencias WHERE cod_esta=#cod_esta# and tipo between #veces# and #dial# and  
+         UPPER(documento||matricula||beneficiario||nombreape||empresa||patronal||carnet) like UPPER(#nombres#) ORDER BY fecha desc LIMIT 50;  
+  </select>
+  
+   <resultMap id="datosPacienteSeguro" class="domain.Pacientes">
+    <result property="nro_registro"      column="nro_registro"/>
+    <result property="paterno"           column="paterno"/>
+    <result property="materno"           column="materno"/>
+    <result property="nombre"            column="nombre"/>
+    <result property="nombres"           column="nombres"/>
+    <result property="seguro"            column="seguro"/>
+    <result property="fec_nacimiento"    column="fec_nacimiento"/>
+    <result property="carnet"            column="carnet"/>
+    <result property="ocupacion"         column="ocupacion"/>
+    <result property="nro"               column="nro"/>
+  </resultMap>
+  
+  <select id="getListarPacientesSeguro" resultMap="datosPacienteSeguro">
+    SELECT  codigo as nro_registro, paterno, materno, nombre,nombre||' '||paterno||' '||materno as nombres, sexo as nro, fecha as fec_nacimiento, ci as carnet, lugar as ocupacion, caja as seguro
+    FROM seguridad.sscp
+    WHERE codigo1=#nombres# and UPPER(nombre||' '||paterno||' '||materno) ilike #carnet#
+  </select>
+  
+   <resultMap id="datosPacienteCns" class="domain.Pacientes">
+    <result property="id_paciente"        column="id_paciente"/>
+    <result property="id_carpeta"        column="id_carpeta"/>
+    <result property="hcl"               column="hcl"/>
+    <result property="nombres"           column="nombres"/>
+    <result property="direccion"         column="direccion"/>
+    <result property="fec_nacimiento"    column="fec_nacimiento"/>    
+    <result property="id_estado"         column="id_estado"/>
+    <result property="id_tipo_sexo"      column="id_tipo_sexo"/>
+    <result property="carnet"            column="carnet"/>
+    <result property="ocupacion"         column="ocupacion"/>
+    <result property="veces"             column="veces"/>
+    <result property="id_empresa"        column="id_empresa"/>
+    <result property="id_persona"        column="id_persona"/>
+    <result property="id_consultorio"    column="id_consultorio"/>
+    <result property="id_seguro"         column="id_seguro"/>
+    <result property="nro_registro"      column="nro_registro"/>
+    <result property="nro"               column="nro"/>
+    <result property="expedido"          column="expedido"/>
+    <result property="resultado"         column="resultado"/>
+    <result property="registro"          column="registro"/>
+    <result property="expedido"          column="expedido"/>
+    <result property="seguro"            column="seguro"/>
+  </resultMap>
+  
+  <select id="getListarPacientesPrivNom" resultMap="datosPacienteCns">
+    SELECT id_paciente,p.id_carpeta,hcl, p.nombres,p.direccion,p.fec_nacimiento,p.id_estado,p.id_tipo_sexo,p.carnet,ocupacion,
+          veces,p.id_empresa,p.ult_usuario as id_persona,0 as id_consultorio,id_seguro,nro_registro,codcns as nro,lugarci as expedido,
+          nempresa as resultado, codigoempresa as registro,lugarci as expedido,seguro
+    FROM pacientes p
+    WHERE p.id_paciente!=0 and codesta=#cod_esta# and id_paciente in 
+         (select id_paciente from pacientes where codesta=#cod_esta# and id_estado like #id_estado# and texto_vector @@ to_tsquery('spanish',#nombres#) limit 100)
+    ORDER BY nombres LIMIT 50    
+  </select>
+  
+  <select id="getListarPacientesNombreCns" resultMap="datosPacienteCns">
+    SELECT id_paciente,p.id_carpeta,hcl, p.nombres,p.direccion,p.fec_nacimiento,p.id_estado,p.id_tipo_sexo,p.carnet,ocupacion,
+          veces,p.id_empresa,p.ult_usuario as id_persona,0 as id_consultorio,id_seguro,nro_registro,codcns as nro,lugarci as expedido,
+          nempresa as resultado, codigoempresa as registro,lugarci as expedido,seguro
+    FROM pacientes p
+    WHERE p.id_paciente!=0 and id_paciente in 
+         (select id_paciente from pacientes where id_estado like #id_estado# and texto_vector @@ to_tsquery('spanish',#nombres#) limit 50)
+    ORDER BY nombres LIMIT 50   
+  </select>
+  
+  <select id="getListarPacientesFNCns" resultMap="datosPacienteCns">
+   SELECT id_paciente,p.id_carpeta,hcl, p.nombres,p.direccion,p.fec_nacimiento,p.id_estado,p.id_tipo_sexo,p.carnet,ocupacion,
+          veces,p.id_empresa,p.ult_usuario as id_persona,0 as id_consultorio,id_seguro,nro_registro,codcns as nro,lugarci as expedido,
+          nempresa as resultado, codigoempresa as registro,lugarci as expedido,seguro
+    FROM pacientes p
+     WHERE p.id_paciente!=0 and p.fec_nacimiento::date=#fec_nacimiento# 
+    ORDER BY nombres LIMIT 50
+  </select>
+  
+  <select id="getListarPacientesHCCns" resultMap="datosPacienteCns">
+    SELECT id_paciente,p.id_carpeta,hcl, p.nombres,p.direccion,p.fec_nacimiento,p.id_estado,p.id_tipo_sexo,p.carnet,ocupacion,
+          veces,p.id_empresa,p.ult_usuario as id_persona,0 as id_consultorio,id_seguro,nro_registro,codcns as nro,lugarci as expedido,
+          nempresa as resultado, codigoempresa as registro,lugarci as expedido,seguro
+    FROM pacientes p
+    WHERE p.id_paciente!=0 and UPPER(hcl||carnet||nro_registro) like #nombres# 
+    ORDER BY nombres
+  </select>
+  
+  <select id="getListarPacientesCnsUnico" resultMap="datosPacienteCns">
+   SELECT id_paciente,p.id_carpeta,hcl, p.nombres,p.direccion,p.fec_nacimiento,p.id_estado,p.id_tipo_sexo,p.carnet,ocupacion,
+          veces,p.id_empresa,p.ult_usuario as id_persona,0 as id_consultorio,id_seguro,nro_registro,codcns as nro,lugarci as expedido,
+          nempresa as resultado, codigoempresa as registro,lugarci as expedido,seguro
+    FROM pacientes p
+     WHERE p.id_paciente!=0 and id_paciente=#id_paciente# 
+  </select>
+  
+   <resultMap id="datosPaciente" class="domain.Pacientes">
+    <result property="id_paciente"        column="id_paciente"/>
+    <result property="id_carpeta"        column="id_carpeta"/>
+    <result property="hcl"               column="hcl"/>
+    <result property="nombres"           column="nombres"/>
+    <result property="direccion"         column="direccion"/>
+    <result property="fec_nacimiento"    column="fec_nacimiento"/>    
+    <result property="id_estado"         column="id_estado"/>
+    <result property="id_tipo_sexo"      column="id_tipo_sexo"/>
+    <result property="carnet"            column="carnet"/>
+    <result property="ocupacion"         column="ocupacion"/>
+    <result property="veces"             column="veces"/>
+    <result property="id_empresa"        column="id_empresa"/>
+    <result property="id_persona"        column="id_persona"/>
+    <result property="id_consultorio"    column="id_consultorio"/>
+    <result property="id_seguro"         column="id_seguro"/>
+    <result property="nro_registro"      column="nro_registro"/>
+    <result property="nro"               column="nro"/>
+    <result property="expedido"          column="expedido"/>
+    <result property="longitud"          column="longitud"/>
+    <result property="latitud"           column="latitud"/>
+    <result property="zoom"              column="zoom"/>
+    <result property="seguro"            column="seguro"/>
+    <result property="id_policlinico"    column="id_policlinico"/>
+  </resultMap>
+  
+  <select id="getListarPacientes" resultMap="datosPaciente">
+   SELECT id_paciente,p.id_carpeta,hcl, p.nombres,p.direccion,p.fec_nacimiento,p.id_estado,p.id_tipo_sexo,p.carnet,ocupacion,
+          veces,p.id_empresa,p.ult_usuario as id_persona,id_cargo as id_consultorio,id_seguro,nro_registro,codcns as nro,
+          lugarci as expedido,latitud,longitud,zoom,seguro,id_policlinico
+    FROM pacientes p
+    inner join personas e on id_persona=p.ult_usuario
+    join consultorios c using(id_consultorio)
+    WHERE  p.id_paciente!=0 and id_paciente in 
+         (select id_paciente from pacientes where  id_paciente!=0 and id_estado like #id_estado# and texto_vector @@ to_tsquery('spanish',#nombres#) limit 50)
+    ORDER BY nombres LIMIT 50;     
+    <!-- codesta=#cod_esta# and no esta dando para obrero-->
+  </select>
+    
+  <select id="getListarPacientesFN" resultMap="datosPaciente">
+    SELECT id_paciente,p.id_carpeta,hcl, p.nombres,p.direccion,p.fec_nacimiento,p.id_estado,p.id_tipo_sexo,p.carnet,ocupacion,
+          veces,p.id_empresa,p.ult_usuario as id_persona,id_cargo as id_consultorio,id_seguro,nro_registro,codcns as nro,
+          lugarci as expedido,latitud,longitud,zoom,seguro,id_policlinico
+    FROM pacientes p
+    inner join personas e on id_persona=p.ult_usuario
+    join consultorios c using(id_consultorio)
+    WHERE p.id_paciente!=0 and p.fec_nacimiento::date=#fec_nacimiento# 
+    ORDER BY nombres LIMIT 50
+  </select>
+  
+  <select id="getListarPacientesHcl" resultMap="datosPaciente">
+    SELECT id_paciente,p.id_carpeta,hcl, p.nombres,p.direccion,p.fec_nacimiento,p.id_estado,p.id_tipo_sexo,p.carnet,ocupacion,
+          veces,p.id_empresa,p.ult_usuario as id_persona,id_cargo as id_consultorio,id_seguro,nro_registro,codcns as nro,
+          lugarci as expedido,latitud,longitud,zoom,seguro,id_policlinico
+    FROM pacientes p
+    inner join personas e on id_persona=p.ult_usuario
+    join consultorios c using(id_consultorio)
+     WHERE p.id_paciente!=0 and id_paciente in (select id_paciente from historiales where date(fecha) =#fecha_ini# )
+    ORDER BY nombres LIMIT 300
+  </select>
+  
+  <select id="getListarPacientesHC" resultMap="datosPaciente">
+    SELECT id_paciente,p.id_carpeta,hcl, p.nombres,p.direccion,p.fec_nacimiento,p.id_estado,p.id_tipo_sexo,p.carnet,ocupacion,
+          veces,p.id_empresa,p.ult_usuario as id_persona,id_cargo as id_consultorio,id_seguro,nro_registro,codcns as nro,
+          lugarci as expedido,latitud,longitud,zoom,seguro,id_policlinico
+    FROM pacientes p
+    inner join personas e on id_persona=p.ult_usuario
+    join consultorios c using(id_consultorio)
+    WHERE p.id_paciente!=0 and hcl=#hcl# 
+    ORDER BY nombres
+  </select>
+  
+   <select id="getListarPacientesEmp" resultMap="datosPaciente">
+    SELECT id_paciente,id_carpeta,hcl, nombres,direccion,fec_nacimiento,id_estado,id_tipo_sexo,carnet,ocupacion,veces,
+          id_empresa,id_empresa as id_persona, id_empresa as id_consultorio,id_seguro,nro_registro,codcns as nro,
+          lugarci as expedido,latitud,longitud,zoom,seguro,id_policlinico
+    FROM pacientes
+    WHERE id_paciente!=0 and id_empresa=#id_empresa# and id_tipo_parentesco=1
+    ORDER BY nombres
+  </select>
+  
+  <select id="getListarPacientesFarma" resultMap="datosPaciente">
+    SELECT id_paciente,p.id_carpeta,hcl,s.seguro as nombres, nombre,direccion,fec_nacimiento,s.id_estado,id_tipo_sexo,p.carnet,ocupacion,veces,
+          0 as id_empresa,p.id_empresa as id_persona, p.id_empresa as id_consultorio,s.id_seguro,nro_registro,codcns as nro,
+          lugarci as expedido,latitud,longitud,zoom,p.seguro,id_policlinico
+    FROM pacientes p
+    join seguros s using(id_seguro)
+    WHERE p.id_paciente!=0 and id_paciente in (select id_paciente from kardex join pedidos using(id_pedido) where UPPER(num_recetak||nombres) like UPPER(#nombres#)
+                        and kardex.cod_esta=#cod_esta# and (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#) )
+  </select>
+  
+   <select id="getListarPacienteFar" resultMap="datosPaciente">
+    SELECT id_paciente,p.id_carpeta,hcl, p.nombres,p.direccion,p.fec_nacimiento,p.id_estado,p.id_tipo_sexo,p.carnet,ocupacion,
+          veces,p.id_empresa,p.ult_usuario as id_persona,id_cargo as id_consultorio,id_seguro,nro_registro,codcns as nro,
+          lugarci as expedido,latitud,longitud,zoom,seguro,id_policlinico
+    FROM pacientes p
+    inner join personas e on id_persona=p.ult_usuario
+    join consultorios c using(id_consultorio)
+    WHERE p.id_paciente!=0 and id_paciente in (select id_paciente from pacientes where id_paciente!=0 and codcns=#codigo# and texto_vector @@ to_tsquery('spanish',#nombres#) limit 10)       
+    ORDER BY nro desc,nombres LIMIT 1
+  </select>
+  
+  <select id="getListarPacientesHisto" resultMap="datosPaciente">
+    SELECT id_paciente,p.id_carpeta,hcl, p.nombres,p.direccion,p.fec_nacimiento,p.id_estado,p.id_tipo_sexo,p.carnet,ocupacion,
+          veces,p.id_empresa,p.ult_usuario as id_persona,id_cargo as id_consultorio,id_seguro,nro_registro,codcns as nro,
+          lugarci as expedido,latitud,longitud,zoom,seguro,id_policlinico
+    FROM pacientes p
+    inner join personas e on id_persona=p.ult_usuario
+    join consultorios c using(id_consultorio)
+    WHERE p.id_paciente!=0 and id_paciente in (select id_paciente from historiales where id_paciente!=0 and cod_esta=#cod_esta# and fecha::date between #fecha_ini# and #fecha_fin#)
+    ORDER BY nombres LIMIT 50
+  </select>
+  
+  <select id="getListarPacientesHistoNombre" resultMap="datosPaciente">
+    SELECT id_paciente,p.id_carpeta,hcl, p.nombres,p.direccion,p.fec_nacimiento,p.id_estado,p.id_tipo_sexo,p.carnet,ocupacion,
+          veces,p.id_empresa,p.ult_usuario as id_persona,id_cargo as id_consultorio,id_seguro,nro_registro,codcns as nro,
+          lugarci as expedido,latitud,longitud,zoom,seguro,id_policlinico
+    FROM pacientes p
+    inner join personas e on id_persona=p.ult_usuario
+    join consultorios c using(id_consultorio)
+    WHERE p.id_paciente!=0 and codesta=#cod_esta# and id_paciente in (select id_paciente from historiales join pacientes using(id_paciente)     
+         where codesta=#cod_esta# and pacientes.id_estado like #id_estado# and texto_vector @@ to_tsquery('spanish',#nombres#) limit 50)       
+    ORDER BY nombres LIMIT 50
+  </select>
+  
+  <select id="getListarPacientesHistoCie10" resultMap="datosPaciente">
+    SELECT id_paciente,p.id_carpeta,hcl, p.nombres,p.direccion,p.fec_nacimiento,p.id_estado,p.id_tipo_sexo,p.carnet,ocupacion,
+          veces,p.id_empresa,p.ult_usuario as id_persona,id_cargo as id_consultorio,id_seguro,nro_registro,codcns as nro,
+          lugarci as expedido,latitud,longitud,zoom,seguro,id_policlinico
+    FROM pacientes p
+    inner join personas e on id_persona=p.ult_usuario
+    join consultorios c using(id_consultorio)
+    WHERE p.id_paciente!=0 and codesta=#cod_esta# and id_paciente in (select id_paciente from historiales 
+            join pacientes using(id_paciente)  join detallecie10 using(id_historial)
+            inner join cie10 on cie10.codigo=detallecie10.codigo
+            where codesta=#cod_esta# and UPPER(cie10.codigo||cie10.generalidades) like UPPER(#nombres#) group by id_paciente LIMIT 50 )
+    ORDER BY nombres LIMIT 50
+  </select>
+  
+  <resultMap id="datosPacienteGrafica" class="domain.Pacientes">
+    <result property="id_paciente"       column="id_paciente"/>
+    <result property="g1"                column="g1"/>
+    <result property="g2"                column="g2"/>
+    <result property="g3"                column="g3"/>
+    <result property="g4"                column="g4"/>
+    <result property="g5"                column="g5"/>
+    <result property="g6"                column="g6"/>
+    <result property="g7"                column="g7"/>
+    <result property="g8"                column="g8"/>
+    <result property="g9"                column="g9"/>
+  </resultMap>
+  
+  <select id="getListarPacientesGrafica" resultMap="datosPacienteGrafica">
+     select id as id_paciente, cm as g1, x3sd as g2, x2sd as g3, x1sd as g4, median as g5, sd1 as g6, sd2 as g7, sd3 as g8, peso as g9  from ptp(#id_paciente#) 
+         as (id integer, cm numeric(15,2) , x3sd numeric(15,2), x2sd numeric(15,2), x1sd numeric(15,2), median numeric(15,2), sd1 numeric(15,2), sd2 numeric(15,2), sd3 numeric(15,2), peso numeric(15,2));
+  </select>
+  
+  <select id="getListarPacientesGrafica2" resultMap="datosPacienteGrafica">
+     select id as id_paciente, cm as g1, x3sd as g2, x2sd as g3, x1sd as g4, median as g5, sd1 as g6, sd2 as g7, sd3 as g8, peso as g9  from pte(#id_paciente#) 
+         as (id integer, cm numeric(15,2) , x3sd numeric(15,2), x2sd numeric(15,2), x1sd numeric(15,2), median numeric(15,2), sd1 numeric(15,2), sd2 numeric(15,2), sd3 numeric(15,2), peso numeric(15,2));
+  </select>
+  
+  <resultMap id="datosPacienteCI" class="domain.Pacientes">
+    <result property="id_paciente"        column="id_paciente"/>
+    <result property="hcl"               column="hcl"/>
+    <result property="nombres"           column="nombres"/>
+    <result property="nombre"            column="nombre"/>
+    <result property="paterno"           column="paterno"/>
+    <result property="materno"           column="materno"/>
+    <result property="direccion"         column="direccion"/>
+    <result property="fec_nacimiento"    column="fec_nacimiento"/>    
+    <result property="id_tipo_sexo"      column="id_tipo_sexo"/>
+    <result property="carnet"            column="carnet"/>
+    <result property="veces"             column="veces"/>
+    <result property="id_empresa"        column="id_empresa"/>
+    <result property="id_seguro"         column="id_seguro"/>
+  </resultMap>
+  
+   <select id="getListarPacientesCI" resultMap="datosPacienteCI">
+    (SELECT id_paciente,hcl, nombres,nombre,paterno,materno,direccion,fec_nacimiento, id_tipo_sexo,carnet,0 as veces,
+           id_empresa,id_seguro
+       FROM pacientes 
+       WHERE id_paciente!=0 and id_paciente in 
+         (select id_paciente from pacientes where  texto_vector @@ to_tsquery('spanish',#nombres#) limit 50)
+       ORDER BY nombres)
+    UNION    
+    (SELECT id_paciente,1 as hcl, nombres,nombre,paterno,materno,(CASE WHEN direccion is null THEN 'SD' ELSE direccion END) as direccion,
+       fec_nacimiento, id_tipo_sexo,carnet,1 as veces, 0 as id_empresa,0 as id_seguro
+       FROM pacienteshg 
+       WHERE id_paciente in 
+         (select id_paciente from pacienteshg where  busqueda @@ to_tsquery('spanish',#nombres#) limit 50)
+       ORDER BY nombres ) 
+    ORDER BY veces   
+  </select>
+  
+  <select id="getListarPacientesCIFecha" resultMap="datosPacienteCI">
+    (SELECT id_paciente,hcl, nombres,nombre,paterno,materno,direccion,fec_nacimiento, id_tipo_sexo,carnet,0 as veces,
+           id_empresa,id_seguro
+       FROM pacientes 
+       WHERE id_paciente!=0 and fec_nacimiento::date=#fec_nacimiento#
+       ORDER BY nombres)
+    UNION    
+    (SELECT id_paciente,hcl, nombres,nombre,paterno,materno,direccion,fec_nacimiento, id_tipo_sexo,carnet,1 as veces,
+           id_empresa,id_seguro
+       FROM pacienteshg 
+       WHERE fec_nacimiento::date=#fec_nacimiento#
+       ORDER BY nombres ) 
+    order by veces,nombres
+  </select>
+  
+   <resultMap id="datosPacienteInt" class="domain.Pacientes">
+    <result property="id_paciente"        column="id_paciente"/>
+    <result property="id_carpeta"        column="id_carpeta"/>
+    <result property="hcl"               column="hcl"/>
+    <result property="nombres"           column="nombres"/>
+    <result property="direccion"         column="direccion"/>
+    <result property="fec_nacimiento"    column="fec_nacimiento"/>    
+    <result property="id_estado"         column="id_estado"/>
+    <result property="id_tipo_sexo"      column="id_tipo_sexo"/>
+    <result property="ocupacion"         column="ocupacion"/>
+    <result property="veces"             column="veces"/>
+    <result property="tipo"              column="tipo"/>
+    <result property="seguro"            column="seguro"/>
+  </resultMap>
+  
+   <select id="getListarPacAfiLab" resultMap="datosPacienteInt">
+    SELECT id_paciente,pacientes.id_carpeta,hcl, nombres,direccion,fec_nacimiento, pacientes.id_estado,
+    id_tipo_sexo,ocupacion,veces, tipo, seguro
+    FROM pacientes 
+    join pacientesumi using(id_paciente)
+    join seguros using(tipo)
+    WHERE pacientesumi.id_estado='A' and id_paciente in 
+    (select id_paciente from laboratorio 
+    join historiales using(id_historial)
+    where fecha>current_date-200)   
+    ORDER BY nombres 
+  </select>
+  
+  <select id="getListarPacAfiH" resultMap="datosPacienteInt">
+    SELECT id_paciente,pacientes.id_carpeta,hcl, nombres,direccion,fec_nacimiento, pacientes.id_estado,
+    id_tipo_sexo,ocupacion,veces, tipo, seguro
+    FROM pacientes 
+    join pacientesumi using(id_paciente)
+    join seguros using(tipo)
+    WHERE pacientesumi.id_estado='A' and id_paciente in 
+    (SELECT id_paciente FROM pacientes WHERE hcl=#hcl#)   
+    ORDER BY nombres
+  </select>
+  
+   <select id="getListarPacientesAfi" resultMap="datosPacienteInt">
+    SELECT id_paciente,pacientes.id_carpeta,hcl, nombres,direccion,fec_nacimiento, pacientes.id_estado,id_tipo_sexo,ocupacion,veces, tipo, seguro
+    FROM pacientes 
+    join pacientesumi using(id_paciente)
+    join seguros using(tipo)
+    WHERE nombres LIKE UPPER(#nombres#) and pacientes.id_estado like #id_estado# and pacientesumi.id_estado='A' 
+    ORDER BY nombres limit 50
+  </select>
+  
+  <select id="getListarPacientesAfiR" resultMap="datosPacienteInt">
+    SELECT id_paciente,pacientes.id_carpeta,hcl, nombres,direccion,fec_nacimiento, pacientes.id_estado,id_tipo_sexo,ocupacion,veces, tipo, seguro
+    FROM historiales
+    join pacientes using(id_paciente) 
+    join pacientesumi using(id_paciente)
+    join seguros using(tipo)
+    WHERE pacientesumi.id_estado='A' and fecha>=current_date-99
+    group by id_paciente,pacientes.id_carpeta,hcl, nombres,direccion,fec_nacimiento, pacientes.id_estado,id_tipo_sexo,ocupacion,veces, tipo, seguro
+    ORDER BY nombres 
+  </select>
+  
+  <resultMap id="datoPaciente" class="domain.Pacientes">
+    <result property="id_paciente"         column="id_paciente"/>
+    <result property="hcl"                 column="hcl"/>
+    <result property="nombres"             column="nombres"/>
+    <result property="direccion"           column="direccion"/>
+    <result property="fec_nacimiento"      column="fec_nacimiento"/>    
+    <result property="fec_registro"        column="fec_registro"/>        
+    <result property="id_estado"           column="id_estado"/>
+    <result property="ult_usuario"         column="ult_usuario"/>
+    <result property="id_tipo_sexo"        column="id_tipo_sexo"/>
+    <result property="id_tipo_documento"   column="id_tipo_documento"/>
+    <result property="id_tipo_parentesco"  column="id_tipo_parentesco"/>
+    <result property="edad"                column="edad"/>
+    <result property="mes"                 column="mes"/>
+    <result property="dia"                 column="dia"/>
+    <result property="nombre"              column="nombre"/>
+    <result property="paterno"             column="paterno"/>
+    <result property="materno"             column="materno"/> 
+    <result property="telefono"            column="telefono"/>
+    <result property="ocupacion"           column="ocupacion"/>
+    <result property="carnet"              column="carnet"/>
+    <result property="id_ecivil"           column="id_ecivil"/>            
+    <result property="id_escolaridad"      column="id_escolaridad"/>  
+    <result property="id_pais"             column="id_pais"/>
+    <result property="id_departamento"     column="id_departamento"/>
+    <result property="id_provincia"        column="id_provincia"/>          
+    <result property="id_localidad"        column="id_localidad"/>
+    <result property="nro_registro"        column="nro_registro"/>     
+    <result property="embarazo"            column="embarazo"/>     
+    <result property="tipo_sanguineo"      column="tipo_sanguineo"/>  
+    <result property="factor_riesgo"       column="factor_riesgo"/> 
+    <result property="id_carpeta"          column="id_carpeta"/>
+    <result property="id_empresa"          column="id_empresa"/>
+    <result property="id_seguro"           column="id_seguro"/>
+    <result property="residencia"          column="residencia"/>
+    <result property="nro"                 column="nro"/>
+    <result property="expedido"            column="expedido"/>
+    <result property="id_policlinico"      column="id_policlinico"/>
+    <result property="longitud"            column="longitud"/>
+    <result property="latitud"             column="latitud"/>
+    <result property="zoom"                column="zoom"/>
+    <result property="cadena1"             column="cadena1"/>
+    <result property="registro"            column="registro"/>
+  </resultMap>
+  
+  <select id="getDatosPacienteCI" resultMap="datoPaciente">
+    SELECT id_paciente,hcl, nombres,direccion,fec_nextractacimiento,fec_registro,id_estado,ult_usuario,id_tipo_sexo,id_tipo_documento,id_tipo_parentesco,
+           extract(year from age( fec_nacimiento))::int  as edad,extract(month from age( fec_nacimiento))::int  as mes,
+           extract(day from age( fec_nacimiento))::int  as dia,nombre,paterno,materno,telefono,ocupacion,carnet, 
+           id_tipo_estado_civil as id_ecivil,id_escolaridad, id_pais, id_departamento, id_provincia,  id_localidad, 
+           nro_registro,embarazo,tipo_sanguineo,factor_riesgo, id_carpeta, id_empresa, id_seguro,residencia,'0' as nro,'0' as expedido,
+           0 as id_policlinico,0 as latitud,0 as longitud,0 as zoom,'A'::text as cadena1, 'A'::text as registro
+    FROM pacienteshg
+    WHERE id_paciente =#id_paciente# 
+  </select>
+
+  <select id="getDatosPaciente" resultMap="datoPaciente">
+    SELECT id_paciente,hcl, nombres,direccion,fec_nacimiento,fec_registro,id_estado,ult_usuario,id_tipo_sexo,id_tipo_documento,id_tipo_parentesco,
+           extract(year from age( fec_nacimiento))::int  as edad,extract(month from age( fec_nacimiento))::int  as mes,
+           extract(day from age( fec_nacimiento))::int  as dia,nombre,paterno,materno,telefono,ocupacion,carnet, 
+           id_tipo_estado_civil as id_ecivil,id_escolaridad, id_pais, id_departamento, id_provincia,  id_localidad, 
+           nro_registro,embarazo,tipo_sanguineo,factor_riesgo, id_carpeta, id_empresa, id_seguro,residencia,codcns as nro,
+           lugarci as expedido,id_policlinico,latitud,longitud,zoom,nempresa as cadena1, codigoempresa as registro
+    FROM pacientes
+    WHERE id_paciente =#id_paciente# 
+  </select>
+  
+  <select id="getDatosPacienteJefe" resultMap="datoPaciente">
+    SELECT id_paciente,hcl, nombres,direccion,fec_nacimiento,fec_registro,id_estado,ult_usuario,id_tipo_sexo,id_tipo_documento,id_tipo_parentesco,
+           extract(year from age( fec_nacimiento))::int  as edad,extract(month from age( fec_nacimiento))::int  as mes,
+           extract(day from age( fec_nacimiento))::int  as dia,nombre,paterno,materno,telefono,ocupacion,carnet, 
+           id_tipo_estado_civil as id_ecivil,id_escolaridad, id_pais, id_departamento, id_provincia,  id_localidad, 
+           nro_registro,embarazo,tipo_sanguineo,factor_riesgo, id_carpeta, id_empresa, id_seguro,residencia,codcns as nro,
+           lugarci as expedido,id_policlinico,latitud,longitud,zoom,nempresa as cadena1, codigoempresa as registro
+    FROM pacientes
+    WHERE id_paciente!=0 and id_carpeta =#id_paciente# and id_paciente in (select id_paciente from carpetas where id_carpeta=#id_paciente#)
+  </select>
+  
+  <select id="getDatosPacienteInt" resultMap="datoPaciente">
+    SELECT id_paciente,hcl, nombres,direccion,fec_nacimiento,fec_registro,p.id_estado,ult_usuario,id_tipo_sexo,id_tipo_documento,id_tipo_parentesco,
+           extract(year from age( fec_nacimiento))::int  as edad,extract(month from age( fec_nacimiento))::int  as mes,
+           extract(day from age( fec_nacimiento))::int  as dia,nombre,paterno,materno,telefono,ocupacion,carnet, 
+           id_tipo_estado_civil as id_ecivil,id_escolaridad, id_pais, id_departamento, id_provincia,  id_localidad, 
+           nro_registro,embarazo,tipo_sanguineo,factor_riesgo, id_carpeta, id_empresa, p.id_seguro,residencia,codcns as nro,
+           lugarci as expedido,id_policlinico,latitud,longitud,zoom,nempresa as cadena1, codigoempresa as registro
+    FROM pacientes p
+    join historiales using(id_paciente)
+    WHERE p.id_paciente!=0 and id_paciente =#id_paciente# and internado=2
+  </select>
+
+  <insert id="setCrearPaciente">
+      UPDATE establecimientos SET hcl=hcl+1 WHERE id_estado='A';
+      
+      INSERT INTO pacientes(hcl,nombres, fec_nacimiento, direccion, id_tipo_sexo, id_tipo_documento, id_estado,ult_usuario,
+             fec_registro,nombre,paterno,materno,telefono,ocupacion,carnet, id_tipo_estado_civil,id_escolaridad,
+             id_pais, id_departamento, id_provincia,  id_localidad, nro_registro, veces, embarazo,tipo_sanguineo,
+             factor_riesgo,residencia,codcns,lugarci,id_empresa,id_seguro,id_policlinico,nempresa,seguro,codigoempresa,
+             latitud,longitud,zoom,codesta)
+        VALUES(#hcl#,#nombres#, #fec_nacimiento#, #direccion#,  #id_tipo_sexo#,  #id_tipo_documento#,#id_estado#,#ult_usuario#, 
+              #fec_registro#,#nombre#,#paterno#,#materno#,#telefono#,#ocupacion#,#carnet#,#id_ecivil#, #id_escolaridad#,
+              #id_pais#, #id_departamento#, #id_provincia#,  #id_localidad#,  #nro_registro#,0,0,'',
+              '',#residencia#,#nro#,#expedido#,#id_empresa#,#id_seguro#,#id_policlinico#,
+              (select empresa from empresas where id_empresa=#id_empresa#),(select seguro from seguros where id_seguro=#id_seguro#),
+              (select cod_patronal from empresas where id_empresa=#id_empresa#),#latitud#,#longitud#,#zoom#,#cod_esta# );
+       <!--
+       UPDATE pacientes 
+       SET nro_registro=to_char(fec_nacimiento,'ddMMYY')||'-'||substring(nombre,1,1)||(CASE WHEN substring(paterno,1,1) ='' THEN substring(materno,1,1) ELSE substring(paterno,1,1) END)||substring(materno,1,1) 
+       WHERE #cod_esta#!=200010 and (nro_registro!=null or nro_registro!='' or nro_registro!='0');
+       -->
+  </insert>
+
+  <update id="setModificarPaciente" >
+      update pacientes
+      set   nombres=#nombres#, fec_nacimiento=#fec_nacimiento#, direccion=#direccion#, id_tipo_estado_civil=#id_ecivil#, 
+            hcl=#hcl#, id_tipo_sexo=#id_tipo_sexo#, id_tipo_documento=#id_tipo_documento#, ult_usuario=#ult_usuario#,
+            id_estado=#id_estado#,nombre=#nombre#,paterno=#paterno#,materno=#materno#,
+            id_pais=#id_pais#, id_departamento=#id_departamento#, id_provincia=#id_provincia#, id_localidad=#id_localidad#,
+            telefono=#telefono#,ocupacion=#ocupacion#,carnet=#carnet#,id_escolaridad=#id_escolaridad#,
+            tipo_sanguineo=#tipo_sanguineo#,factor_riesgo=#factor_riesgo#,residencia=#residencia#,
+            nro_registro=#nro_registro#,codcns=#nro#,lugarci=#expedido#,id_empresa=#id_empresa#,
+            nempresa=(select empresa from empresas where id_empresa=#id_empresa#),
+            seguro=(select seguro from seguros where id_seguro=#id_seguro#),
+            codigoempresa=(select cod_patronal from empresas where id_empresa=#id_empresa#),
+            latitud=#latitud#,
+            longitud=#longitud#,
+            zoom=#zoom# 
+      where id_paciente=#id_paciente#;
+      <!--update pacientes 
+      set nro_registro=to_char(fec_nacimiento,'ddMMYY')||'-'||substring(nombre,1,1)||(CASE WHEN substring(paterno,1,1) ='' THEN substring(materno,1,1) ELSE substring(paterno,1,1) END)||substring(materno,1,1)
+      where id_paciente=#id_paciente# and #cod_esta#!=200010;
+      update pacientes 
+      set nro_registro=to_char(fec_nacimiento,'YYMMdd')||substring(nombre,1,1)||(CASE WHEN substring(paterno,1,1) ='' THEN substring(materno,1,1) ELSE substring(paterno,1,1) END)||substring(materno,1,1)
+      where id_paciente=#id_paciente# and #cod_esta#=200010 and (nro_registro!=null or nro_registro!='');
+      -->
+  </update>
+  
+  <update id="setModificaPacienteEmb" >
+      update pacientes set   embarazo=#embarazo#
+          where id_paciente=#id_paciente#;
+      update historiales set  embaraza=#id_factura#
+          where id_historial=#id_carpeta#;
+  </update>
+  
+  <update id="setModificaPacienteSangre" >
+      update pacientes
+      set   tipo_sanguineo=#contraref#
+      where id_paciente=#id_paciente#  
+  </update>
+  
+  <update id="setModificaPacienteFact" >
+      update pacientes
+      set   factor_riesgo=#factor_riesgo#,tipo_sanguineo=#tipo_sanguineo#
+      where id_paciente=#id_paciente#
+  </update>
+
+  <delete id="setEliminarPaciente" >
+      DELETE FROM pacientesumi where id_paciente=#id_paciente#; 
+      DELETE FROM pacientes where id_paciente=#id_paciente#; 
+  </delete>
+  <delete id="setEliminarPacienteSeguro" >
+      DELETE FROM pacientesumi where id_pacientesumi=#id_carpeta#; 
+  </delete>
+  
+  <select id="getNumHcl" resultClass="java.lang.Integer">
+     SELECT max(hcl) as valor from establecimientos where id_estado='A';
+  </select>
+  
+  <resultMap id="datosPedidox" class="domain.Pacientes">
+    <result property="id_paciente"       column="id_paciente"/>
+    <result property="id_carpeta"        column="id_carpeta"/>
+    <result property="id_pedido"         column="id_pedido"/>      
+    <result property="nombres"           column="nombres"/>
+    <result property="nit"               column="nit"/>
+    <result property="num_cladoc"        column="num_cladoc"/>
+    <result property="precio_total"      column="precio_total"/>    
+    <result property="id_estado"         column="id_estado"/>    
+    <result property="id_costo"          column="id_costo"/>    
+    <result property="id_rubro"          column="id_rubro"/>        
+    <result property="id_persona"        column="id_persona"/>        
+    <result property="id_dispensa"       column="id_dispensa"/>        
+    <result property="fec_registro"      column="fec_registro"/>        
+  </resultMap>
+
+  <select id="getListarCobroRubroOdon" resultMap="datosPedidox">
+    SELECT p.id_paciente,id_historial as id_carpeta,id_pedido,nombres,nit,num_cladoc,precio_total,p.id_estado,0 as id_costo,id_rubro,p.id_persona,id_dispensa,fec_registro
+    FROM pedidos p 
+    join historiales using (id_historial)
+    WHERE p.id_estado=#id_estado# and id_rubro=#id_rubro# 
+    order by fec_registro,id_pedido
+  </select>
+  
+  <resultMap id="datosPedidoDetalle" class="domain.Pacientes">
+    <result property="id_rubro"          column="id_rubro"/>
+    <result property="id_pedido"         column="id_pedido"/>
+    <result property="nombre"            column="nombre"/>
+    <result property="total"             column="total"/>    
+    <result property="precio_total"      column="precio_total"/>
+    <result property="id_factura"        column="id_factura"/> 
+  </resultMap>
+  
+  <select id="getDatosPedidoRubrosDet" resultMap="datosPedidoDetalle">
+   select id_rubro,id_factura,id_pedido,rubro as nombre,sum(entrada) as total,sum(salida) as precio_total 
+     from detalle 
+     join rubros using(id_rubro)
+     where id_pedido in
+     (select id_pedido from pedidos where id_historial=#id_provincia# )
+     group by id_rubro,id_factura,id_pedido,rubro order by rubro
+  </select> 
+  
+  <select id="getDatosPedidoRubrosDetSf" resultMap="datosPedidoDetalle">
+   select id_rubro,id_factura,id_pedido,rubro as nombre,sum(entrada) as total,sum(salida) as precio_total 
+     from detalle 
+     join rubros using(id_rubro)
+     where id_factura=0 and id_pedido in
+     (select id_pedido from pedidos where id_factura=0 and id_historial=#id_provincia# )
+     group by id_rubro,id_factura,id_pedido,rubro order by rubro
+  </select> 
+  
+  <select id="getDatosPedidoRubrosDetSfPag" resultMap="datosPedidoDetalle">
+   select id_rubro,id_factura,id_pedido,rubro as nombre,sum(entrada) as total,sum(salida) as precio_total 
+     from detalle 
+     join rubros using(id_rubro)
+     where id_pedido in
+     (select id_pedido from pedidos where id_factura>0 and id_historial=#id_provincia# )
+     group by id_rubro,id_factura,id_pedido,rubro order by rubro
+     <!--no se para que debia ser los ya pagados pero esta duplicando 19-11-2015 -->
+  </select> 
+  
+  <select id="getDatosPedidoRubrosDetDeu" resultMap="datosPedidoDetalle">
+    select id_rubro,id_factura,id_pedido,rubro as nombre,sum(entrada) as total,sum(salida) as precio_total
+     from detalle 
+     join rubros using(id_rubro)
+     where expedido='A' and id_pedido in
+     (select id_pedido from pedidos where id_historial=#id_provincia# and id_estado='M'  )
+     group by id_rubro,id_factura,id_pedido,rubro order by rubro
+  </select> 
+  
+  <select id="getDatosPedidoDetRubro" resultMap="datosPedidoDetalle">
+    select id_rubro,id_factura,id_pedido,rubro as nombre,sum(entrada) as total,sum(salida) as precio_total 
+     from detalle
+     <!--join costos using(id_costo)-->
+     join rubros using(id_rubro)
+     where (entrada>0 or salida>0) and id_pedido in
+     (select id_pedido from pedidos where fec_registro::date between #fecha_ini# and #fecha_fin# and (id_estado!='P' and id_estado!='S')) 
+     group by id_rubro,id_factura,id_pedido,rubro order by rubro
+  </select> 
+  
+   <resultMap id="datosPedidoFacRub" class="domain.Pacientes">
+    <result property="id_pais"           column="id_pais"/>
+    <result property="id_carpeta"        column="id_carpeta"/>
+    <result property="nombre"            column="nombre"/>
+    <result property="nombres"           column="nombres"/>
+    <result property="precio_total"      column="precio_total"/>    
+    <result property="id_dispensa"       column="id_dispensa"/>        
+    <result property="id_factura"        column="id_factura"/>
+    <result property="direccion"         column="direccion"/>
+  </resultMap>
+  
+  <select id="getReporteEconomicoGenFacRub" resultMap="datosPedidoFacRub">    
+    (select id_rubro as id_pais,'RUBRO' as nombre,id_costo as id_carpeta,'COSTO' as nombres, count(entrada) as id_dispensa,
+        entrada::int as id_factura,sum(entrada) as precio_total,(CASE WHEN (indicacion!=null or indicacion!='') THEN indicacion ELSE ' ' END) as direccion
+    FROM detalle 
+    where id_pedido in
+    (select id_pedido from pedidos where (id_estado='C' or id_estado='E') and id_factura in  
+    (select id_factura from facturas
+     where (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#)  and  
+          (id_persona BETWEEN #id_provincia# and #id_tipo_parentesco#) and (estado='V') ) )  
+      group by id_rubro,id_costo,entrada,indicacion order by id_rubro)       
+    UNION
+    (select 1 as id_pais,'FARMACIA' as nombre, 3 as id_carpeta,'FARMACIA' as nombres,(CASE WHEN count(id_pedido)>0 THEN count(id_pedido) ELSE 0 END) as id_dispensa,
+         0 as id_factura, (CASE WHEN sum(precio_total)>0 THEN sum(precio_total) ELSE 0 END) as precio_total,'Venta Medicamentos' as direccion   
+        from pedidos 
+        where id_rubro=1 and  (id_estado='E' or id_estado='C') and id_factura in
+    (select id_factura from facturas
+    where (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#) and 
+          (id_persona BETWEEN #id_provincia# and #id_tipo_parentesco#) and (estado='V')))    
+     ORDER BY id_pais,id_carpeta
+  </select>   
+
+  <resultMap id="datosPedidoFac" class="domain.Pacientes">
+    <result property="id_pais"           column="id_pais"/>
+    <result property="id_pedido"         column="id_pedido"/>
+    <result property="nombre"            column="nombre"/>
+    <result property="nombres"           column="nombres"/>
+    <result property="nit"               column="nit"/>
+    <result property="num_cladoc"        column="num_cladoc"/>
+    <result property="precio_total"      column="precio_total"/>    
+    <result property="id_estado"         column="id_estado"/>    
+    <result property="id_tipo_far"       column="id_tipo_far"/>    
+    <result property="id_rubro"          column="id_rubro"/>        
+    <result property="id_persona"        column="id_persona"/>        
+    <result property="id_dispensa"       column="id_dispensa"/>        
+    <result property="fec_registro"      column="fec_registro"/>        
+    <result property="id_carpeta"        column="id_carpeta"/> 
+    <result property="id_paciente"       column="id_paciente"/>    
+    <result property="id_factura"        column="id_factura"/>
+    <result property="tipo"              column="tipo"/>
+    <result property="id_farmacia"       column="id_farmacia"/>
+  </resultMap>
+  
+  <select id="getReporteEconomicoFac" resultMap="datosPedidoFac">
+    (SELECT id_detalle,fecha,costos.costo,costo_unit,entrada,salida,expedido,detalle.id_costo,id_pedido,detalle.id_estado,
+    costos.id_rubro,indicacion, id_historial as id_carpeta,'A'::text as rubro,0 as id_dispensa,0 as id_farmacia
+    FROM detalle 
+    join pedidos using(id_pedido)
+    join costos ON costos.id_costo = detalle.id_costo 
+    where id_pedido in
+    (select id_pedido from facturas
+    where (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#) and (id_persona BETWEEN 1 and 999) and (estado='V')))    
+    UNION
+    (SELECT id_detalle,fecha,'Venta Farmacia' as costo,costo_unit,precio_venta as entrada,salida,expedido,10000 as id_costo,id_pedido,expedido as id_estado,
+        1 as id_rubro,'A' as indicacion, id_historial as id_carpeta,'A'::text as rubro,0 as id_dispensa,id_farmacia
+        FROM kardex
+        join pedidos using(id_pedido)
+        where id_pedido in
+    (select id_pedido from facturas
+    where (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#) and (id_persona BETWEEN 1 and 999) and (estado='V')))    
+    order by fecha,costo
+    <!--para nada -->
+  </select>   
+
+  <select id="getReporteEconomicoGenFac" resultMap="datosPedidoFac">    
+     SELECT num_fact as id_pais,pedidos.id_pedido,fecha as fec_registro,razon_social as nombres,nit_fact as nit,num_cladoc,importe as precio_total,estado as id_estado,id_tipo_far,id_rubro,
+            facturas.id_persona,id_dispensa, facturas.id_historial as id_carpeta,cod_control as nombre,id_paciente,facturas.id_factura, 
+            tipo,0 as id_farmacia
+     FROM pedidos join facturas using(id_pedido)
+     where (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#) and (id_rubro BETWEEN #id_rubro# and #id_pais#) 
+           and (facturas.id_persona BETWEEN #id_provincia# and #id_tipo_parentesco#) and (id_estado='E' or id_estado='C')    
+     ORDER BY fec_registro,facturas.id_factura, num_cladoc,id_pedido         
+  </select> 
+  
+   <select id="getReporteFacturasEmitidasHcl" resultMap="datosPedidoFac">    
+     SELECT num_fact as id_pais,pedidos.id_pedido,fecha as fec_registro,razon_social as nombres,nit_fact as nit,num_cladoc,importe as precio_total,estado as id_estado,id_tipo_far,id_rubro,
+            facturas.id_persona,id_dispensa, facturas.id_historial as id_carpeta,cod_control as nombre,id_paciente,facturas.id_factura,
+            tipo,0 as id_farmacia
+     FROM pedidos join facturas using(id_pedido)
+     where id_pedido in (select id_pedido from pedidos where id_historial=#id_provincia#)
+     ORDER BY fec_registro,facturas.id_factura, num_cladoc,id_pedido         
+  </select> 
+  
+   <select id="getReporteEconomicoPPago" resultMap="datosPedidoFac">    
+     SELECT num_fact as id_pais,pedidos.id_pedido,fecha as fec_registro,razon_social as nombres,nit_fact as nit,num_cladoc,importe as precio_total,estado as id_estado,id_tipo_far,id_rubro,
+            facturas.id_persona,id_dispensa, facturas.id_historial as id_carpeta,cod_control as nombre,id_paciente,facturas.id_factura, 
+            tipo,0 as id_farmacia
+     FROM pedidos join facturas using(id_pedido)
+     where facturas.id_historial=#id_provincia# and id_estado='E'    
+     ORDER BY fec_registro, num_cladoc,id_pedido  limit 200    
+  <!--'E' son los que pagosd que se estan efectuando  23/04/2014 -->
+  </select>
+   
+  <resultMap id="datosPedido" class="domain.Pacientes">
+    <result property="id_pais"           column="id_pais"/>
+    <result property="id_pedido"         column="id_pedido"/>
+    <result property="nombre"            column="nombre"/>
+    <result property="nombres"           column="nombres"/>
+    <result property="nit"               column="nit"/>
+    <result property="num_cladoc"        column="num_cladoc"/>
+    <result property="precio_total"      column="precio_total"/>    
+    <result property="id_estado"         column="id_estado"/>    
+    <result property="id_tipo_far"       column="id_tipo_far"/>    
+    <result property="id_rubro"          column="id_rubro"/>        
+    <result property="id_persona"        column="id_persona"/>        
+    <result property="id_dispensa"       column="id_dispensa"/>        
+    <result property="fec_registro"      column="fec_registro"/>        
+    <result property="id_carpeta"        column="id_carpeta"/> 
+    <result property="id_paciente"       column="id_paciente"/>    
+    <result property="id_factura"        column="id_factura"/>
+    <result property="tipo"              column="tipo"/>
+    <result property="cod_esta"          column="cod_esta"/>
+    <result property="cadena1"           column="cadena1"/>
+    <result property="cadena2"           column="cadena2"/>
+    <result property="cadena3"           column="cadena3"/>
+    <result property="cadena4"           column="cadena4"/>
+    <result property="cadena5"           column="cadena5"/>
+    <result property="cadena6"           column="cadena6"/>
+    <result property="cadena7"           column="cadena7"/>
+    <result property="cadena8"           column="cadena8"/>
+    <result property="suma1"             column="suma1"/>
+  </resultMap>
+  
+  <select id="getListarCobroRubro" resultMap="datosPedido">
+    SELECT id_historia as id_pais,id_pedido,p.nombres,nit,num_cladoc,precio_total,p.id_estado,id_tipo_far,id_rubro,p.id_persona,
+      id_dispensa,p.fec_registro, id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,p.cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           p.matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+    FROM pedidos p LEFT JOIN personas e ON p.id_dispensa=e.id_persona
+    WHERE p.id_estado=#id_estado# and p.id_rubro=#id_rubro# and p.cod_esta=#id_localidad#
+    order by fec_registro desc,id_pedido limit 100
+    <!--31-01-2014-->
+  </select>
+  
+  <select id="getReporteEconomicoRubro" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro, id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,p.cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos p
+     WHERE (fec_registro::date BETWEEN #fecha_ini# and #fecha_fin#) and id_persona =#id_persona# and id_rubro=#id_rubro# 
+           and nit not like 'R%' and precio_total>0 and (id_estado='E' or id_estado='C')    
+     ORDER BY fec_registro, id_pedido, num_cladoc  limit 50   
+  </select> 
+  
+  <select id="getDatosPedidoRubro" resultMap="datosPedido"> 
+    SELECT id_historia as id_pais,id_pedido,rubro as nombre,nombres,nit,num_cladoc,precio_total,p.id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,p.fec_registro, id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,p.cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos p
+     join rubros r using(id_rubro)
+     where id_rubro between #id_rubro# and #id_escolaridad# and id_historial=#id_provincia# and id_persona=#id_persona#
+     ORDER BY fec_registro, id_pedido, num_cladoc limit 200
+ <!--20-04-2014 El mismo que el anterior pero sin id_escolardad estaba #id_persona# no se para que
+se coloca nuevamente id_persona no funciona SI facturacion Computarizada-->
+  </select> 
+  
+  <select id="getDatosPedidoRubroGeneral" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,rubro as nombre,nombres,nit,num_cladoc,precio_total,p.id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,p.fec_registro, id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,p.cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos p
+     join rubros r using(id_rubro)
+     where id_rubro between #id_rubro# and #id_escolaridad# and id_historial=#id_provincia# 
+     ORDER BY fec_registro, id_pedido, num_cladoc  limit 200
+    <!--20-04-2014 El mismo que el anterior pero sin id_persona=#id_persona# no se para que-->
+  </select> 
+  
+  <select id="getDatosPedidoRubroGeneralSf" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,'rubro'::text  as nombre,nombres,nit,num_cladoc,precio_total,p.id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,p.fec_registro, id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos p
+     where id_rubro between #id_rubro# and #id_escolaridad# and id_historial=#id_provincia# and id_factura=0
+     ORDER BY fec_registro, id_pedido, num_cladoc  limit 200
+    
+  </select> 
+  
+  <select id="getDatosPedidoRubroDental" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,p.id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,p.fec_registro, id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,p.cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos p
+     where id_historial=#id_provincia#
+     ORDER BY fec_registro, id_pedido, num_cladoc    limit 200
+  </select>
+  
+  <select id="getReporteEconomico" resultMap="datosPedido">    
+      (SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro, id_historial as id_carpeta,id_paciente,id_factura, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+        FROM pedidos
+        where fec_registro::date BETWEEN #fecha_ini# and #fecha_fin# and (id_estado='C' or id_estado='E')  
+           and id_rubro =1 and id_persona =#id_persona#)
+     UNION
+    (SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro, id_historial as id_carpeta,id_paciente,id_factura, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+        FROM pedidos
+        where (fec_registro::date BETWEEN #fecha_ini# and #fecha_fin#) and id_persona =#id_persona# and nit not like 'R%' 
+           and precio_total>0 and (id_estado='E' or id_estado='C'))    
+                ORDER BY fec_registro, id_pedido, num_cladoc limit 200
+  </select>   
+
+  <select id="getReporteEconomicoGenRubro" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro, id_historial as id_carpeta,id_paciente,id_factura, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos
+     where (fec_registro::date BETWEEN #fecha_ini# and #fecha_fin#) and (id_rubro BETWEEN #id_rubro# and #id_pais#) 
+           and precio_total>0 and not(id_estado='R') and nit not like 'R%' and (id_estado='E' or id_estado='C')    
+     ORDER BY fec_registro, num_cladoc,id_pedido
+      <!-- estaba con order by 50 pero no muestra todos los cobros  en recaudaciones-->
+  </select>   
+  
+  <select id="getReporteEconomicoGenRubroDental" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro, id_historial as id_carpeta,id_paciente,id_factura, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos
+     where (fec_registro::date BETWEEN #fecha_ini# and #fecha_fin#)  and id_rubro=#id_rubro# and id_dispensa=#id_dispensa#
+     ORDER BY fec_registro, num_cladoc,id_pedido limit 200       
+  </select>   
+   
+   <select id="getListaMedEntregados" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,(e.nombres ||' '|| e.paterno) as nombre,p.nombres,nit,num_cladoc,precio_total,
+            p.id_estado,id_tipo_far,id_rubro,id_persona,id_dispensa,p.fec_registro, id_historial as id_carpeta,id_paciente,
+            id_factura, 'A' as nombre, tipo,p.cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           p.matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos p
+     join personas e using(id_persona)
+     where  p.cod_esta=#cod_esta# and (p.fec_registro::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#) and not(p.id_estado='R') 
+           and id_pedido in (select id_pedido from kardex join pedidos using(id_pedido) where UPPER(num_recetak||nombres) like UPPER(#nombres#)
+                            and kardex.cod_esta=#cod_esta# and (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#) )
+     ORDER BY fec_registro,id_estado,num_cladoc limit 200      
+   </select> 
+   
+   <select id="getListaMedEntregadosI" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,(e.nombres ||' '|| e.paterno) as nombre,p.nombres,nit,num_cladoc,precio_total,
+       p.id_estado,id_tipo_far,id_rubro,i.id_persona,id_dispensa,p.fec_registro, h.id_historial as id_carpeta,p.id_paciente,
+       id_factura, 'A' as nombre, tipo,p.cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           p.matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos p
+     join historiales h using(id_historial)
+     join historiainter i using(id_historia)
+     inner join personas e on e.id_persona=i.id_persona
+     where (p.fec_registro::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#) and not(p.id_estado='R') 
+           and internado>1  and e.cod_esta=#id_localidad#
+     ORDER BY fec_registro,p.id_estado,num_cladoc  limit 200  
+   </select>
+   
+   <select id="getListaMedKEntregados" resultMap="datosPedido">    
+    SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro, id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos
+     where id_estado=#id_estado# and tipo=#tipo# and cod_esta=#cod_esta# and id_pedido in
+           (select id_pedido from kardex where (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#) and 
+                             cod_esta=#cod_esta# and id_farmacia=#id_farmacia# group by id_pedido)
+     ORDER BY nit,fec_registro,id_factura,num_cladoc 
+     <!--se ordeno por nit para AP 9/05/2013 limit 150 muestra mas datos en ventas sumi y programas Y PARA REPORTE MENSUAL SE NECESITA MAS DATOS -->
+   </select>  
+   
+   <select id="getListaMedKEntregadosUni" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro, id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos
+     where cod_esta=#cod_esta# and id_pedido=#id_pedido# limit 200
+     <!--11/02/2016 se creo para ver la fecha y hora del pedido y poder cambiar solo por la jefa de farmacia -->
+   </select>  
+   
+   <select id="getListaMedKEntregadosFecha" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro, id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos
+     where id_estado=#id_estado# and tipo=#tipo# and id_pedido in
+           (select id_pedido from kardex where fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin# and cod_esta=#cod_esta#)
+     ORDER BY fec_registro,nit,id_factura,num_cladoc 
+     <!--se ordeno por fec_registro  26/06/2013 limit 150 se saca limit por que para reportes mensuales se necesita mas datos-->
+   </select>  
+   
+   <select id="getListaMedKEntregadosSPAM" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,p.id_estado,id_tipo_far,
+            edad as id_rubro,p.id_persona,id_dispensa,fec_registro, p.id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, 
+            tipo,p.cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos p
+     join historiales using(id_paciente)
+     where (fec_registro::date BETWEEN #fecha_ini# and #fecha_fin#) and p.id_estado=#id_estado# and id_rubro=1 and precio_total>=0 and tipo=#tipo#  and 
+     id_pedido in (select id_pedido from kardex where id_programa=#id_rubro# )
+     group by id_historia,id_pedido,nombres,nit,num_cladoc,precio_total,p.id_estado,id_costo,edad,p.id_persona,
+              id_dispensa,fec_registro, p.id_historial,id_paciente,id_factura
+     ORDER BY fec_registro,nit,id_factura,num_cladoc limit 200
+     <!--and cod_esta=#cod_esta# en kardex  26/03/2014 -->
+   </select>  
+   
+   <select id="getListarPacientesPPagos" resultMap="datosPedido">
+    SELECT id_historial as id_pais,0 as id_pedido,'' as nombre,nombres,'' as nit,'' as num_cladoc,0 as precio_total,historiales.id_estado,0 as id_tipo_far,
+            edad as id_rubro,id_persona,0 as id_dispensa,fecha as fec_registro, hcl as id_carpeta,id_paciente,0 as id_factura, 'A' as nombre,'A' as tipo,
+            cod_esta, 'A' as cadena1, 'A' as cadena2, 'A' as cadena3, 'A' as cadena4, 'A' as cadena5, 'A' as cadena6,'A' as cadena7, 'A' as cadena8,0 as suma1
+     FROM historiales 
+     join pacientes using(id_paciente)
+     where id_historial in 
+           (select id_historial from pedidos  where  id_estado='M')
+     ORDER BY fec_registro,nit,id_factura,num_cladoc limit 200
+  </select>
+   
+   <select id="getListaMedKEntregadosEnfer" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro, id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos
+     where (fec_registro::date BETWEEN #fecha_ini# and #fecha_fin#) and id_estado=#id_estado# 
+           and id_rubro=#id_rubro# and tipo=#tipo# and id_persona=#id_dispensa#
+     ORDER BY fec_registro,nit,id_factura,num_cladoc limit 200
+   </select>  
+    
+    <select id="getListaMedRecibidos" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro,id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos
+     where (fec_registro::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#) and id_tipo_far=#id_tipo_far# and id_estado like #id_estado# 
+            and cod_esta=#cod_esta# and id_pedido in
+            (select id_pedido from kardex join pedidos using(id_pedido) where UPPER(num_recetak||nombres||pedidos.id_factura||num_receta) like UPPER(#nombres#)
+                and id_farmacia=#id_farmacia# and kardex.cod_esta=#cod_esta# and 
+                    (date(fecha) BETWEEN date(#fecha_ini#) and date(#fecha_fin#) ) group by id_pedido)
+     ORDER BY fec_registro desc,num_cladoc,id_pedido,nombres  limit 200   
+     <!--id_tipo_far=1 solo recibidos   -->
+   </select> 
+   
+   <select id="getListaMedRecibidosAlmaGen" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro,id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos
+     where (fec_registro::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#) and id_estado like #id_estado# 
+            and cod_esta=#cod_esta# and id_pedido in
+            (select id_pedido from kardex join pedidos using(id_pedido) 
+                              where UPPER(num_recetak||nombres||pedidos.id_factura||num_receta) like UPPER(#nombres#)
+                and  kardex.cod_esta=#cod_esta# and 
+                     (date(fecha) BETWEEN date(#fecha_ini#) and date(#fecha_fin#) ) group by id_pedido)
+     ORDER BY fec_registro,num_cladoc,id_pedido,nombres  limit 200   
+     <!--11/02/2016 se borra id_tipo_far y  id_farmacia=#id_farmacia# para buuscar a cuelquier paciente y poder realizar modificacion solo autorizacion Alamcen -->
+   </select> 
+   
+   <select id="getListaMedRecibidos2" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro,id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos
+     where (fec_registro::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#)  and id_estado like #id_estado# 
+            and cod_esta=#cod_esta# and id_pedido in
+            (select id_pedido from kardex join pedidos using(id_pedido) where UPPER(num_recetak||nombres||pedidos.id_factura) like UPPER(#nombres#)
+                            and id_farmacia=#id_farmacia# and kardex.cod_esta=#cod_esta# and 
+                                (date(fecha) BETWEEN date(#fecha_ini#) and date(#fecha_fin#) ) group by id_pedido)
+     ORDER BY fec_registro,num_cladoc,id_pedido,nombres  limit 200   
+     <!--igual al de ariba nuevo 26-01-2016 para buscar pedidos uso general id_tipo_far=5 y entregados  -->
+   </select> 
+   
+   <select id="getListaMedRecibidosTipo" resultMap="datosPedido">    
+      SELECT id_historia as id_pais,id_pedido,'SN' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro,id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos
+     where id_pedido in (select distinct(id_pedido) from kardex where (date(fecha) BETWEEN date(#fecha_ini#) and date(#fecha_fin#) )
+           and cod_esta=#cod_esta# and id_farmacia=#id_farmacia# and id_pedido in 
+     (select id_pedido from pedidos where (fec_registro::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#) 
+              and cod_esta=#cod_esta# and id_estado ilike #id_estado# and nombres like #nombres#))
+     ORDER BY fec_registro desc,id_pedido,nombres,num_cladoc limit 200
+   <!--  ahora where id_estado like '%'-->
+   </select>
+   
+   <select id="getListaMedAjustes" resultMap="datosPedido">    
+      SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro,id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos
+     where id_pedido in (select id_pedido from kardex where cod_esta=#cod_esta# and id_farmacia=#id_farmacia# and id_pedido in 
+     (select id_pedido from pedidos where id_tipo_far>1 and nombres ilike  #nombres#))
+     ORDER BY fec_registro desc,id_pedido,nombres,num_cladoc limit 200   
+   </select>
+   
+   <select id="getListaMedRecibidosNit" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro,id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos
+     where id_pedido in (select id_pedido from kardex where cod_esta=#cod_esta# and id_farmacia=#id_farmacia# and  id_pedido in 
+     (select id_pedido from pedidos where nit like #nombres#))
+     ORDER BY fec_registro desc,id_pedido,nombres,num_cladoc limit 200   
+   </select>
+   
+   <select id="getListaMedRecibidosDoc" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro,id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos
+     where id_pedido in (select id_pedido from kardex where cod_esta=#cod_esta# and id_farmacia=#id_farmacia# and id_pedido in 
+     (select id_pedido from pedidos where num_cladoc like #nombres#))
+     ORDER BY fec_registro desc,id_pedido,nombres,num_cladoc limit 200    
+   </select>
+   
+    <select id="getListaMedRecibidosFact" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro,id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos
+     where id_factura=#hcl# and id_estado like #id_estado# and precio_total!=0 and id_rubro=1 
+     ORDER BY fec_registro desc,id_pedido,nombres,num_cladoc limit 200    
+   </select>
+   
+   <select id="getListaMedRecibidosHcl" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro,id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos
+     where id_estado like '%' and precio_total!=0 and id_rubro=1 and id_paciente in 
+           (select id_paciente from pacientes where hcl=#hcl#)
+     ORDER BY fec_registro desc,id_pedido,nombres,num_cladoc  limit 200   
+   </select>
+   
+  <select id="getReporteCobroFarm" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro, id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos
+     where fec_registro::date BETWEEN #fecha_ini# and #fecha_fin# and (id_estado='C' or id_estado='E') 
+           and id_rubro =1 and id_persona =#id_persona#
+     ORDER BY num_cladoc     
+    </select>  
+    
+    <select id="getReporteCobroFarmGen" resultMap="datosPedido">    
+     SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+            id_persona,id_dispensa,fec_registro, id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+     FROM pedidos
+     where fec_registro::date BETWEEN #fecha_ini# and #fecha_fin# and (id_estado='C' or id_estado='E') 
+           and id_rubro =1 
+     ORDER BY num_cladoc     
+    </select>  
+   
+  <select id="getDatosPedidoHisto" resultMap="datosPedido">
+    SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+           id_persona,id_dispensa,fec_registro, id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre,tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+    FROM pedidos
+    WHERE id_historial =#id_historial# and cod_esta=#cod_esta# limit 1
+    <!--se creo otro 16-11-2015 igual al de abajo pero busca por historial aumnete limit 1 12-01-2016 salia error muchos datos-->
+  </select>
+  
+  <select id="getDatosPedido" resultMap="datosPedido">
+    SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+           id_persona,id_dispensa,fec_registro, id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre,tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+    FROM pedidos
+    WHERE id_pedido =#id_pedido# and cod_esta=#cod_esta#
+  </select>
+  
+  <select id="getDatosPedidoHis" resultMap="datosPedido">
+    SELECT cod_esta as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+           id_persona,id_dispensa,fec_registro, id_historial as id_carpeta,id_paciente,id_factura, tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+    FROM pedidos
+    WHERE fec_registro::date=current_date and id_historial =#id_pedido#  and cod_esta=#cod_esta#
+           and id_pedido in (select max(id_pedido) from pedidos where id_historial =#id_pedido# and cod_esta=#cod_esta#)
+  </select>
+  
+  <select id="getDatosPedidoKardex" resultMap="datosPedido">
+    SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+           id_persona,id_dispensa,fec_registro, id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre,tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+    FROM pedidos
+    WHERE cod_esta=#cod_esta# and id_pedido in (select id_pedido from kardex where id_detalle=#id_detalle# and cod_esta=#cod_esta#)
+  </select>
+   <select id="getDatosPedidoI" resultMap="datosPedido">
+    SELECT id_historia as id_pais,id_pedido,'' as nombre,nombres,nit,num_cladoc,precio_total,id_estado,id_tipo_far,id_rubro,
+           id_persona,id_dispensa,fec_registro, id_historial as id_carpeta,id_paciente,id_factura, 'A' as nombre,tipo,cod_esta,
+           tag as cadena1, centro as cadena2, servicio as cadena3, especialidad as cadena4, medico as cadena5, sigla as cadena6,
+           matricula as cadena7, cod_benef as cadena8,num_receta as suma1
+    FROM pedidos
+    WHERE id_historial =#id_pedido# and id_pedido in 
+          (select max(id_pedido) as id_pedido from pedidos where id_historial =#id_pedido#)
+  </select>
+  
+  <resultMap id="datosPedidot" class="domain.Pacientes">
+    <result property="total"      column="total"/>    
+  </resultMap>
+  
+  <select id="getListaCobroTotal" resultMap="datosPedidot">
+    select sum(precio_total) as total from pedidos
+     where (fec_registro::date BETWEEN #fecha_ini# and #fecha_fin#) and id_estado=#id_estado# and id_rubro=#id_rubro# and precio_total>0 and tipo=#tipo#
+    GROUP BY tipo
+  </select>
+  
+  <resultMap id="datosPedidoFac" class="domain.Pacientes">
+    <result property="id_factura"        column="id_factura"/>
+    <result property="nit_fact"          column="nit_fact"/>
+    <result property="nombres"           column="nombres"/>
+    <result property="num_fact"          column="num_fact"/>
+    <result property="num_auto"          column="num_auto"/>
+    <result property="fec_registro"      column="fec_registro"/>        
+    <result property="precio_total"      column="precio_total"/>   
+    <result property="total"             column="total"/>   
+    <result property="carnet"            column="carnet"/>
+    <result property="id_pedido"         column="id_pedido"/> 
+    <result property="id_persona"        column="id_persona"/>    
+    <result property="cod_esta"          column="cod_esta"/>
+    <result property="id_estado"         column="id_estado"/>
+    <result property="id_carpeta"        column="id_carpeta"/>
+  </resultMap>
+  
+  <select id="getDatosFactura" resultMap="datosPedidoFac">
+    SELECT id_factura,nit_fact,razon_social as nombres,num_fact,num_auto,fecha as fec_registro,importe as precio_total,debito_fscal as total,
+           cod_control as carnet, id_pedido,id_persona,cod_esta,estado as id_estado, id_historial as id_carpeta
+     FROM facturas
+    WHERE id_pedido =#id_pedido# and id_factura =#id_factura# and cod_esta =#cod_esta#
+  </select>
+  
+  <insert id="setCrearPeedidoCNS">
+     INSERT INTO pedidos(fec_registro, nombres,nit,precio_total,id_historial,id_estado,num_cladoc,id_rubro,id_persona,id_dispensa,  
+                tipo,id_factura,id_paciente,id_historia,cod_esta,id_tipo_far,tag,centro,servicio,especialidad,medico,
+                sigla,matricula,cod_benef,num_receta)
+      VALUES(#fec_registro#,#nombres#,#nit#,#precio_total#,#id_carpeta#,#id_estado#,#num_cladoc#,#id_rubro#,#id_persona#,#id_dispensa#,
+                #tipo#,#id_factura#,#id_paciente#, #id_pais#,#cod_esta#,#id_tipo_far#,#cadena1#,#cadena2#,#cadena3#,#cadena4#,#cadena5#,
+                #cadena6#,#cadena7#,#cadena8#,0);
+     UPDATE pedidos set id_factura=
+     (CASE WHEN (id_tipo_far=1 and id_factura=0 and tag='C') THEN (select max(id_factura)+1 from pedidos where id_tipo_far=1 and tag='C' and cod_esta=#cod_esta# ) 
+         ELSE (CASE WHEN (id_tipo_far=1 and id_factura=0 and tag='E') THEN (select max(id_factura)+1 from pedidos where id_tipo_far=1 and tag='E' and cod_esta=#cod_esta# and extract(year from fec_registro)=(select extract(year from fecha_folio)::integer from establecimientos where cod_esta=#cod_esta# ) ) 
+         ELSE (CASE WHEN (id_tipo_far=2 and id_factura=0) THEN (select max(id_factura)+1 from pedidos where id_tipo_far=2 and cod_esta=#cod_esta# and extract(year from fec_registro)=(select extract(year from fecha_folio)::integer from establecimientos where cod_esta=#cod_esta# )) 
+         ELSE (CASE WHEN (id_tipo_far=3 and id_factura=0) THEN (select max(id_factura)+1 from pedidos where id_tipo_far=3 and cod_esta=#cod_esta# ) 
+         ELSE (CASE WHEN (id_tipo_far=4 and id_factura=0 ) THEN (select max(id_factura)+1 from pedidos where id_tipo_far=4 and cod_esta=#cod_esta# and extract(year from fec_registro)=(select extract(year from fecha_folio)::integer from establecimientos where cod_esta=#cod_esta# ) )  
+         ELSE (CASE WHEN (id_tipo_far=5 and id_factura=0) THEN (select max(id_factura)+1 from pedidos where id_tipo_far=5 and cod_esta=#cod_esta# ) 
+         ELSE (CASE WHEN (id_tipo_far=0 and id_factura=1) THEN 1 ELSE 0 END)  END)  END)  END)  END)  END)  END)
+     where id_pedido = (select max(id_pedido) from pedidos where cod_esta=#cod_esta# );          
+  </insert>
+  
+  <insert id="setCrearPeedidoHG">
+     INSERT INTO pedidos(fec_registro, nombres,nit,precio_total,id_historial,id_estado,num_cladoc,id_rubro,id_persona,id_dispensa,  
+                id_tipo_far,tipo,id_factura,id_paciente,id_historia,cod_esta)
+      VALUES(#fec_registro#,#nombres#,#nit#,#precio_total#,#id_carpeta#,#id_estado#,#num_cladoc#,#id_rubro#,#id_persona#,#id_dispensa#,
+                #id_tipo_far#,#tipo#,#id_factura#,#id_paciente#, #id_pais#,#cod_esta#);
+     UPDATE pedidos set id_factura=
+     (CASE WHEN (id_tipo_far=1 and id_factura=0) THEN (select max(id_factura)+1 from pedidos where id_tipo_far=1 and cod_esta=#cod_esta#) 
+             ELSE (CASE WHEN (id_tipo_far=2 and id_factura=0) THEN (select max(id_factura)+1 from pedidos where id_tipo_far=2 and cod_esta=#cod_esta#) 
+                 ELSE (CASE WHEN (id_tipo_far=3 and id_factura=0) THEN (select max(id_factura)+1 from pedidos where id_tipo_far=3 and cod_esta=#cod_esta#) 
+                    ELSE (CASE WHEN (id_tipo_far=4 and id_factura=0) THEN (select max(id_factura)+1 from pedidos where id_tipo_far=4 and cod_esta=#cod_esta#) 
+                       ELSE (CASE WHEN (id_tipo_far=5 and id_factura=0) THEN (select max(id_factura)+1 from pedidos where id_tipo_far=5 and cod_esta=#cod_esta#) 
+                          ELSE (CASE WHEN (id_tipo_far=0 and id_factura=1) THEN 1 ELSE 0 END) END) END) END)  END)  END)
+     where id_pedido = (select max(id_pedido) from pedidos where cod_esta=#cod_esta#);              
+  </insert>
+  
+  <insert id="setCrearPeedido">
+     INSERT INTO pedidos(fec_registro, nombres,nit,precio_total,id_historial,id_estado,num_cladoc,id_rubro,id_persona,id_dispensa,  
+                id_tipo_far,tipo,id_factura,id_paciente,id_historia,cod_esta)
+      VALUES(#fec_registro#,#nombres#,#nit#,#precio_total#,#id_carpeta#,#id_estado#,#num_cladoc#,#id_rubro#,#id_persona#,#id_dispensa#,
+                #id_tipo_far#,#tipo#,#id_factura#,#id_paciente#, #id_pais#,#cod_esta#);
+     UPDATE pedidos set id_factura=
+     (CASE WHEN (id_tipo_far=1 and id_factura=0) THEN (select max(id_factura)+1 from pedidos where id_tipo_far=1 and cod_esta=#cod_esta#) 
+             ELSE (CASE WHEN (id_tipo_far=2 and id_factura=0) THEN (select max(id_factura)+1 from pedidos where id_tipo_far=2 and cod_esta=#cod_esta#) 
+                 ELSE (CASE WHEN (id_tipo_far=3 and id_factura=0) THEN (select max(id_factura)+1 from pedidos where id_tipo_far=3 and cod_esta=#cod_esta#) 
+                    ELSE (CASE WHEN (id_tipo_far=4 and id_factura=0) THEN (select max(id_factura)+1 from pedidos where id_tipo_far=4 and cod_esta=#cod_esta#) 
+                       ELSE (CASE WHEN (id_tipo_far=5 and id_factura=0) THEN (select max(id_factura)+1 from pedidos where id_tipo_far=5 and cod_esta=#cod_esta#) 
+                          ELSE (CASE WHEN (id_tipo_far=0 and id_factura=1) THEN 1 ELSE 0 END) END) END) END)  END)  END)
+     where id_pedido = (select max(id_pedido) from pedidos where cod_esta=#cod_esta#);              
+  </insert>
+  
+  <insert id="setCrearFactura">
+     INSERT INTO Facturas(nit_fact, razon_social, num_fact, num_auto, fecha, importe, ice, ime, import_neto, debito_fscal, estado, cod_control, id_pedido, id_persona,id_historial, cod_esta)
+            VALUES(#nit_fact#,#nombre#, #num_fact#, #num_auto#,#fec_registro#,#importe#,#ice#,#ime#,#precio_total#,#total#,#id_estado#,#carnet#,#id_pedido#, #id_persona#, #id_carpeta#,#cod_esta#);
+     UPDATE establecimientos SET num_fact=(select num_fact from establecimientos WHERE cod_esta=#veces#)+1 WHERE cod_esta=#veces#;
+     UPDATE pedidos SET id_estado='E',num_cladoc=#num_fact#, id_factura=(select max(id_factura) from facturas where cod_esta=#cod_esta#) WHERE id_factura=0 and id_pedido=#id_pedido# and cod_esta=#cod_esta#;
+     UPDATE kardex SET expedido='V', id_programa=0, id_factura=(select max(id_factura) from facturas where cod_esta=#cod_esta#) WHERE id_pedido=#id_pedido# and cod_esta=#cod_esta#;
+     UPDATE detalle SET id_factura=(select max(id_factura) from facturas where cod_esta=#cod_esta#) WHERE id_pedido=#id_pedido#;
+     UPDATE detalle set indicacion='' where indicacion='"' or indicacion is null;
+  </insert>
+  
+  <insert id="setCrearFacturaInter">
+     INSERT INTO Facturas(nit_fact, razon_social, num_fact, num_auto, fecha, importe, ice, ime, import_neto, debito_fscal, estado, cod_control, id_pedido, id_persona,id_historial, cod_esta)
+            VALUES(#nit_fact#,#nombre#, #num_fact#, #num_auto#,#fec_registro#,#importe#,#ice#,#ime#,#precio_total#,#total#,#id_estado#,#carnet#,#id_pedido#, #id_persona#, #id_carpeta#,#cod_esta#);
+     UPDATE establecimientos SET num_fact=(select num_fact from establecimientos WHERE cod_esta=#veces#)+1 WHERE cod_esta=#veces#;
+     UPDATE pedidos SET id_estado='E',num_cladoc=#num_fact#, id_factura=(select max(id_factura) from facturas where cod_esta=#cod_esta#) WHERE id_rubro=1 and id_factura=0 and id_historial=#id_carpeta# and cod_esta=#cod_esta#;
+     UPDATE kardex SET expedido='V', id_programa=0, id_factura=(select max(id_factura) from facturas where cod_esta=#cod_esta#) WHERE id_factura=0 and cod_esta=#cod_esta# and id_pedido in
+             (select id_pedido from pedidos WHERE id_historial=#id_carpeta# and cod_esta=#cod_esta#);
+     UPDATE detalle SET id_factura=(select max(id_factura) from facturas where cod_esta=#cod_esta#) WHERE id_pedido=#id_pedido# ;
+  </insert>
+  
+  <insert id="setCrearFacturaInter2">
+     INSERT INTO Facturas(nit_fact, razon_social, num_fact, num_auto, fecha, importe, ice, ime, import_neto, debito_fscal, estado, cod_control, id_pedido, id_persona,id_historial, cod_esta)
+            VALUES(#nit_fact#,#nombre#, #num_fact#, #num_auto#,#fec_registro#,#importe#,#ice#,#ime#,#precio_total#,#total#,#id_estado#,#carnet#,#id_pedido#, #id_persona#, #id_carpeta#,#cod_esta#);
+     UPDATE establecimientos SET num_fact=(select num_fact from establecimientos WHERE cod_esta=#veces#)+1 WHERE cod_esta=#veces#;
+     UPDATE pedidos SET id_estado='E',num_cladoc=#num_fact#, id_factura=(select max(id_factura) from facturas where cod_esta=#cod_esta#) WHERE id_rubro>1 and id_factura=0 and id_historial=#id_carpeta# and cod_esta=#cod_esta#;
+     UPDATE kardex SET expedido='V', id_programa=0, id_factura=(select max(id_factura) from facturas where cod_esta=#cod_esta#) WHERE id_factura=0 and cod_esta=#cod_esta# and id_pedido in
+             (select id_pedido from pedidos WHERE id_historial=#id_carpeta# and cod_esta=#cod_esta#);
+     UPDATE detalle SET id_factura=(select max(id_factura) from facturas where cod_esta=#cod_esta#) 
+                    WHERE id_factura=0 and id_pedido in (select id_pedido from pedidos where id_historial=#id_carpeta# );        
+  </insert>
+    
+  <delete id="setEliminarPedido" >
+        INSERT INTO kardexupdate(id_detalle, fecha, entrada,salida,ajuste,expedido,costo_unit,id_medicamento,id_pedido, 
+               precio_venta, ult_usuario, fec_mod, nro_lote,id_receta,fec_reg,id_programa,cod_esta,id_persona,id_estado,
+               fecha_ven, id_farmacia, num_recetak, id_por,tipo,ip,nameip,ipdel)
+        (SELECT id_detalle, fecha, entrada, salida, ajuste, expedido, costo_unit,id_medicamento, id_pedido, 
+               precio_venta,#id_persona#, now(),nro_lote,id_receta,fec_reg,id_programa,cod_esta,id_persona,id_estado,
+               fecha_ven, id_farmacia, num_recetak, #id_persona#,'E',ip,#cadena1#,#cadena2# 
+      FROM kardex WHERE id_pedido=#id_pedido# and cod_esta=#cod_esta#);  
+      
+      DELETE FROM kardex WHERE id_pedido = #id_pedido# and cod_esta=#cod_esta#;
+      
+        INSERT INTO detalleupdate(id_detalle, fecha, entrada, salida, expedido, id_costo, id_pedido,id_estado, indicacion, 
+               id_rubro,id_factura,fec_reg,id_por,tipo,ip,nameip,fec_mod)
+        (SELECT id_detalle, fecha, entrada, salida, expedido, id_costo, id_pedido,id_estado, indicacion, id_rubro,
+                id_factura,fec_reg,#id_persona#,'E',#cadena1#,#cadena2#,now() 
+             FROM detalle WHERE id_pedido=#id_pedido#);
+                
+      DELETE FROM detalle WHERE id_pedido = #id_pedido# and cod_esta=#cod_esta#;
+      
+        INSERT INTO pedidosupdate (id_pedido,nombres, nit, fec_registro,precio_total,id_historial,id_estado,num_cladoc,
+                    id_rubro,id_persona,id_dispensa,tipo,id_factura,id_paciente,id_historia,id_tipo_far, cod_esta, 
+                    tag, centro, servicio, especialidad, medico, sigla, matricula, cod_benef, num_receta,
+                    fec_reg,id_por,tipom,ip,nameip,fechamod)
+             (SELECT id_pedido,nombres,nit,fec_registro,precio_total,id_historial,id_estado,num_cladoc,id_rubro,id_persona,
+                id_dispensa,tipo,id_factura,id_paciente,id_historia, id_tipo_far, cod_esta, 
+                tag, centro, servicio, especialidad, medico, sigla, matricula, cod_benef, num_receta,
+                fec_reg,#id_persona#,'E',#cadena1#,#cadena2#,now() 
+        FROM pedidos 
+        WHERE id_pedido=#id_pedido# and cod_esta=#cod_esta#);
+        
+      DELETE FROM pedidos WHERE id_pedido = #id_pedido# and cod_esta=#cod_esta#;
+  </delete>
+  
+  <select id="getNumPedido" resultClass="java.lang.Integer">
+     SELECT max(id_pedido) as valor from pedidos 
+            where cod_esta=#cod_esta# and date(fec_reg)=date(now());
+  </select>
+  
+  <select id="getNumReceta" resultClass="java.lang.Integer">
+     SELECT max(id_factura)+1 as valor from pedidos where tipo='B' and cod_esta=#cod_esta#;
+  </select>
+  
+  <select id="getNumClaDoc" resultClass="java.lang.Long">
+    select max(num_cladoc::int8)+1 from pedidos 
+    where id_rubro > 1 and cod_esta!=200010;
+  </select>
+  
+  <select id="getNumFicha" resultClass="java.lang.Integer">
+    select max(id_ficha) from fichas; 
+  </select>
+  
+  <update id="setModificarPedido">
+      update pedidos
+      set   nombres=#nombres#, nit=#nit#, precio_total=#precio_total#,id_historial=#id_carpeta#,           
+            id_estado=#id_estado#, num_cladoc=#num_cladoc#,fec_registro=#fecha_fin#,
+            id_rubro=#id_rubro#,id_persona=#id_persona#,id_dispensa=#id_dispensa#,id_paciente=#id_paciente#,
+            id_historia=#id_pais#
+      where id_pedido=#id_pedido# and cod_esta=#cod_esta#;
+      update kardex set fecha=#fecha_fin#,id_persona=#id_dispensa# where id_pedido=#id_pedido# and cod_esta=#cod_esta#;
+      update pedidos set fec_registro=fec_reg where fec_registro is null;
+  </update>
+  
+  <update id="setModificarPedidoSinFecha">
+      update pedidos
+      set   nombres=#nombres#, nit=#nit#, precio_total=#precio_total#,id_historial=#id_carpeta#,           
+            id_estado=#id_estado#, num_cladoc=#num_cladoc#,
+            id_rubro=#id_rubro#,id_persona=#id_persona#,id_dispensa=#id_dispensa#,id_paciente=#id_paciente#,
+            id_historia=#id_pais#
+      where id_pedido=#id_pedido#  and cod_esta=#cod_esta#;
+      update kardex set id_persona=#id_dispensa# where id_pedido=#id_pedido# and cod_esta=#cod_esta#;
+      update pedidos set fec_registro=fec_reg where fec_registro is null and cod_esta=#cod_esta#;
+  </update>
+  
+  <update id="setModificarPedidoAnt">
+      update pedidos
+      set   nombres=#nombres#, nit=#nit#, precio_total=#precio_total#,id_factura=#id_factura#,           
+            id_estado=#id_estado#, num_cladoc=#num_cladoc#,fec_registro=#fecha_ini#,
+            id_rubro=#id_rubro#,id_persona=#id_persona#,id_dispensa=#id_dispensa#
+      where id_pedido=#id_pedido#;
+      update kardex set fecha=#fecha_ini# where id_pedido=#id_pedido#;
+      update pedidos set fec_registro=fec_reg where fec_registro is null; 
+  </update>
+  
+   <resultMap id="datosFicha" class="domain.Pacientes">
+    <result property="id_pedido"         column="id_pedido"/>
+    <result property="fec_registro"      column="fec_registro"/>
+    <result property="id_estado"         column="id_estado"/>    
+  </resultMap>
+  
+  <select id="getAtencionFicha" resultMap="datosFicha">
+    select id_ficha as id_pedido,fecha as fec_registro,tipo as id_estado from fichas where id_ficha in
+    (select max(id_ficha) from fichas where tipo=#id_estado# )
+  </select> 
+  
+  <insert id="setCrearFicha">
+      INSERT INTO fichas (id_ficha,fecha,tipo)
+                  VALUES ((select max(id_ficha)+1 from fichas where tipo=#id_estado#),#fec_registro#, #id_estado#);
+      
+  </insert>
+  
+</sqlMap>

@@ -1,0 +1,2046 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Recetas">
+
+  <resultMap id="datosPaquete"        class="domain.Recetas">
+    <result property="id_receta"                column="id_receta"/>  
+    <result property="id_prestacion"            column="id_prestacion"/>   
+    <result property="id_medicamento"           column="id_medicamento"/>
+    <result property="medicamento"              column="medicamento"/>
+    <result property="forma_far"                column="forma_far"/>
+    <result property="concentra"                column="concentra"/>    
+    <result property="entrada"                  column="entrada"/>
+    <result property="salida"                   column="salida"/>      
+    <result property="stock"                    column="stock"/> 
+    <result property="stocks"                   column="stocks"/> 
+  </resultMap>
+
+  <select id="getListarMedPaquete" resultMap="datosPaquete">
+    select id_paquete as id_receta, id_prestacion, id_medicamento,medicamento,forma_far,concentra,cantidad as entrada, 
+     costo_unit as salida,stock,stocks
+    from paquetes
+    JOIN medica_select USING(id_medicamento)
+    where id_prestacion= #id_prestacion# and cod_esta=#cod_esta# and id_farmacia=#id_farmacia# 
+            <!-- and cod_esta=#cod_esta#  and id_farmacia=#id_farmacia# para SI no jala sin id_farmacia-->
+    order by medicamento
+  </select>
+  
+   <insert id="setCrearRecetaPaque" >
+    insert into paquetes (id_medicamento,id_prestacion,cantidad,utiliza) 
+                 values (#id_medicamento#, #id_prestacion#, #entrada#, #salida#)  
+  </insert>
+
+  <delete id="setEliminarRecetaPaque" >
+    delete from paquetes
+    where id_medicamento = #id_medicamento# and id_prestacion = #id_prestacion#
+  </delete>
+  <update id="setModificarRecetaPaquete" >
+    update paquetes 
+    set  cantidad = #salida#       
+    where id_paquete = #id_receta#         
+  </update>
+  
+   <resultMap id="datosReceta"      class="domain.Recetas">
+    <result property="id_detalle"                     column="id_detalle"/>           
+    <result property="id_historial"                   column="id_historial"/>   
+    <result property="fecha_fin"                      column="fecha_fin"/>
+    <result property="fecha"                          column="fecha"/>
+    <result property="medico"                         column="medico"/>
+    <result property="medicamento"                    column="medicamento"/>
+    <result property="salida"                         column="salida"/>
+    <result property="entrada"                        column="entrada"/>
+    <result property="expedido"                       column="expedido"/>  
+    <result property="id_estado"                      column="id_estado"/>  
+    <result property="forma_far"                      column="forma_far"/>
+    <result property="concentra"                      column="concentra"/>
+    <result property="indicacion"                     column="indicacion"/>
+    <result property="costo_unit"                     column="costo_unit"/>     
+    <result property="precio_total"                   column="precio_total"/>     
+    <result property="costo_total"                    column="costo_total"/> 
+    <result property="dosifica"                       column="dosifica"/>
+    <result property="numeracion"                     column="numeracion"/>
+    <result property="cadena1"                        column="cadena1"/>
+  </resultMap>
+  
+  <select id="getListarRecetasTotal" resultMap="datosReceta">
+   SELECT r.id_detalle,h.id_historial,r.fecha as fecha_fin,r.fecha, (nombres ||' '|| paterno ||' '|| materno) as medico,medicamento,r.salida,
+     r.salida as entrada,r.expedido,r.id_estado,forma_far,concentra,indicacion, m.costo_unit, r.salida as precio_total, 
+     r.salida as costo_total,dosifica,numeracion,establecimiento as cadena1
+    FROM recetas r
+    JOIN personas USING(id_persona) 
+    JOIN medicamentos m USING(id_medicamento)
+    JOIN historiales h USING(id_historial)
+    INNER JOIN establecimientos e on e.cod_esta=r.cod_esta
+    where id_paciente =#id_paciente#
+    order by r.fec_reg desc,r.expedido
+  </select>
+  
+  <select id="getListarRecetasTotalMed" resultMap="datosReceta">
+   SELECT r.id_detalle,h.id_historial,r.fecha as fecha_fin,r.fecha, (nombres ||' '|| paterno ||' '|| materno) as medico,medicamento,r.salida,
+     r.salida as entrada,r.expedido,r.id_estado,forma_far,concentra,indicacion, m.costo_unit, r.salida as precio_total, 
+     r.salida as costo_total,dosifica,numeracion,establecimiento as cadena1
+    FROM recetas r
+    JOIN personas USING(id_persona)
+    JOIN medicamentos m USING(id_medicamento)
+    JOIN historiales h USING(id_historial)
+    INNER JOIN establecimientos e on e.cod_esta=r.cod_esta
+    where h.id_persona =#id_persona# and (h.fecha::date BETWEEN #fecha_ini#  and #fecha_fin#)
+    order by r.fecha,r.expedido
+  </select>
+  
+  <resultMap id="datosKardexPaciente" class="domain.Recetas">
+    <result property="id_kardex"                      column="id_kardex"/>
+    <result property="id_detalle"                     column="id_detalle"/>
+    <result property="fecha"                          column="fecha"/>
+    <result property="id_pedido"                      column="id_pedido"/>
+    <result property="id_medicamento"                 column="id_medicamento"/>
+    <result property="entradas"                       column="entradas"/>
+    <result property="salidas"                        column="salidas"/>
+    <result property="saldos"                         column="saldos"/>
+    <result property="id_receta"                      column="id_receta"/>
+    <result property="id_historial"                   column="id_historial"/>
+    <result property="id_historia"                    column="id_historia"/>
+    <result property="id_medico"                      column="id_medico"/>
+    <result property="suma1"                          column="suma1"/>
+    <result property="indicacion"                     column="indicacion"/>
+    <result property="dosifica"                       column="dosifica"/>
+    <result property="cadena1"                        column="cadena1"/>
+  </resultMap>
+  
+  <select id="getListaKardexPaciente" resultMap="datosKardexPaciente">
+     SELECT id_kardex,fecha,inicio as suma1,entrada as entradas,salida as salidas,saldo as saldos,id_receta,id_detalle,id_historial,id_medicamento,
+            id_pedido,id_historia,id_receta,id_medico, dosifica, indicacion, observacion as cadena1
+     FROM kardexpaciente k
+     JOIN medicamentos USING(id_medicamento)
+     where id_historial=#id_historial# and id_medicamento=#id_medicamento# 
+     order by id_receta,fecha
+  </select>
+  
+  <select id="getListaKardexPacienteDesg" resultMap="datosKardexPaciente">
+     SELECT id_kardex,fecha,inicio as suma1,entrada as entradas,salida as salidas,saldo as saldos,id_receta,id_detalle,id_historial,id_medicamento,
+            id_pedido,id_historia,id_receta,id_medico, dosifica, indicacion, observacion as cadena1
+     FROM kardexpaciente k
+     JOIN medicamentos USING(id_medicamento)
+     where id_historial=#id_historial# and entrada=0
+     order by date(fecha),codsumi
+  </select>
+  
+  <select id="getListaKardexPacienteIndi" resultMap="datosKardexPaciente">
+     SELECT id_kardex,fecha,inicio as suma1,entrada as entradas,salida as salidas,saldo as saldos,id_receta,id_detalle,id_historial,id_medicamento,
+            id_pedido,id_historia,id_receta,id_medico, dosifica, indicacion, observacion as cadena1
+     FROM kardexpaciente k
+     JOIN medicamentos USING(id_medicamento)
+     where id_historial=#id_historial# and id_medicamento=#id_medicamento# and id_estado=#b1#
+     order by id_receta,fecha
+  </select>
+  
+  <resultMap id="datosKardexRever" class="domain.Recetas">
+    <result property="id_kardex"                      column="id_kardex"/>
+    <result property="fecha"                          column="fecha"/>
+    <result property="id_pedido"                      column="id_pedido"/>
+    <result property="id_medicamento"                 column="id_medicamento"/>
+    <result property="entradas"                       column="entradas"/>
+    <result property="salidas"                        column="salidas"/>
+    <result property="saldos"                         column="saldos"/>
+    <result property="id_receta"                      column="id_receta"/>
+    <result property="id_historial"                   column="id_historial"/>
+    <result property="id_historia"                    column="id_historia"/>
+    <result property="codsumi"                        column="codsumi"/>
+    <result property="medicamento"                    column="medicamento"/>
+    <result property="forma_far"                      column="forma_far"/>
+    <result property="suma1"                          column="suma1"/>
+    <result property="dosifica"                       column="dosifica"/>
+    <result property="cadena1"                        column="cadena1"/>
+  </resultMap>
+  
+  <select id="getListaReversion" resultMap="datosKardexRever">
+     SELECT id_kardex,nombres,codsumi,medicamento,forma_far,k.fecha,inicio as suma1,entrada as entradas,salida as salidas,saldo as saldos,
+       id_receta,id_detalle,id_historial,id_medicamento, id_pedido,id_historia,id_receta, dosifica, observacion as cadena1
+     FROM kardexpaciente k
+     JOIN historiales USING(id_historial)
+     JOIN pacientes USING(id_paciente)
+     JOIN medicamentos USING(id_medicamento)
+     where k.id_estado=2 and k.cod_esta=#cod_esta#
+     order by id_kardex,fecha
+  </select>
+  
+  <resultMap id="datosKardexCNS" class="domain.Recetas">
+    <result property="id_medicamento"                 column="id_medicamento"/>
+    <result property="id_persona"                     column="id_persona"/>
+    <result property="fecha"                          column="fecha"/>
+    <result property="medicamento"                    column="medicamento"/>
+    <result property="forma_far"                      column="forma_far"/>
+    <result property="concentra"                      column="concentra"/>
+    <result property="entradas"                       column="entradas"/>
+    <result property="salidas"                        column="salidas"/> 
+    <result property="cadena1"                        column="cadena1"/> 
+    <result property="cadena2"                        column="cadena2"/> 
+    <result property="cadena3"                        column="cadena3"/> 
+    <result property="cadena4"                        column="cadena4"/>
+    <result property="cadena5"                        column="cadena5"/>
+    <result property="cadena6"                        column="cadena6"/>
+    <result property="cadena7"                        column="cadena7"/>
+    <result property="tipo"                           column="tipo"/>
+    <result property="nit"                            column="nit"/>
+    <result property="codsumi"                        column="codsumi"/>
+    <result property="id_farmacia"                    column="id_farmacia"/>
+    <result property="num_recetak"                    column="num_recetak"/>
+    <result property="id_receta"                      column="id_receta"/>
+    <result property="fecha_ini"                      column="fecha_ini"/>
+  </resultMap>
+  
+  <select id="getKardexFarmaciaCNS" resultMap="datosKardexCNS">
+    (select id_detalle,id_pedido,nro_registro as cadena1,a.nombres as cadena2,id_medicamento,medicamento,forma_far,concentra,salida as salidas,
+       cod_cta||' '||cod_tipo||' '||cod_espe||' '||cod_material as cadena3, num_recetak as entradas,k.id_persona,
+       e.nombres||' '||e.paterno||' '||e.materno as cadena4,e.matricula as tipo,medico as cadena6,fecha,codsumi,
+       (CASE WHEN tag is null THEN 'E' ELSE tag END) as cadena5,(CASE WHEN tag is null THEN 'E' ELSE tag END) as nit,
+       k.id_farmacia,num_recetak,id_receta,date(fecha) as fecha_ini, 
+       (SELECT nombres||' '||paterno||' '||materno AS Expr1 FROM personas u WHERE (p.id_persona = u.id_persona)) AS cadena7
+    from kardex k
+     join medicamentos m using(id_medicamento)
+     join pedidos p using(id_pedido)
+     join pacientes a using(id_paciente)
+     inner join personas e on p.id_dispensa=e.id_persona
+     where id_receta>-1 and salida>0 and (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#)
+           and k.cod_esta=#cod_esta# and num_recetak>0 and salida>0)
+    UNION
+    (select id_detalle,id_pedido,'XXX'::text as cadena1,'Uso General'::text as cadena2,id_medicamento,medicamento,forma_far,concentra,salida as salidas,
+       cod_cta||' '||cod_tipo||' '||cod_espe||' '||cod_material as cadena3, num_recetak as entradas,k.id_persona,
+       e.nombres||' '||e.paterno||' '||e.materno as cadena4,e.matricula as tipo,medico as cadena6,fecha,codsumi,
+       (CASE WHEN tag is null THEN 'E' ELSE tag END) as cadena5,(CASE WHEN tag is null THEN 'E' ELSE tag END) as nit,
+       k.id_farmacia,num_recetak,id_receta,date(fecha) as fecha_ini, 
+       (SELECT nombres||' '||paterno||' '||materno AS Expr1 FROM personas u WHERE (p.id_persona = u.id_persona)) AS cadena7
+    from kardex k
+     join medicamentos m using(id_medicamento)
+     join pedidos p using(id_pedido)
+     inner join personas e on p.id_dispensa=e.id_persona
+     where id_receta>-1 and salida>0 and (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#)
+           and k.cod_esta=#cod_esta# and num_recetak>0 and salida>0 and id_detalle not in 
+  (select id_detalle
+    from kardex k
+     join medicamentos m using(id_medicamento)
+     join pedidos p using(id_pedido)
+     join pacientes a using(id_paciente)
+     inner join personas e on p.id_dispensa=e.id_persona
+     where id_receta>-1 and salida>0 and (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#)
+           and k.cod_esta=#cod_esta# and num_recetak>0 and salida>0)    )  
+     order by fecha_ini,num_recetak,id_receta
+  </select>
+  
+  <select id="getKardexFarmaciaCNS_SC" resultMap="datosKardexCNS">
+    (select id_detalle,id_pedido,nro_registro as cadena1,a.nombres as cadena2,id_medicamento,medicamento,forma_far,concentra,salida as salidas,
+       cod_cta||' '||cod_tipo||' '||cod_espe||' '||cod_material as cadena3, num_recetak as entradas,k.id_persona,
+       e.nombres||' '||e.paterno||' '||e.materno as cadena4,e.matricula as tipo,medico as cadena6,fecha,codsumi,
+       (CASE WHEN tag is null THEN 'E' ELSE tag END) as cadena5,(CASE WHEN tag is null THEN 'E' ELSE tag END) as nit,
+       k.id_farmacia,num_recetak,id_receta,date(fecha) as fecha_ini, 
+       (SELECT nombres||' '||paterno||' '||materno AS Expr1 FROM personas u WHERE (p.id_persona = u.id_persona)) AS cadena7
+    from kardex k
+     join medicamentos m using(id_medicamento)
+     join pedidos p using(id_pedido)
+     join pacientes a using(id_paciente)
+     inner join personas e on p.id_dispensa=e.id_persona
+     where id_receta>-1 and salida>0 and (fecha::timestamp without time zone between #fecha_ini# and #fecha_fin#) 
+           and k.cod_esta=#cod_esta# and num_recetak>0 and salida>0)
+    UNION
+    (select id_detalle,id_pedido,num_cladoc as cadena1,p.nombres as cadena2,id_medicamento,medicamento,forma_far,concentra,salida as salidas,
+       cod_cta||' '||cod_tipo||' '||cod_espe||' '||cod_material as cadena3, num_recetak as entradas,k.id_persona,
+       e.nombres||' '||e.paterno||' '||e.materno as cadena4,e.matricula as tipo,medico as cadena6,fecha,codsumi,
+       (CASE WHEN tag is null THEN 'E' ELSE tag END) as cadena5,(CASE WHEN tag is null THEN 'E' ELSE tag END) as nit,
+       k.id_farmacia,num_recetak,id_receta,date(fecha) as fecha_ini, 
+       (SELECT nombres||' '||paterno||' '||materno AS Expr1 FROM personas u WHERE (p.id_persona = u.id_persona)) AS cadena7
+    from kardex k
+     join medicamentos m using(id_medicamento)
+     join pedidos p using(id_pedido)
+     inner join personas e on p.id_dispensa=e.id_persona
+     where id_receta>-1 and salida>0 and (fecha::timestamp without time zone between #fecha_ini# and #fecha_fin#) 
+           and k.cod_esta=#cod_esta# and num_recetak>0 and salida>0 and id_detalle not in 
+(select id_detalle
+    from kardex k
+     join medicamentos m using(id_medicamento)
+     join pedidos p using(id_pedido)
+     join pacientes a using(id_paciente)
+     inner join personas e on p.id_dispensa=e.id_persona
+     where id_receta>-1 and salida>0 and (fecha::timestamp without time zone between #fecha_ini# and #fecha_fin#) 
+           and k.cod_esta=#cod_esta# and num_recetak>0 and salida>0)    )  
+     order by fecha_ini,num_recetak,id_receta
+  </select>
+
+  <select id="getKardexFarmaciaCNSDetFar" resultMap="datosKardexCNS">
+    (select id_detalle,id_pedido,nro_registro as cadena1,a.nombres as cadena2,id_medicamento,medicamento,forma_far,concentra,salida as salidas,
+       cod_cta||' '||cod_tipo||' '||cod_espe||' '||cod_material as cadena3, num_recetak as entradas,k.id_persona,
+       e.nombres||' '||e.paterno||' '||e.materno as cadena4,e.matricula as tipo,medico as cadena6,fecha,codsumi,
+       (CASE WHEN tag is null THEN 'E' ELSE tag END) as cadena5,(CASE WHEN tag is null THEN 'E' ELSE tag END) as nit,
+       k.id_farmacia,num_recetak,id_receta,date(fecha) as fecha_ini, 
+       (SELECT nombres||' '||paterno||' '||materno AS Expr1 FROM personas u WHERE (p.id_persona = u.id_persona)) AS cadena7
+    from kardex k
+     join medicamentos m using(id_medicamento)
+     join pedidos p using(id_pedido)
+     join pacientes a using(id_paciente)
+     inner join personas e on p.id_dispensa=e.id_persona
+     where id_receta>-1 and salida>0 and (fecha::timestamp without time zone between #fecha_ini# and #fecha_fin#) 
+           and k.cod_esta=#cod_esta# and k.id_farmacia=#id_farmacia# and salida>0 )
+    UNION
+    (select id_detalle,id_pedido,'XXX'::text as cadena1,'Uso General'::text as cadena2,id_medicamento,medicamento,forma_far,concentra,salida as salidas,
+       cod_cta||' '||cod_tipo||' '||cod_espe||' '||cod_material as cadena3, num_recetak as entradas,k.id_persona,
+       e.nombres||' '||e.paterno||' '||e.materno as cadena4,e.matricula as tipo,medico as cadena6,fecha,codsumi,
+       (CASE WHEN tag is null THEN 'E' ELSE tag END) as cadena5,(CASE WHEN tag is null THEN 'E' ELSE tag END) as nit,
+       k.id_farmacia,num_recetak,id_receta,date(fecha) as fecha_ini, 
+       (SELECT nombres||' '||paterno||' '||materno AS Expr1 FROM personas u WHERE (p.id_persona = u.id_persona)) AS cadena7
+    from kardex k
+     join medicamentos m using(id_medicamento)
+     join pedidos p using(id_pedido)
+     inner join personas e on p.id_dispensa=e.id_persona
+     where id_receta>-1 and salida>0 and (fecha::timestamp without time zone between #fecha_ini# and #fecha_fin#) 
+           and k.cod_esta=#cod_esta# and k.id_farmacia=#id_farmacia# and salida>0 and id_detalle not in 
+(select id_detalle
+    from kardex k
+     join medicamentos m using(id_medicamento)
+     join pedidos p using(id_pedido)
+     join pacientes a using(id_paciente)
+     inner join personas e on p.id_dispensa=e.id_persona
+     where id_receta>-1 and salida>0 and fecha::date between #fecha_ini# and #fecha_fin# and k.cod_esta=#cod_esta# 
+           and k.id_farmacia=#id_farmacia# and salida>0 )    )  
+     order by fecha_ini,num_recetak,id_receta
+   <!--
+    select nro_registro as cadena1,a.nombres as cadena2,id_medicamento,medicamento,forma_far,concentra,salida as salidas,
+       codsumi as cadena3, num_recetak as entradas,tag as nit,k.id_persona,
+       e.nombres||' '||e.paterno||' '||e.materno as cadena4,tag as cadena5,codigoprof as tipo,medico as cadena6,fecha,codsumi,
+       k.id_farmacia
+    from kardex k
+    join pedidos p using(id_pedido)
+    join pacientes a using(id_paciente)
+    inner join personas e on p.id_dispensa=e.id_persona
+     join medicamentos m using(id_medicamento)
+     where fecha::date between #fecha_ini# and #fecha_fin# and k.cod_esta=#cod_esta# and k.id_farmacia=#id_farmacia# and salida>0
+     order by date(k.fecha),num_recetak
+     no funcionaba con  inner join personas e on k.id_persona=e.id_persona y and k.id_persona=#id_persona#    -->
+  </select>
+  
+  <select id="getKardexFarmaciaCNSDet" resultMap="datosKardexCNS">
+     (select id_detalle,id_pedido,nro_registro as cadena1,a.nombres as cadena2,id_medicamento,medicamento,forma_far,concentra,salida as salidas,
+       cod_cta||' '||cod_tipo||' '||cod_espe||' '||cod_material as cadena3, num_recetak as entradas,k.id_persona,
+       e.nombres||' '||e.paterno||' '||e.materno as cadena4,e.matricula as tipo,medico as cadena6,fecha,codsumi,
+       (CASE WHEN tag is null THEN 'E' ELSE tag END) as cadena5,(CASE WHEN tag is null THEN 'E' ELSE tag END) as nit,
+       k.id_farmacia,num_recetak,id_receta,date(fecha) as fecha_ini, 
+       (SELECT nombres||' '||paterno||' '||materno AS Expr1 FROM personas u WHERE (p.id_persona = u.id_persona)) AS cadena7
+    from kardex k
+     join medicamentos m using(id_medicamento)
+     join pedidos p using(id_pedido)
+     join pacientes a using(id_paciente)
+     inner join personas e on p.id_dispensa=e.id_persona
+     where id_receta>-1 and salida>0 and (fecha::timestamp without time zone between #fecha_ini# and #fecha_fin#) 
+           and k.cod_esta=#cod_esta# and k.id_farmacia=#id_farmacia# and 
+             k.id_persona=#id_persona# )
+    UNION
+    (select id_detalle,id_pedido,'XXX'::text as cadena1,'Uso General'::text as cadena2,id_medicamento,medicamento,forma_far,concentra,salida as salidas,
+       cod_cta||' '||cod_tipo||' '||cod_espe||' '||cod_material as cadena3, num_recetak as entradas,k.id_persona,
+       e.nombres||' '||e.paterno||' '||e.materno as cadena4,e.matricula as tipo,medico as cadena6,fecha,codsumi,
+       (CASE WHEN tag is null THEN 'E' ELSE tag END) as cadena5,(CASE WHEN tag is null THEN 'E' ELSE tag END) as nit,
+       k.id_farmacia,num_recetak,id_receta,date(fecha) as fecha_ini, 
+       (SELECT nombres||' '||paterno||' '||materno AS Expr1 FROM personas u WHERE (p.id_persona = u.id_persona)) AS cadena7
+    from kardex k
+     join medicamentos m using(id_medicamento)
+     join pedidos p using(id_pedido)
+     inner join personas e on p.id_dispensa=e.id_persona
+     where id_receta>-1 and salida>0 and (fecha::timestamp without time zone between #fecha_ini# and #fecha_fin#) 
+           and k.cod_esta=#cod_esta# and k.id_farmacia=#id_farmacia# and 
+             k.id_persona=#id_persona# and id_detalle not in 
+(select id_detalle
+    from kardex k
+     join medicamentos m using(id_medicamento)
+     join pedidos p using(id_pedido)
+     join pacientes a using(id_paciente)
+     inner join personas e on p.id_dispensa=e.id_persona
+     where id_receta>-1 and salida>0 and (fecha::timestamp without time zone between #fecha_ini# and #fecha_fin#) 
+           and k.cod_esta=#cod_esta# and k.id_farmacia=#id_farmacia# and 
+             k.id_persona=#id_persona# )    )  
+     order by fecha_ini,num_recetak,id_receta
+  <!--
+    select nro_registro as cadena1,a.nombres as cadena2,id_medicamento,medicamento,forma_far,concentra,salida as salidas,
+       codsumi as cadena3, num_recetak as entradas,tag as nit,k.id_persona,
+       e.nombres||' '||e.paterno||' '||e.materno as cadena4,tag as cadena5,codigoprof as tipo,medico as cadena6,fecha,codsumi,
+       k.id_farmacia
+    from kardex k
+    join pedidos p using(id_pedido)
+    join pacientes a using(id_paciente)
+    inner join personas e on p.id_dispensa=e.id_persona
+     join medicamentos m using(id_medicamento)
+     where fecha::date between #fecha_ini# and #fecha_fin# and k.cod_esta=#cod_esta# and k.id_farmacia=#id_farmacia# and 
+             k.id_persona=#id_persona# and salida>0
+     order by date(k.fecha),num_recetak
+      no funcionaba con  inner join personas e on k.id_persona=e.id_persona y and k.id_persona=#id_persona#    -->
+  </select>
+  
+  <select id="getKardexFarmaciaCNSDet_SC" resultMap="datosKardexCNS">
+     (select id_detalle,id_pedido,nro_registro as cadena1,a.nombres as cadena2,id_medicamento,medicamento,forma_far,concentra,salida as salidas,
+       cod_cta||' '||cod_tipo||' '||cod_espe||' '||cod_material as cadena3, num_recetak as entradas,k.id_persona,
+       e.nombres||' '||e.paterno||' '||e.materno as cadena4,e.matricula as tipo,medico as cadena6,fecha,codsumi,
+       (CASE WHEN tag is null THEN 'E' ELSE tag END) as cadena5,(CASE WHEN tag is null THEN 'E' ELSE tag END) as nit,
+       k.id_farmacia,num_recetak,id_receta,date(fecha) as fecha_ini, 
+       (SELECT nombres||' '||paterno||' '||materno AS Expr1 FROM personas u WHERE (p.id_persona = u.id_persona)) AS cadena7
+    from kardex k
+     join medicamentos m using(id_medicamento)
+     join pedidos p using(id_pedido)
+     join pacientes a using(id_paciente)
+     inner join personas e on p.id_dispensa=e.id_persona
+     where id_receta>-1 and salida>0 and (fecha::timestamp without time zone between #fecha_ini# and #fecha_fin#) 
+           and k.cod_esta=#cod_esta# and k.id_farmacia=#id_farmacia# and 
+             k.id_persona=#id_persona# )
+    UNION
+    (select id_detalle,id_pedido,num_cladoc as cadena1,p.nombres as cadena2,id_medicamento,medicamento,forma_far,concentra,salida as salidas,
+       cod_cta||' '||cod_tipo||' '||cod_espe||' '||cod_material as cadena3, num_recetak as entradas,k.id_persona,
+       e.nombres||' '||e.paterno||' '||e.materno as cadena4,e.matricula as tipo,medico as cadena6,fecha,codsumi,
+       (CASE WHEN tag is null THEN 'E' ELSE tag END) as cadena5,(CASE WHEN tag is null THEN 'E' ELSE tag END) as nit,
+       k.id_farmacia,num_recetak,id_receta,date(fecha) as fecha_ini, 
+       (SELECT nombres||' '||paterno||' '||materno AS Expr1 FROM personas u WHERE (p.id_persona = u.id_persona)) AS cadena7
+    from kardex k
+     join medicamentos m using(id_medicamento)
+     join pedidos p using(id_pedido)
+     inner join personas e on p.id_dispensa=e.id_persona
+     where id_receta>-1 and salida>0 and (fecha::timestamp without time zone between #fecha_ini# and #fecha_fin#) 
+           and k.cod_esta=#cod_esta# and k.id_farmacia=#id_farmacia# and 
+             k.id_persona=#id_persona# and id_detalle not in 
+(select id_detalle
+    from kardex k
+     join medicamentos m using(id_medicamento)
+     join pedidos p using(id_pedido)
+     join pacientes a using(id_paciente)
+     inner join personas e on p.id_dispensa=e.id_persona
+     where id_receta>-1 and salida>0 and (fecha::timestamp without time zone between #fecha_ini# and #fecha_fin#) 
+           and k.cod_esta=#cod_esta# and k.id_farmacia=#id_farmacia# and 
+             k.id_persona=#id_persona# )    )  
+     order by fecha_ini,num_recetak,id_receta
+  </select>
+  
+    <select id="getKardexUnitario" resultMap="datosKardexCNS">
+    select nro_registro as cadena1,a.nombres as cadena2,id_medicamento,medicamento,forma_far,concentra,salida as salidas,
+       cod_cta||' '||cod_tipo||' '||cod_espe||' '||cod_material as cadena3, num_recetak as entradas,k.id_persona,
+       e.nombres||' '||e.paterno||' '||e.materno as cadena4,e.matricula as tipo,medico as cadena6,fecha,codsumi,
+       (CASE WHEN tag is null THEN 'E' ELSE tag END) as cadena5,(CASE WHEN tag is null THEN 'E' ELSE tag END) as nit,
+       k.id_farmacia,num_recetak,id_receta,date(fecha) as fecha_ini, 
+       (SELECT nombres||' '||paterno||' '||materno AS Expr1 FROM personas u WHERE (p.id_persona = u.id_persona)) AS cadena7
+    from kardex k
+     join medicamentos m using(id_medicamento)
+     join pedidos p using(id_pedido)
+     join pacientes a using(id_paciente)
+     inner join personas e on p.id_dispensa=e.id_persona
+     where k.cod_esta=#cod_esta# and id_detalle=#id_detalle#
+  </select>
+  
+  <resultMap id="datosKardexExport" class="domain.Recetas">
+    <result property="cadena1"                        column="cadena1"/> 
+    <result property="cadena2"                        column="cadena2"/> 
+    <result property="cadena3"                        column="cadena3"/> 
+    <result property="cadena4"                        column="cadena4"/> 
+    <result property="cadena5"                        column="cadena5"/> 
+    <result property="cadena6"                        column="cadena6"/> 
+    <result property="cadena7"                        column="cadena7"/> 
+    <result property="cadena8"                        column="cadena8"/> 
+    <result property="cadena9"                        column="cadena9"/> 
+    <result property="cadena10"                       column="cadena10"/> 
+    <result property="cadena11"                       column="cadena11"/> 
+    <result property="cadena12"                       column="cadena12"/> 
+    <result property="cadena13"                       column="cadena13"/> 
+    <result property="cadena14"                       column="cadena14"/> 
+    <result property="cadena15"                       column="cadena15"/> 
+    <result property="cadena16"                       column="cadena16"/> 
+    <result property="cadena17"                       column="cadena17"/> 
+    <result property="suma1"                          column="suma1"/> 
+    <result property="suma2"                          column="suma2"/> 
+    <result property="suma3"                          column="suma3"/> 
+  </resultMap>
+  
+  <select id="getKardexExport" resultMap="datosKardexExport">
+    (select trim(to_char(extract(day from p.fec_registro),'00'))||trim(to_char(extract(month from p.fec_registro),'00')) as cadena1,
+       tag as cadena2,trim(to_char(extract(day from p.fec_registro),'00')) as cadena3,trim(to_char(extract(month from p.fec_registro),'00')) as cadena4,
+       text(extract(year from p.fec_registro) ) as cadena5,num_recetak as suma1, p.matricula as cadena6,sigla as cadena7,
+       (CASE WHEN cod_benef='' or cod_benef='0' or cod_benef is null THEN 'ID' ELSE cod_benef END) as cadena8,
+       '' as almacen, cod_cta as cadena9,cod_tipo as cadena10,cod_espe as cadena11, cod_material as cadena12,salida as suma2,
+       (CASE WHEN medico='' or medico='0' or medico is null THEN 'XXXX' ELSE medico END) as cadena13,
+       servicio as cadena14,centro as cadena15, to_char(date(p.fec_registro), 'MM/DD/YYYY') as cadena16, 
+       e.matricula as cadena17,id_detalle as suma3,date(now()) as fecha
+    from pedidos p
+     join kardex using(id_pedido)
+     join medicamentos using(id_medicamento)
+     inner join personas e on e.id_persona=p.id_dispensa
+    where salida>0 and id_receta>0 and date(p.fec_registro) between #fecha_ini# and #fecha_fin# and   
+          p.cod_esta=#cod_esta# and id_pedido in (select id_pedido from kardex where cod_esta=#cod_esta# and 
+                                                  (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#) )) 
+UNION
+(select trim(to_char(extract(day from p.fec_registro),'00'))||trim(to_char(extract(month from p.fec_registro),'00')) as cadena1,
+       tag as cadena2,trim(to_char(extract(day from p.fec_registro),'00')) as cadena3,trim(to_char(extract(month from p.fec_registro),'00')) as cadena4,
+       text(extract(year from p.fec_registro) ) as cadena5,num_recetak as suma1, p.matricula as cadena6,sigla as cadena7,
+       (CASE WHEN cod_benef='' or cod_benef='0' or cod_benef is null THEN 'ID' ELSE cod_benef END) as cadena8,
+       '' as almacen, cod_cta as cadena9,cod_tipo as cadena10,cod_espe as cadena11, cod_material as cadena12,ajuste*(-1) as suma2,
+       (CASE WHEN medico='' or medico='0' or medico is null THEN 'XXXX' ELSE medico END) as cadena13,
+       servicio as cadena14,centro as cadena15, to_char(date(p.fec_registro), 'MM/DD/YYYY') as cadena16, 
+       e.matricula as cadena17,id_detalle as suma3,date(now()) as fecha
+    from pedidos p
+     join kardex using(id_pedido)
+     join medicamentos using(id_medicamento)
+     inner join personas e on e.id_persona=p.id_dispensa
+    where not(ajuste>=0) and date(p.fec_registro) between #fecha_ini# and #fecha_fin# and   
+          p.cod_esta=#cod_esta# and id_pedido in (select id_pedido from kardex where cod_esta=#cod_esta# and 
+                                                  (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#) ))                                                  
+    order by cadena3,cadena4,cadena5
+  </select>
+  
+   <select id="getRevercionExcel" resultMap="datosKardexExport">
+    select trim(to_char(extract(day from p.fec_registro),'00'))||trim(to_char(extract(month from p.fec_registro),'00')) as cadena1,
+       'R'::text as cadena2,trim(to_char(extract(day from p.fec_registro),'00')) as cadena3,
+       trim(to_char(extract(month from p.fec_registro),'00')) as cadena4,cod_cta as cadena8,cod_tipo as cadena9,
+       text(extract(year from p.fec_registro) ) as cadena5,'010'||centro as cadena6, 
+       (CASE WHEN (nit='0' or nit='1' or nit='2' or nit is null) THEN p.id_factura::text ELSE nit END) as cadena7 ,
+       cod_espe as cadena10, cod_material as cadena11,to_char(date(p.fec_registro), 'MM/DD/YYYY') as cadena12,e.matricula as cadena13,
+       'A'::text as cadena14,'A'::text as cadena15,'A'::text as cadena16,'A'::text as cadena17,
+       ajuste as suma1,kardex.costo_unit as suma2, num_recetak as suma3
+    from pedidos p
+     join kardex using(id_pedido)
+     join medicamentos using(id_medicamento)
+     inner join personas e on e.id_persona=p.id_dispensa
+    where ajuste>0 and date(p.fec_registro) between #fecha_ini# and #fecha_fin# and   
+          id_tipo_far=2 and p.cod_esta=#cod_esta# and id_pedido in (select id_pedido from kardex where cod_esta=#cod_esta# and 
+                                                  (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#) ) 
+    order by id_pedido,num_recetak
+  </select>
+
+  
+   <resultMap id="datosKardexRemiDia" class="domain.Recetas">
+    <result property="id_persona"                     column="id_persona"/>
+    <result property="medicamento"                    column="medicamento"/> 
+    <result property="b1"                             column="b1"/> 
+    <result property="suma1"                          column="suma1"/> 
+    <result property="suma2"                          column="suma2"/> 
+    <result property="suma3"                          column="suma3"/> 
+    <result property="suma4"                          column="suma4"/> 
+    <result property="suma5"                          column="suma5"/> 
+    <result property="suma6"                          column="suma6"/> 
+    <result property="suma7"                          column="suma7"/> 
+    <result property="suma8"                          column="suma8"/> 
+    <result property="suma9"                          column="suma9"/> 
+    <result property="suma10"                         column="suma10"/> 
+    <result property="suma11"                         column="suma11"/> 
+    <result property="suma12"                         column="suma12"/> 
+    <result property="suma13"                         column="suma13"/> 
+    <result property="suma14"                          column="suma14"/> 
+    <result property="suma15"                          column="suma15"/> 
+    <result property="suma16"                          column="suma16"/> 
+    <result property="suma17"                          column="suma17"/> 
+    <result property="suma18"                          column="suma18"/> 
+    <result property="suma19"                          column="suma19"/> 
+    <result property="suma20"                          column="suma20"/> 
+    <result property="suma21"                          column="suma21"/> 
+    <result property="suma22"                          column="suma22"/> 
+    <result property="suma23"                          column="suma23"/> 
+    <result property="suma24"                          column="suma24"/> 
+    <result property="suma25"                          column="suma25"/> 
+    <result property="suma26"                          column="suma26"/> 
+    <result property="suma27"                          column="suma27"/> 
+    <result property="suma28"                          column="suma28"/> 
+    <result property="suma29"                          column="suma29"/> 
+    <result property="suma30"                          column="suma30"/> 
+    <result property="suma31"                          column="suma31"/> 
+    <result property="saldos"                          column="saldos"/>
+  </resultMap>
+  
+  <select id="getKardexResumenDispensaDia" resultMap="datosKardexRemiDia">
+    SELECT k.id_persona,(e.nombres||' '||e.paterno||' '||e.materno) as medicamento,extract(month from (fecha)) as b1,extract(year from (fecha)) as b2,
+       sum(CASE WHEN extract(day from (fecha))=1 THEN 1 ELSE 0 END)::int as suma1,
+       sum(CASE WHEN extract(day from (fecha))=2 THEN 1 ELSE 0 END)::int as suma2,
+       sum(CASE WHEN extract(day from (fecha))=3 THEN 1 ELSE 0 END)::int as suma3,
+       sum(CASE WHEN extract(day from (fecha))=4 THEN 1 ELSE 0 END)::int as suma4,
+       sum(CASE WHEN extract(day from (fecha))=5 THEN 1 ELSE 0 END)::int as suma5,
+       sum(CASE WHEN extract(day from (fecha))=6 THEN 1 ELSE 0 END)::int as suma6,
+       sum(CASE WHEN extract(day from (fecha))=7 THEN 1 ELSE 0 END)::int as suma7,
+       sum(CASE WHEN extract(day from (fecha))=8 THEN 1 ELSE 0 END)::int as suma8,
+       sum(CASE WHEN extract(day from (fecha))=9 THEN 1 ELSE 0 END)::int as suma9,
+       sum(CASE WHEN extract(day from (fecha))=10 THEN 1 ELSE 0 END)::int as suma10,
+       sum(CASE WHEN extract(day from (fecha))=11 THEN 1 ELSE 0 END)::int as suma11,
+       sum(CASE WHEN extract(day from (fecha))=12 THEN 1 ELSE 0 END)::int as suma12,
+       sum(CASE WHEN extract(day from (fecha))=13 THEN 1 ELSE 0 END)::int as suma13,
+       sum(CASE WHEN extract(day from (fecha))=14 THEN 1 ELSE 0 END)::int as suma14,
+       sum(CASE WHEN extract(day from (fecha))=15 THEN 1 ELSE 0 END)::int as suma15,
+       sum(CASE WHEN extract(day from (fecha))=16 THEN 1 ELSE 0 END)::int as suma16,
+       sum(CASE WHEN extract(day from (fecha))=17 THEN 1 ELSE 0 END)::int as suma17,
+       sum(CASE WHEN extract(day from (fecha))=18 THEN 1 ELSE 0 END)::int as suma18,
+       sum(CASE WHEN extract(day from (fecha))=19 THEN 1 ELSE 0 END)::int as suma19,
+       sum(CASE WHEN extract(day from (fecha))=20 THEN 1 ELSE 0 END)::int as suma20,
+       sum(CASE WHEN extract(day from (fecha))=21 THEN 1 ELSE 0 END)::int as suma21,
+       sum(CASE WHEN extract(day from (fecha))=22 THEN 1 ELSE 0 END)::int as suma22,
+       sum(CASE WHEN extract(day from (fecha))=23 THEN 1 ELSE 0 END)::int as suma23,
+       sum(CASE WHEN extract(day from (fecha))=24 THEN 1 ELSE 0 END)::int as suma24,
+       sum(CASE WHEN extract(day from (fecha))=25 THEN 1 ELSE 0 END)::int as suma25,
+       sum(CASE WHEN extract(day from (fecha))=26 THEN 1 ELSE 0 END)::int as suma26,
+       sum(CASE WHEN extract(day from (fecha))=27 THEN 1 ELSE 0 END)::int as suma27,
+       sum(CASE WHEN extract(day from (fecha))=28 THEN 1 ELSE 0 END)::int as suma28,
+       sum(CASE WHEN extract(day from (fecha))=29 THEN 1 ELSE 0 END)::int as suma29,
+       sum(CASE WHEN extract(day from (fecha))=30 THEN 1 ELSE 0 END)::int as suma30,
+       sum(CASE WHEN extract(day from (fecha))=31 THEN 1 ELSE 0 END)::int as suma31,
+       count(*)::int as saldos
+       FROM kardex k join medicamentos m using(id_medicamento)
+                     join pedidos p using(id_pedido) inner join personas e on k.id_persona=e.id_persona  
+       WHERE salida>0 and id_receta>-1 and k.cod_esta=#cod_esta# and (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#)  
+      group by  k.id_persona,e.nombres,e.paterno,e.materno,extract(month from (fecha)),extract(year from (fecha))
+      ORDER BY extract(month from (fecha)),saldos desc
+  </select>
+  
+  <resultMap id="datosKardexRemi" class="domain.Recetas">
+    <result property="id_medicamento"                 column="id_medicamento"/>
+    <result property="medicamento"                    column="medicamento"/> 
+    <result property="forma_far"                      column="forma_far"/> 
+    <result property="concentra"                      column="concentra"/> 
+    <result property="codsumi"                        column="codsumi"/> 
+    <result property="suma1"                          column="suma1"/> 
+    <result property="suma2"                          column="suma2"/> 
+    <result property="suma3"                          column="suma3"/> 
+    <result property="suma4"                          column="suma4"/> 
+    <result property="suma5"                          column="suma5"/> 
+    <result property="suma6"                          column="suma6"/> 
+    <result property="suma7"                          column="suma7"/> 
+    <result property="suma8"                          column="suma8"/> 
+    <result property="suma9"                          column="suma9"/> 
+    <result property="suma10"                         column="suma10"/> 
+    <result property="suma11"                         column="suma11"/> 
+    <result property="suma12"                         column="suma12"/> 
+    <result property="suma13"                         column="suma13"/>
+  </resultMap>
+  
+  <select id="getKardexResumenDispensa" resultMap="datosKardexRemi">
+   SELECT f.id_farmacia as id_medicamento,(e.nombres||' '||e.paterno||' '||e.materno) as medicamento,farmacia as forma_far,
+               'A'::text as concentra,'A'::text as codsumi,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='E' or tag='P') THEN 1 ELSE 0 END))::int as suma2,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='I' or tag='Q') THEN 1 ELSE 0 END))::int as suma4,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='U' THEN 1 ELSE 0 END))::int as suma6,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='S' or tag='Q' or tag='P') THEN 1 ELSE 0 END))::int as suma8,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='M' THEN 1 ELSE 0 END))::int as suma10,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='N' THEN 1 ELSE 0 END))::int as suma12,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END))::int as suma13,
+       sum(CASE WHEN (tag='E' or tag='P') THEN 1 ELSE 0 END)::int as suma1,
+       sum(CASE WHEN (tag='I' or tag='Q') THEN 1 ELSE 0 END)::int as suma3,
+       sum(CASE WHEN tag='U' THEN 1 ELSE 0 END)::int as suma5,
+       sum(CASE WHEN (tag='S') THEN 1 ELSE 0 END)::int as suma7,
+       sum(CASE WHEN tag='M' THEN 1 ELSE 0 END)::int as suma9,
+       sum(CASE WHEN tag='N' THEN 1 ELSE 0 END)::int as suma11
+       FROM kardex k join medicamentos m using(id_medicamento)  join farmacias f using(id_farmacia)  
+                     join pedidos p using(id_pedido) inner join personas e on k.id_persona=e.id_persona  
+       WHERE salida>0 and id_receta>-1 and k.cod_esta=#cod_esta# and (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#)  
+      group by  f.id_farmacia,e.nombres,e.paterno,e.materno,farmacia
+      order by f.id_farmacia
+  </select>
+  
+  <select id="getKardexRestringido6" resultMap="datosKardexRemi">
+   SELECT k.id_farmacia as id_medicamento,(e.nombres||' '||e.paterno||' '||e.materno) as medicamento,'A'::text as forma_far,
+               'A'::text as concentra,'A'::text as codsumi,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='E' or tag='P') THEN 1 ELSE 0 END))::int as suma2,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='I' or tag='Q') THEN 1 ELSE 0 END))::int as suma4,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='U' THEN 1 ELSE 0 END))::int as suma6,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='S') THEN 1 ELSE 0 END))::int as suma8,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='M' THEN 1 ELSE 0 END))::int as suma10,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='N' THEN 1 ELSE 0 END))::int as suma12,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END))::int as suma13,
+       sum(CASE WHEN (tag='E' or tag='P') THEN 1 ELSE 0 END)::int as suma1,
+       sum(CASE WHEN (tag='I' or tag='Q') THEN 1 ELSE 0 END)::int as suma3,
+       sum(CASE WHEN tag='U' THEN 1 ELSE 0 END)::int as suma5,
+       sum(CASE WHEN (tag='S') THEN 1 ELSE 0 END)::int as suma7,
+       sum(CASE WHEN tag='M' THEN 1 ELSE 0 END)::int as suma9,
+       sum(CASE WHEN tag='N' THEN 1 ELSE 0 END)::int as suma11
+       FROM kardex k join medicamentos m using(id_medicamento)  
+       join farmacias f using(id_farmacia)  
+                     join pedidos p using(id_pedido) 
+                     inner join personas e on p.id_persona=e.id_persona  
+       WHERE salida>0 and id_receta>-1 and k.cod_esta=#cod_esta# and k.id_medicamento=#id_medicamento# and k.id_farmacia=#id_farmacia# and
+             (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin# )   
+      group by  k.id_farmacia,e.nombres,e.paterno,e.materno   
+      order by  suma13 desc,e.nombres,e.paterno,e.materno
+  </select>
+  
+  <select id="getKardexRestringido7" resultMap="datosKardexRemi">
+     SELECT 0 as id_medicamento,consultorio as medicamento,'A'::text as forma_far,
+               'A'::text as concentra,'A'::text as codsumi,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='E' or tag='P') THEN 1 ELSE 0 END))::int as suma2,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='I' or tag='Q') THEN 1 ELSE 0 END))::int as suma4,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='U' THEN 1 ELSE 0 END))::int as suma6,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='S') THEN 1 ELSE 0 END))::int as suma8,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='M' THEN 1 ELSE 0 END))::int as suma10,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='N' THEN 1 ELSE 0 END))::int as suma12,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END))::int as suma13,
+       sum(CASE WHEN (tag='E' or tag='P') THEN 1 ELSE 0 END)::int as suma1,
+       sum(CASE WHEN (tag='I' or tag='Q') THEN 1 ELSE 0 END)::int as suma3,
+       sum(CASE WHEN tag='U' THEN 1 ELSE 0 END)::int as suma5,
+       sum(CASE WHEN (tag='S') THEN 1 ELSE 0 END)::int as suma7,
+       sum(CASE WHEN tag='M' THEN 1 ELSE 0 END)::int as suma9,
+       sum(CASE WHEN tag='N' THEN 1 ELSE 0 END)::int as suma11
+       FROM kardex k join medicamentos m using(id_medicamento)  
+       join farmacias f using(id_farmacia)  
+                     join pedidos p using(id_pedido) 
+                     inner join personas e on p.id_persona=e.id_persona  
+                     inner join consultorios c on e.id_consultorio  =c.id_consultorio 
+       WHERE salida>0 and id_receta>-1 and k.cod_esta=#cod_esta# and k.id_medicamento=#id_medicamento# and 
+             (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin# )  
+      group by  consultorio  order by consultorio
+  </select>
+  
+  <select id="getKardexRemision" resultMap="datosKardexRemi">
+   SELECT id_medicamento,medicamento,forma_far,concentra,codsumi,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='E' or tag='P') THEN 1 ELSE 0 END))::int as suma2,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='I' or tag='Q') THEN 1 ELSE 0 END))::int as suma4,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='U' THEN 1 ELSE 0 END))::int as suma6,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='S') THEN 1 ELSE 0 END))::int as suma8,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='M' THEN 1 ELSE 0 END))::int as suma10,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='N' THEN 1 ELSE 0 END))::int as suma12,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END))::int as suma13,
+       sum(CASE WHEN (tag='E' or tag='P') THEN 1 ELSE 0 END)::int as suma1,
+       sum(CASE WHEN (tag='I' or tag='Q') THEN 1 ELSE 0 END)::int as suma3,
+       sum(CASE WHEN tag='U' THEN 1 ELSE 0 END)::int as suma5,
+       sum(CASE WHEN (tag='S') THEN 1 ELSE 0 END)::int as suma7,
+       sum(CASE WHEN tag='M' THEN 1 ELSE 0 END)::int as suma9,
+       sum(CASE WHEN tag='N' THEN 1 ELSE 0 END)::int as suma11
+       FROM kardex k join medicamentos m using(id_medicamento)  join pedidos p using(id_pedido)   
+       WHERE salida>0  and k.cod_esta=#cod_esta#  and (k.id_persona between #id_persona# and #id_paciente#) and 
+      (k.id_farmacia between #id_farmacia# and #id_programa#) and (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#)  
+      group by id_medicamento,medicamento,forma_far,concentra,codsumi
+      order by codsumi   
+      <!-- 15-09-2016 se elimina and id_receta>0-->
+  </select>
+  
+  <select id="getResumenXmedico" resultMap="datosKardexRemi">
+   SELECT 0 as id_medicamento,(e.nombres||' '||e.paterno||' '||e.materno) as medicamento,'A'::text as forma_far,
+               'A'::text as concentra,'A'::text as codsumi,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='E' or tag='P') THEN 1 ELSE 0 END))::int as suma2,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='I' or tag='Q') THEN 1 ELSE 0 END))::int as suma4,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='U' THEN 1 ELSE 0 END))::int as suma6,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='S') THEN 1 ELSE 0 END))::int as suma8,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='M' THEN 1 ELSE 0 END))::int as suma10,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='N' THEN 1 ELSE 0 END))::int as suma12,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END))::int as suma13,
+       sum(CASE WHEN (tag='E' or tag='P') THEN 1 ELSE 0 END)::int as suma1,
+       sum(CASE WHEN (tag='I' or tag='Q') THEN 1 ELSE 0 END)::int as suma3,
+       sum(CASE WHEN tag='U' THEN 1 ELSE 0 END)::int as suma5,
+       sum(CASE WHEN (tag='S') THEN 1 ELSE 0 END)::int as suma7,
+       sum(CASE WHEN tag='M' THEN 1 ELSE 0 END)::int as suma9,
+       sum(CASE WHEN tag='N' THEN 1 ELSE 0 END)::int as suma11
+       FROM kardex k join medicamentos m using(id_medicamento)  
+       join farmacias f using(id_farmacia)  
+                     join pedidos p using(id_pedido) 
+                     inner join personas e on p.id_persona=e.id_persona  
+       WHERE salida>0 and id_receta>-1 and k.cod_esta=#cod_esta# and 
+             (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#)  
+      group by  e.nombres,e.paterno,e.materno   order by e.nombres,e.paterno,e.materno
+  </select>
+  
+  <select id="getResumenXespecialidad" resultMap="datosKardexRemi">
+   SELECT 0 as id_medicamento,consultorio as medicamento,'A'::text as forma_far,
+               'A'::text as concentra,'A'::text as codsumi,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='E' or tag='P') THEN 1 ELSE 0 END))::int as suma2,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='I' or tag='Q') THEN 1 ELSE 0 END))::int as suma4,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='U' THEN 1 ELSE 0 END))::int as suma6,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='S') THEN 1 ELSE 0 END))::int as suma8,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='M' THEN 1 ELSE 0 END))::int as suma10,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='N' THEN 1 ELSE 0 END))::int as suma12,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END))::int as suma13,
+       sum(CASE WHEN (tag='E' or tag='P') THEN 1 ELSE 0 END)::int as suma1,
+       sum(CASE WHEN (tag='I' or tag='Q') THEN 1 ELSE 0 END)::int as suma3,
+       sum(CASE WHEN tag='U' THEN 1 ELSE 0 END)::int as suma5,
+       sum(CASE WHEN (tag='S') THEN 1 ELSE 0 END)::int as suma7,
+       sum(CASE WHEN tag='M' THEN 1 ELSE 0 END)::int as suma9,
+       sum(CASE WHEN tag='N' THEN 1 ELSE 0 END)::int as suma11
+       FROM kardex k join medicamentos m using(id_medicamento)  
+       join farmacias f using(id_farmacia)  
+                     join pedidos p using(id_pedido) 
+                     inner join personas e on p.id_persona=e.id_persona  
+                     inner join consultorios c on e.id_consultorio  =c.id_consultorio  
+       WHERE salida>0 and id_receta>-1 and k.cod_esta=#cod_esta# and 
+             (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#)  
+      group by  consultorio  order by consultorio	  	  
+  </select>
+  
+  <select id="getResumenXservicio" resultMap="datosKardexRemi">
+     SELECT 0 as id_medicamento,descrip_serv as medicamento,'A'::text as forma_far,
+               'A'::text as concentra,'A'::text as codsumi,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='E' or tag='P') THEN 1 ELSE 0 END))::int as suma2,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='I' or tag='Q') THEN 1 ELSE 0 END))::int as suma4,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='U' THEN 1 ELSE 0 END))::int as suma6,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN (tag='S') THEN 1 ELSE 0 END))::int as suma8,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='M' THEN 1 ELSE 0 END))::int as suma10,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END)*(CASE WHEN tag='N' THEN 1 ELSE 0 END))::int as suma12,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END))::int as suma13,
+       sum(CASE WHEN (tag='E' or tag='P') THEN 1 ELSE 0 END)::int as suma1,
+       sum(CASE WHEN (tag='I' or tag='Q') THEN 1 ELSE 0 END)::int as suma3,
+       sum(CASE WHEN tag='U' THEN 1 ELSE 0 END)::int as suma5,
+       sum(CASE WHEN (tag='S') THEN 1 ELSE 0 END)::int as suma7,
+       sum(CASE WHEN tag='M' THEN 1 ELSE 0 END)::int as suma9,
+       sum(CASE WHEN tag='N' THEN 1 ELSE 0 END)::int as suma11
+       FROM kardex k join medicamentos m using(id_medicamento)  
+       join farmacias f using(id_farmacia)  
+                     join pedidos p using(id_pedido) 
+                     inner join servicio s on p.servicio=s.cod_serv  
+       WHERE salida>0 and id_receta>-1 and k.cod_esta=#cod_esta# and 
+             (fecha::timestamp without time zone BETWEEN #fecha_ini# and #fecha_fin#)  
+      group by descrip_serv   order by s.descrip_serv
+  </select>
+   
+  <resultMap id="datosKardexRemiAdmi" class="domain.Recetas">
+    <result property="cod_esta"                       column="cod_esta"/>  
+    <result property="id_medicamento"                 column="id_medicamento"/>
+    <result property="cadena1"                        column="cadena1"/> 
+    <result property="medicamento"                    column="medicamento"/>
+    <result property="forma_far"                      column="forma_far"/> 
+    <result property="codsumi"                        column="codsumi"/> 
+    <result property="suma1"                          column="suma1"/> 
+    <result property="suma2"                          column="suma2"/> 
+  </resultMap>
+  
+  <select id="getKardexResumenXMedica" resultMap="datosKardexRemiAdmi">
+     SELECT k.cod_esta,establecimiento as cadena1,id_medicamento,medicamento,forma_far,codsumi,
+       sum((CASE WHEN entrada is null THEN 0 ELSE entrada::int END))::int as suma1,
+       sum((CASE WHEN salida is null THEN 0 ELSE salida::int END))::int as suma2
+       FROM kardex k join medicamentos m using(id_medicamento)  
+       join establecimientos using(cod_esta) 
+       WHERE id_receta>=0 and id_medicamento=#id_medicamento# and (k.fecha::date between #fecha_ini# and #fecha_fin# )  
+      group by k.cod_esta,establecimiento,id_medicamento,medicamento,forma_far,codsumi
+      order by k.cod_esta,codsumi   
+  </select>
+  
+  <resultMap id="datosKardexRemiAdmiSal" class="domain.Recetas">
+    <result property="cod_esta"                       column="cod_esta"/>  
+    <result property="id_medicamento"                 column="id_medicamento"/>
+    <result property="suma1"                          column="suma1"/> 
+    <result property="suma2"                          column="suma2"/> 
+    <result property="suma3"                          column="suma3"/> 
+  </resultMap>
+  
+  <select id="getKardexResumenXMedicaSaldo" resultMap="datosKardexRemiAdmiSal">
+     SELECT cod_esta,id_medicamento,sum(entrada) ::int as suma1,sum(salida) ::int as suma2,sum(ajuste) ::int as suma3
+       FROM kardex
+       where id_medicamento=#id_medicamento# and date(fecha) between '2000-01-01' and #fecha_ini# and date(fecha)!=#fecha_ini#
+      group by cod_esta,id_medicamento
+      order by id_medicamento
+  </select>
+
+  <resultMap id="datosKardexUsuario" class="domain.Recetas">
+    <result property="id_medicamento"                 column="id_medicamento"/>
+    <result property="medicamento"                    column="medicamento"/>
+    <result property="forma_far"                      column="forma_far"/>
+    <result property="concentra"                      column="concentra"/>
+    <result property="entradas"                       column="entradas"/>
+    <result property="salidas"                        column="salidas"/> 
+    <result property="nit"                            column="nit"/> 
+    <result property="cod_cta"                        column="cod_cta"/> 
+    <result property="cod_tipo"                       column="cod_tipo"/> 
+    <result property="cod_espe"                       column="cod_espe"/> 
+    <result property="cod_material"                   column="cod_material"/> 
+  </resultMap>
+  
+  <select id="getKardexUsuario" resultMap="datosKardexUsuario">
+   select id_medicamento,medicamento,forma_far,concentra,sum(entrada)::integer as entradas, sum(salida)::integer as salidas,
+          p.tag as nit,cod_cta,cod_tipo,cod_espe,cod_material
+    from kardex k
+     join medica_select m using(id_medicamento)
+     join pedidos p using(id_pedido)
+     where fecha::date between #fecha_ini# and #fecha_fin# and k.cod_esta=#cod_esta# and k.id_farmacia=#id_farmacia# and 
+           k.id_persona=#id_persona# and m.cod_esta=#cod_esta# and m.id_farmacia=#id_farmacia# and salida>0
+     Group by id_medicamento,medicamento,forma_far,concentra,p.tag,cod_cta,cod_tipo,cod_espe,cod_material
+     order by cod_cta,cod_tipo,cod_espe,cod_material
+  </select>
+  
+  <select id="getKardexRestringido" resultMap="datosKardexUsuario">
+    select id_medicamento,medicamento,forma_far,concentra,sum(entrada)::integer as entradas, sum(salida)::integer as salidas,
+          'A'::text as nit,cod_cta,cod_tipo,cod_espe,cod_material 
+    from kardex k
+     join medicamentos using(id_medicamento)
+     where fecha::date between #fecha_ini# and #fecha_fin# and k.cod_esta=#cod_esta# and id_farmacia=#id_farmacia#
+           and salida>0 and id_receta>=0 and id_medicamento in 
+               (select id_medicamento from medica_select where restringido=1 and cod_esta=#cod_esta# and id_farmacia=#id_farmacia# group by id_medicamento)
+     Group by id_medicamento,medicamento,forma_far,concentra,cod_cta,cod_tipo,cod_espe,cod_material
+     order by cod_cta,cod_tipo,cod_espe,cod_material  
+  </select>
+  
+  <resultMap id="datosKardexRestr" class="domain.Recetas">
+    <result property="id_medicamento"                 column="id_medicamento"/>
+    <result property="medicamento"                    column="medicamento"/>
+    <result property="forma_far"                      column="forma_far"/>
+    <result property="concentra"                      column="concentra"/>
+    <result property="salida"                         column="salida"/> 
+    <result property="fecha"                          column="fecha"/> 
+    <result property="nit"                            column="nit"/> 
+    <result property="cod_cta"                        column="cod_cta"/> 
+    <result property="cod_tipo"                       column="cod_tipo"/> 
+    <result property="cod_espe"                       column="cod_espe"/> 
+    <result property="codsumi"                        column="codsumi"/> 
+    <result property="cod_material"                   column="cod_material"/> 
+    <result property="cadena1"                        column="cadena1"/> 
+    <result property="cadena2"                        column="cadena2"/> 
+    <result property="cadena3"                        column="cadena3"/> 
+    <result property="cadena4"                        column="cadena4"/> 
+    <result property="cadena5"                        column="cadena5"/>
+    <result property="cadena6"                        column="cadena6"/>
+    <result property="cadena7"                        column="cadena7"/>
+  </resultMap>
+  
+  <select id="getKardexRestringido2" resultMap="datosKardexRestr">
+    select id_medicamento,medicamento,forma_far,concentra,salida,fecha,
+          'A'::text as nit,cod_cta,cod_tipo,codsumi,cod_espe,cod_material,p.nombres as cadena1,
+          (CASE WHEN carnet is null THEN '0' ELSE carnet END) as cadena2,
+          (CASE WHEN p.telefono is null THEN '0' ELSE p.telefono END) as cadena3,
+          (CASE WHEN p.direccion is null THEN '0' ELSE p.direccion END) as cadena4,
+          nro_registro as cadena5,codigoempresa as cadena6,e.nombres||' '||e.paterno||' '||e.materno as cadena7
+    from kardex k
+     join medicamentos using(id_medicamento)
+     join pedidos using(id_pedido)
+     join pacientes p using(id_paciente)
+     inner join personas e ON e.id_persona=pedidos.id_persona
+     where fecha::timestamp without time zone between #fecha_ini# and #fecha_fin# and k.cod_esta=#cod_esta# and k.id_farmacia=#id_farmacia#
+           and salida>0 and id_receta>=0 and id_medicamento in 
+               (select id_medicamento from medica_select where restringido=1 and cod_esta=#cod_esta# and id_farmacia=#id_farmacia# 
+                       group by id_medicamento)
+     order by fecha  
+  </select>
+  
+  <select id="getKardexRestringido4" resultMap="datosKardexRestr">
+    select id_medicamento,medicamento,forma_far,concentra,salida,fecha,
+          'A'::text as nit,cod_cta,cod_tipo,codsumi,cod_espe,cod_material,p.nombres as cadena1,
+          (CASE WHEN carnet is null THEN '0' ELSE carnet END) as cadena2,
+          (CASE WHEN p.telefono is null THEN '0' ELSE p.telefono END) as cadena3,
+          (CASE WHEN p.direccion is null THEN '0' ELSE p.direccion END) as cadena4,
+          nro_registro as cadena5,codigoempresa as cadena6,e.nombres||' '||e.paterno||' '||e.materno as cadena7
+    from kardex k
+     join medicamentos using(id_medicamento)
+     join pedidos using(id_pedido)
+     join pacientes p using(id_paciente)
+     inner join personas e ON e.id_persona=pedidos.id_persona
+     where fecha::timestamp without time zone between #fecha_ini# and #fecha_fin# and k.cod_esta=#cod_esta# and k.id_farmacia=#id_farmacia#
+           and salida>0 and id_receta>=0 and id_medicamento=#id_medicamento# 
+     order by fecha
+  </select>
+  
+  <select id="getKardexRestringido5" resultMap="datosKardexRestr">
+    select id_medicamento,medicamento,forma_far,concentra,salida,fecha,
+          'A'::text as nit,cod_cta,cod_tipo,codsumi,cod_espe,cod_material,p.nombres as cadena1,
+          (CASE WHEN carnet is null THEN '0' ELSE carnet END) as cadena2,
+          (CASE WHEN p.telefono is null THEN '0' ELSE p.telefono END) as cadena3,
+          (CASE WHEN p.direccion is null THEN '0' ELSE p.direccion END) as cadena4,
+          nro_registro as cadena5,codigoempresa as cadena6,e.nombres||' '||e.paterno||' '||e.materno as cadena7
+    from kardex k
+     join medicamentos using(id_medicamento)
+     join pedidos using(id_pedido)
+     join pacientes p using(id_paciente)
+     inner join personas e ON e.id_persona=pedidos.id_persona
+     where fecha::timestamp without time zone between #fecha_ini# and #fecha_fin# and k.cod_esta=#cod_esta# 
+           and salida>0 and id_receta>=0 and id_medicamento=#id_medicamento#
+     order by fecha
+  </select>
+  
+  <resultMap id="datosRecetaKardex" class="domain.Recetas">
+    <result property="id_detalle"                      column="id_detalle"/>
+    <result property="id_pedido"                      column="id_pedido"/>
+    <result property="id_medicamento"                 column="id_medicamento"/>
+    <result property="medicamento"                    column="medicamento"/>
+    <result property="salida"                         column="salida"/>
+    <result property="expedido"                       column="expedido"/>  
+    <result property="forma_far"                      column="forma_far"/>
+    <result property="concentra"                      column="concentra"/>
+    <result property="stock"                          column="stock"/>
+    <result property="costo_unit"                     column="costo_unit"/>   
+    <result property="precio_venta"                   column="precio_venta"/>   
+    <result property="precio_total"                   column="precio_total"/>     
+    <result property="costo_total"                    column="costo_total"/>     
+    <result property="id_farmacia"                    column="id_farmacia"/>  
+    <result property="id_programa"                    column="id_programa"/>  
+    <result property="fecha"                          column="fecha"/> 
+  </resultMap>
+  
+  <select id="getListaMedKardexEntregados" resultMap="datosRecetaKardex">
+     SELECT id_detalle,id_pedido,id_medicamento, medicamento,salida,expedido,forma_far,concentra,stock, k.costo_unit,k.precio_venta, 
+        salida*k.precio_venta as precio_total, salida*k.costo_unit as costo_total,k.id_farmacia,id_programa,fecha
+     FROM kardex k
+     JOIN medicamentos USING(id_medicamento)
+     JOIN pedidos USING(id_pedido)
+     where (fec_registro::timestamp without time zone BETWEEN  #fecha_ini# and #fecha_fin#) and expedido=#expedido# and 
+           k.cod_esta=#cod_esta#
+     order by id_pedido,medicamento
+  </select>
+  
+  <select id="getListaMedKardexXPedido" resultMap="datosRecetaKardex">
+     SELECT id_detalle,id_pedido,id_medicamento, medicamento,salida,expedido,forma_far,concentra,stock, k.costo_unit,k.precio_venta, 
+        salida*k.precio_venta as precio_total, salida*k.costo_unit as costo_total,id_farmacia,id_programa,fecha
+     FROM kardex k
+     JOIN medicamentos USING(id_medicamento)
+     where id_pedido=#id_pedido# and k.cod_esta=#cod_esta#
+     order by id_pedido,medicamento
+  </select>
+  
+   <resultMap id="datosRecetaS" class="domain.Recetas">
+    <result property="id_persona"                     column="id_persona"/>    
+    <result property="id_detalle"                     column="id_detalle"/>
+    <result property="id_historial"                   column="id_historial"/>
+    <result property="id_medicamento"                 column="id_medicamento"/>
+    <result property="medicamento"                    column="medicamento"/>
+    <result property="salida"                         column="salida"/>
+    <result property="expedido"                       column="expedido"/>  
+    <result property="id_prestacion"                  column="id_prestacion"/>
+    <result property="id_estado"                      column="id_estado"/>  
+    <result property="forma_far"                      column="forma_far"/>
+    <result property="concentra"                      column="concentra"/>
+    <result property="indicacion"                     column="indicacion"/>
+    <result property="stock"                          column="stock"/>
+    <result property="costo_unit"                     column="costo_unit"/>     
+    <result property="precio_total"                   column="precio_total"/>     
+    <result property="costo_total"                    column="costo_total"/>     
+    <result property="dosifica"                       column="dosifica"/>
+  </resultMap>
+  
+  <select id="getListarRecetasS" resultMap="datosRecetaS">
+   SELECT id_persona,id_detalle,id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,id_estado,forma_far,concentra,
+       indicacion,stock, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,dosifica
+   FROM recetas 
+   JOIN medicamentos USING(id_medicamento)
+   where id_historial =#id_historial# and id_persona =#id_persona# and id_estado LIKE #id_estado# and id_historia =#id_historia#   
+   order by id_estado,medicamento
+  </select>
+  
+  <resultMap id="datosRecetaUlt"          class="domain.Recetas">
+    <result property="salida"                         column="salida"/>  
+    <result property="expedido"                       column="expedido"/>  
+    <result property="id_medicamento"                 column="id_medicamento"/>
+    <result property="id_historial"                   column="id_historial"/>
+    <result property="id_prestacion"                  column="id_prestacion"/>
+    <result property="indicacion"                     column="indicacion"/>
+    <result property="id_historia"                    column="id_historia"/> 
+    <result property="id_persona"                     column="id_persona"/> 
+    <result property="dosifica"                       column="dosifica"/> 
+    <result property="cod_esta"                       column="cod_esta"/>
+    <result property="id_farmacia"                    column="id_farmacia"/> 
+    <result property="id_pedido"                      column="id_pedido"/> 
+  </resultMap>
+  
+  <select id="getListarUltReceta" resultMap="datosRecetaUlt">
+    SELECT salida,expedido,id_medicamento,id_historial,id_prestacion,indicacion,id_historia,id_persona,id_por as id_pedido,
+          r.cod_esta,dosifica,r.id_farmacia
+   FROM recetas r
+   JOIN medica_select m USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where m.id_farmacia =#id_farmacia# and m.cod_esta=#cod_esta# and id_historial in  
+   (select max(id_historial) from historiales h join recetas r using(id_historial) 
+           where id_historial!=#id_historial# and id_paciente=#id_paciente# and h.id_consultorio=#id_programa# and h.cod_esta=#cod_esta# )
+  </select>
+  
+  <select id="getListarUltRecetaI" resultMap="datosRecetaUlt">
+    SELECT salida,expedido,id_medicamento,id_historial,id_prestacion,indicacion,id_historia,id_persona,id_por as id_pedido,
+          r.cod_esta,dosifica,r.id_farmacia
+   FROM recetas r
+   JOIN medicamentos m USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where r.cod_esta=#cod_esta# and id_historia in  
+   (select max(r.id_historia) from historiales h join recetas r using(id_historial) join historiainter i using(id_historial) 
+           where  i.id_historia!=#id_historia# and id_historial=#id_historial# and id_paciente=#id_paciente# and h.cod_esta=#cod_esta# )
+  </select>
+  
+  <resultMap id="datosReceta"          class="domain.Recetas">
+    <result property="fecha_ini"                      column="fecha_ini"/>  
+    <result property="codsumi"                        column="codsumi"/> 
+    <result property="id_persona"                     column="id_persona"/> 
+    <result property="id_historia"                    column="id_historia"/> 
+    <result property="id_detalle"                     column="id_detalle"/>
+    <result property="fecha"                          column="fecha"/>
+    <result property="medico"                         column="medico"/>
+    <result property="id_historial"                   column="id_historial"/>
+    <result property="id_medicamento"                 column="id_medicamento"/>
+    <result property="medicamento"                    column="medicamento"/>
+    <result property="salida"                         column="salida"/>
+    <result property="expedido"                       column="expedido"/>  
+    <result property="id_prestacion"                  column="id_prestacion"/>
+    <result property="id_estado"                      column="id_estado"/>  
+    <result property="forma_far"                      column="forma_far"/>
+    <result property="concentra"                      column="concentra"/>
+    <result property="indicacion"                     column="indicacion"/>
+    <result property="stock"                          column="stock"/>
+    <result property="stocks"                         column="stocks"/>
+    <result property="stockv"                         column="stockv"/>
+    <result property="stockp"                         column="stockp"/>
+    <result property="costo_unit"                     column="costo_unit"/>     
+    <result property="precio_total"                   column="precio_total"/>     
+    <result property="costo_total"                    column="costo_total"/>     
+    <result property="num_cladoc"                     column="num_cladoc"/>  
+    <result property="dosifica"                       column="dosifica"/> 
+    <result property="id_historia"                    column="id_historia"/> 
+    <result property="numeracion"                     column="numeracion"/>
+    <result property="id_farmacia"                    column="id_farmacia"/>  
+  </resultMap>
+  
+  <select id="getListarRecetasPres" resultMap="datosReceta">
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,stock,
+     stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medicamentos USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where expedido='S' and fecha::date BETWEEN #fecha_ini# and #fecha_fin# 
+   order by fecha_ini,id_estado,medicamento
+  </select>
+  
+  <select id="getListarRecetasCNS" resultMap="datosReceta">
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,stock,
+     stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medica_select USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where id_historial =#id_historial# and medica_select.id_farmacia=#id_farmacia# and medica_select.cod_esta=#cod_esta# 
+         and r.cod_esta=#codigo# and r.id_estado ='A'    
+   order by id_historia desc,fecha_ini,id_estado,medicamento
+  <!-- nuevo cod_esta de r.cod_esta  para achacachi no funcionaba  23-06-2015 SI -->
+  </select>
+  
+  <select id="getListarRecetas" resultMap="datosReceta">
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,stock,
+     stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medicamentos USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where id_historial =#id_historial# and r.cod_esta=#cod_esta#  and id_detalle in 
+         (select id_detalle from recetas where cod_esta=#cod_esta#  and id_historial=#id_historial# and id_estado LIKE #id_estado#)   
+   order by id_historia desc,fecha_ini,id_estado,medicamento
+   <!--no funcionaba cuando era id_farmcai diferente se cambio 04/02/2016 en SI
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,stock,
+     stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medica_select USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where id_historial =#id_historial# and medica_select.id_farmacia=#id_farmacia# and medica_select.cod_esta=#cod_esta# 
+         and r.cod_esta=#cod_esta# and r.id_estado LIKE #id_estado#    
+   order by id_historia desc,fecha_ini,id_estado,medicamento
+   nuevo cod_esta de r.cod_esta  para achacachi no funcionaba  23-06-2015 SI -->
+   <!--where id_historial =#id_historial# and medica_select.cod_esta=#cod_esta# and r.id_estado LIKE #id_estado#    31-03-2014 SI -->
+  </select>
+  
+  <select id="getListarRecetasHistorial" resultMap="datosReceta">
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,stock,
+     stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medicamentos USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where id_historial =#id_historial#    
+   order by id_historia desc,fecha_ini,id_estado,medicamento
+  </select>
+  
+  <select id="getListarRecetasCaros" resultMap="datosReceta">
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,stock,
+     stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medica_select USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where id_historial =#id_historial# and medica_select.id_farmacia=#id_farmacia# and medica_select.cod_esta=#cod_esta# and r.cod_esta=#cod_esta# 
+         and (id_medicamento=1312 or id_medicamento=1006 or id_medicamento=445 or id_medicamento=1025 or id_medicamento=25)    
+   order by fecha_ini desc,id_estado,medicamento limit 1
+  </select>
+  
+  <select id="getListarRecetasUlt" resultMap="datosReceta">
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,stock,
+     stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medica_select USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where id_detalle in 
+   (select max(id_detalle) from recetas where id_historial=#id_historial# and id_medicamento=#id_medicamento# and id_persona=#id_persona#)
+  </select>
+  
+  <select id="getListarRecetaAnterior" resultMap="datosReceta">
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,stock,
+     stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medicamentos USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where r.id_estado LIKE '%' and r.cod_esta=#cod_esta# and id_historial in 
+       (select max(id_historial) as id_historial from historiales 
+          where not(id_historial=#id_historial#) and id_estado='B' and id_paciente=(select id_paciente from historiales where cod_esta=#cod_esta# and id_historial=#id_historial#))
+   order by fecha_ini,id_estado,medicamento
+  </select>
+  
+  <select id="getListarRecetaAnteriorCNS" resultMap="datosReceta">
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,stock,
+     stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medicamentos USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where r.id_estado LIKE '%' and id_historial in 
+       (select max(id_historial) as id_historial from historiales 
+          where not(id_historial=#id_historial# ) and id_estado='B' and id_paciente=#id_paciente# )
+   order by fecha_ini,id_estado,medicamento
+  </select>
+  
+  <select id="getListarRecetaAnteriorCarmelo" resultMap="datosReceta">
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,stock,
+     stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medicamentos USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where r.id_estado LIKE '%' and id_medicamento=1999 and id_historial in 
+       (select id_historial from historiales 
+          where not(id_historial=#id_historial# ) and id_estado='B' and id_paciente=#id_paciente# )
+   order by fecha_ini desc,id_estado,medicamento
+  </select>
+  
+  <select id="getListarRecetasYa" resultMap="datosReceta">
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,stock,
+     stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medica_select USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where r.cod_esta=#cod_esta# and id_historial =#id_historial# and r.id_estado LIKE #id_estado# and id_medicamento=#id_medicamento# and id_historia=#id_historia#
+   and id_medicamento in (select id_medicamento from recetas where id_historial =#id_historial# and id_estado=#id_estado# and id_prestacion=#id_prestacion#)      
+   order by fecha_ini,id_estado,medicamento
+  </select>
+  
+  <select id="getListarRecetasInt" resultMap="datosReceta">
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,stock,
+     stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medica_select USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where id_historial =#id_historial# and r.id_estado LIKE #id_estado# and r.id_persona =#id_persona# 
+         and id_historia=#id_historia# and medica_select.id_farmacia=#id_farmacia# and medica_select.cod_esta=#cod_esta# 
+         and r.cod_esta=#cod_esta#
+   order by fecha_ini,id_estado,medicamento
+  </select>
+  
+  <select id="getListaRecetaGen" resultMap="datosReceta">
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,stock,
+     stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medicamentos USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where  r.id_estado LIKE '%' and  id_historial in (select id_historial from historiales where (fecha::date BETWEEN #fecha_ini#  and #fecha_fin#))
+  </select>
+  
+  <select id="getListarRecetasMedico" resultMap="datosReceta">
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,stock,
+     stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medicamentos USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where id_historial =#id_historial# and r.cod_esta=#cod_esta# 
+   order by numeracion,medicamento
+   <!--17-12-2015 se quita id_estado "A " no imprimia las recetas en farmacia  -->
+  </select>
+  
+  <select id="getListarRecetasMedicoCNS" resultMap="datosReceta">
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,stock,
+     stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medica_select USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where id_historial =#id_historial# and medica_select.id_farmacia=#id_farmacia# and medica_select.cod_esta=#cod_esta# 
+         and r.cod_esta=#cod_esta# and r.id_estado='A' and id_historia=#id_historia# and id_persona =#id_persona#
+   order by id_detalle,medicamento
+   <!--18-12-2015 se quita id_estado "A " para otros medico receto y otro imprima  -->
+   <!--27-04-2016 nuevo cambio tabla medicamentos por medica_select y id_farmacia  -->
+  </select>
+  
+  <select id="getListarRepRecetaCNS" resultMap="datosReceta">
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,stock,
+     stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medicamentos USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where r.cod_esta=#cod_esta# and id_historia in (select id_historia from historiainter where cod_esta=#cod_esta# and id_historia=#id_historia#)
+   order by medicamento
+   <!--31-12-2015 reimp`rime recetas  -->
+  </select>
+  
+  <select id="getListarRecetasMedicoI" resultMap="datosReceta">
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,stock,
+     stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medicamentos USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where id_historial=#id_historial# and r.id_estado !='A' and id_persona =#id_persona#  and r.cod_esta=#cod_esta# and 
+         r.id_farmacia=#id_farmacia# and id_historia=#id_historia#
+   order by id_detalle   
+   <!--  r.id_estado='A' y se jode impresion de publicos en internados 12/01-2016 ultima vez-->
+   <!--  and id_farmacia=#id_farmacia#   and id_historia=#id_historia#-->
+  </select>
+  
+  <select id="getListarRecetasMedicoImp" resultMap="datosReceta">
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,stock,
+     stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medicamentos USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where id_historial=#id_historial# and r.id_estado !='A' and id_persona =#id_persona#  and r.cod_esta=#cod_esta# and 
+         id_historia=#id_historia#
+   order by id_detalle   
+   <!--  05/02/2016 getListarRecetasMedicoImp para impresion sin importar r.id_farmacia=#id_farmacia# desde otro usuario-->
+  </select>
+  
+  <select id="getListarRecetasInter" resultMap="datosReceta">
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,stock,
+     stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medicamentos USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where id_historial =#id_historial# 
+   order by r.id_estado, medicamento   
+  </select>
+  
+  <select id="getListarRecetasIndi" resultMap="datosReceta">
+   SELECT codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, medicamento,salida,expedido,id_prestacion,r.id_estado,forma_far,concentra,indicacion,
+     stock,stocks,stockv,stockp, costo_unit, salida*precio_venta as precio_total, salida*costo_unit as costo_total,
+     codsumi as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r
+   JOIN medicamentos USING(id_medicamento)
+   JOIN personas USING(id_persona)
+   where id_detalle in (SELECT id_receta as id_detalle FROM kardex JOIN medicamentos USING(id_medicamento) where id_pedido =#id_pedido#)  
+   order by id_estado, medicamento   
+  </select>
+  
+  <select id="getListarRecetasPrivado" resultMap="datosReceta">
+   SELECT 'C' as codsumi,fecha as fecha_ini,id_persona,id_historia,id_detalle,fecha,(nombres||' '||paterno||' '||materno) as medico,
+     id_historial,id_medicamento, 'M' as medicamento, salida,'P' as expedido,0 as id_prestacion,r.id_estado,
+     'F' as forma_far,'C' as concentra,indicacion,0 as stock,
+     0 as stocks,0 as stockv,0 as stockp, 0 as costo_unit, 0 as precio_total, 0 as costo_total,
+     'C' as  num_cladoc,dosifica,id_historia,numeracion,r.id_farmacia
+   FROM recetas r   JOIN personas USING(id_persona)
+   where id_historial =#id_historial# and r.cod_esta=#cod_esta#
+   order by r.id_estado, medicamento  
+  </select>
+  
+  <insert id="setCrearReceta">
+    <!--update establecimientos set fecha_folio=now(),folio_far=1 where date(fecha_folio)!=date(now()) and cod_esta=#cod_esta#;  -->
+    insert into recetas(id_medicamento,id_historial,salida,expedido,fecha,indicacion,id_persona,id_historia,cod_esta,id_por,dosifica,
+                       id_farmacia,numeracion) 
+              values (#id_medicamento#, #id_historial#, #salida#, #expedido#,now(), #indicacion#,#id_persona#,#id_historia#,#cod_esta#,
+                     #id_paciente#,#dosifica#,#id_farmacia# ,0 ) ;
+     update historiales set n_rec=(select count(*) from recetas where id_historial=#id_historial# and cod_esta=#cod_esta#  ) 
+                        where id_historial=#id_historial# and cod_esta=#cod_esta# ;                
+    <!--update establecimientos set folio_far=folio_far+1 where cod_esta=#cod_esta#;-->
+          <!--existe dos de estas que meten datos-->        
+  </insert>
+  
+  <insert id="setCrearRecetaMedSumi">
+       update establecimientos set fecha_folio=date(now()),folio_far=1 where date(fecha_folio)!=date(now()) and cod_esta=#cod_esta#;  
+      insert into recetas (id_medicamento,id_historial,id_prestacion,salida,expedido,fecha,indicacion,id_persona,id_historia,cod_esta,
+                          id_por,dosifica,id_farmacia,numeracion) 
+             values (#id_medicamento#,#id_historial#,#id_prestacion#,#entrada#,'S',#fecha#,#indicacion#,#id_persona#,#id_historia#,#cod_esta#,
+                    #id_paciente#,#dosifica#,#id_farmacia#,(select folio_far from establecimientos where cod_esta=#cod_esta#) ) ;
+      update establecimientos set folio_far=folio_far+1 where cod_esta=#cod_esta#;
+      update historiales set n_rec=(select count(*) from recetas where id_historial=#id_historial# and cod_esta=#cod_esta#  ) 
+                        where id_historial=#id_historial# and cod_esta=#cod_esta# ;            
+  </insert> 
+
+  <delete id="setEliminarReceta" >
+      INSERT INTO recetasupdate (id_detalle, fecha, salida, expedido, id_medicamento, id_historial,id_estado, id_prestacion, indicacion, 
+                  id_historia, id_persona,fec_reg, cod_esta, dosifica, id_farmacia, numeracion, id_por, fechamod, modi_por, tipop, ip, nameip)
+           (SELECT id_detalle, fecha, salida, expedido, id_medicamento, id_historial, id_estado, id_prestacion, indicacion, id_historia, 
+                  id_persona, fec_reg, cod_esta, dosifica, id_farmacia, numeracion, id_por, now(),#id_paciente#,#indicacion#,#medico#,#medicamento# 
+       FROM recetas 
+      WHERE id_detalle= #id_detalle# and cod_esta=#cod_esta# and id_persona!=#id_paciente#);
+      update historiales set n_rec=(select count(*) from recetas where id_historial=#id_historial# and cod_esta=#cod_esta#  ) 
+                        where id_historial=#id_historial# and cod_esta=#cod_esta# ; 
+      DELETE from recetas 
+      WHERE id_detalle = #id_detalle# and cod_esta=#cod_esta#;
+  </delete>
+  
+  <update id="setModificarRecetaNumera" >
+   update recetas set numeracion = 
+    (select numeracion from recetas where id_historial=#id_historial# and id_historia=#id_historia# and cod_esta=#cod_esta# and id_detalle in
+    (select min(id_detalle) from recetas where id_historial=#id_historial# and id_historia=#id_historia# and cod_esta=#cod_esta# ))
+    where id_historial=#id_historial# and cod_esta=#cod_esta# and id_historia=#id_historia#;     
+  </update>
+  
+  <update id="setModificarEstadoReceta">
+    update recetas 
+    set  id_estado = #id_estado#       
+    where id_detalle = #id_receta# and cod_esta=#cod_esta# and id_medicamento= #id_medicamento#       
+  </update>
+  
+  <update id="setModificarRecetaDosifi"> 
+    update recetas 
+    set   dosifica = #dosifica#       
+    where id_detalle = #id_receta# and cod_esta=#cod_esta# and id_medicamento= #id_medicamento#       
+  </update>
+  
+  <update id="setModificarEstadoInter">
+    update recetas 
+    set  id_estado = #id_estado#       
+    where id_detalle = #id_detalle# and cod_esta=#cod_esta# and id_medicamento= #id_medicamento#          
+  </update>
+  
+  <resultMap id="datosRecetaPerfilRev" class="domain.Recetas">
+    <result property="id_kardex"                      column="id_kardex"/>  
+    <result property="id_medicamento"                 column="id_medicamento"/>
+    <result property="codsumi"                        column="codsumi"/>
+    <result property="fecha"                          column="fecha"/>
+    <result property="medicamento"                    column="medicamento"/>
+    <result property="forma_far"                      column="forma_far"/>
+    <result property="concentra"                      column="concentra"/>
+    <result property="suma1"                          column="suma1"/>
+    <result property="suma2"                          column="suma2"/>
+    <result property="suma3"                          column="suma3"/>
+    <result property="suma4"                          column="suma4"/>
+    <result property="suma5"                          column="suma5"/>
+    <result property="id_receta"                      column="id_receta"/>
+    <result property="id_detalle"                     column="id_detalle"/>
+    <result property="id_historia"                    column="id_historia"/>
+    <result property="id_historial"                   column="id_historial"/>
+    <result property="id_pedido"                      column="id_pedido"/>
+    <result property="id_persona"                     column="id_persona"/> 
+    <result property="dosifica"                       column="dosifica"/> 
+    <result property="indicacion"                     column="indicacion"/> 
+    <result property="cadena1"                        column="cadena1"/> 
+    <result property="cadena2"                        column="cadena2"/> 
+    <result property="cadena3"                        column="cadena3"/> 
+    <result property="cod_esta"                       column="cod_esta"/>
+  </resultMap>
+  
+   <select id="getListarPerfilReversion" resultMap="datosRecetaPerfilRev">
+    SELECT p.nombres as cadena2,e.nombres||' '||e.paterno||' '||e.materno as cadena3,id_kardex,k.fecha,codsumi,id_medicamento,medicamento,forma_far,concentra,inicio as suma1,entrada as suma2,salida as suma3,
+       saldo as suma4, id_receta,id_detalle, id_pedido,id_historial,id_historia,k.id_medico, k.id_persona, k.id_estado as suma5, 
+       dosifica,indicacion, observacion as cadena1,k.cod_esta
+     FROM kardexpaciente k
+     JOIN medicamentos USING(id_medicamento)
+     JOIN historiales USING(id_historial)
+     JOIN pacientes p USING(id_paciente)
+     INNER JOIN personas e ON k.id_persona=e.id_persona
+     where (k.id_estado between #b1# and #b2#) and k.id_farmacia=#id_farmacia# and k.cod_esta=#cod_esta#
+     order by k.fecha
+  </select>
+  
+  <resultMap id="datosdiasPerfil" class="domain.Recetas">
+    <result property="fecha"                      column="fecha"/>
+  </resultMap>
+  
+  <select id="getListarFechaPerfil" resultMap="datosdiasPerfil">
+     select * from _fecha_perfil(#id_historial#,#cod_esta#) as (fecha date);
+  </select>
+  
+  <select id="getListarFechaPerfil2" resultMap="datosdiasPerfil">
+     select fecha from _temp1;
+  </select>
+  
+  <resultMap id="datosdiasPerfildat" class="domain.Recetas">
+    <result property="id_medicamento"                 column="id_medicamento"/>  
+    <result property="suma1"                          column="suma1"/>
+    <result property="suma2"                          column="suma2"/>
+    <result property="suma3"                          column="suma3"/>
+    <result property="suma4"                          column="suma4"/>
+    <result property="cod_esta"                       column="cod_esta"/>
+  </resultMap>
+  
+  <select id="getListarFechaPerfildat" resultMap="datosdiasPerfildat">
+    select id_medicamento,extract(day from (fecha))::int as suma1,extract(month from (fecha))::int as suma2,
+       extract(year from (fecha))::int as suma3,sum(salida)::int as suma4,cod_esta
+    from kardexpaciente where id_historial= #id_historial# and cod_esta=#cod_esta# and entrada=0 
+     group by  id_medicamento,extract(day from (fecha)),extract(month from (fecha)), extract(year from (fecha)),cod_esta
+    order by id_medicamento,suma1,suma2,suma3  
+  </select>
+  
+  <resultMap id="datosRecetaPerfil" class="domain.Recetas">
+    <result property="id_kardex"                      column="id_kardex"/>  
+    <result property="id_medicamento"                 column="id_medicamento"/>
+    <result property="codsumi"                        column="codsumi"/>
+    <result property="fecha"                          column="fecha"/>
+    <result property="medicamento"                    column="medicamento"/>
+    <result property="forma_far"                      column="forma_far"/>
+    <result property="concentra"                      column="concentra"/>
+    <result property="suma1"                          column="suma1"/>
+    <result property="suma2"                          column="suma2"/>
+    <result property="suma3"                          column="suma3"/>
+    <result property="suma4"                          column="suma4"/>
+    <result property="suma5"                          column="suma5"/>
+    <result property="id_receta"                      column="id_receta"/>
+    <result property="id_detalle"                     column="id_detalle"/>
+    <result property="id_historia"                    column="id_historia"/>
+    <result property="id_historial"                   column="id_historial"/>
+    <result property="id_pedido"                      column="id_pedido"/>
+    <result property="id_persona"                     column="id_persona"/> 
+    <result property="dosifica"                       column="dosifica"/> 
+    <result property="indicacion"                     column="indicacion"/> 
+    <result property="cadena1"                        column="cadena1"/> 
+    <result property="cod_esta"                       column="cod_esta"/>
+  </resultMap>
+  
+  <select id="getListarKardexPerfilFarGen" resultMap="datosRecetaPerfil">
+    SELECT 0 as id_kardex,fecha,codsumi,id_medicamento,medicamento,forma_far,concentra,inicio as suma1,0 as suma2,0 as suma3,
+       0 as suma4,id_receta,id_detalle,id_pedido,id_historial,id_historia,id_medico, id_persona,0 as suma5, 
+       dosifica,indicacion, 'R' as cadena1,cod_esta
+     FROM kardexpaciente k
+     JOIN medicamentos USING(id_medicamento)
+     where id_historial=#id_historial# and id_farmacia=#id_farmacia# and cod_esta=#cod_esta# and entrada>0 and entrada=inicio
+     order by codsumi,fecha
+  </select>
+  
+ 
+  <select id="getListarKardexPerfilFar" resultMap="datosRecetaPerfil">
+    SELECT id_kardex,fecha,codsumi,id_medicamento,medicamento,forma_far,concentra,inicio as suma1,entrada as suma2,salida as suma3,
+       saldo as suma4, id_receta,id_detalle, id_pedido,id_historial,id_historia,id_medico, id_persona, id_estado as suma5, 
+       dosifica,indicacion, observacion as cadena1,cod_esta
+     FROM kardexpaciente k
+     JOIN medicamentos USING(id_medicamento)
+     where (id_estado between #b1# and #b2#) and id_historial=#id_historial# and id_farmacia=#id_farmacia# and cod_esta=#cod_esta#
+     order by id_receta,fecha
+  </select>
+  
+  <select id="getListarKardexPerfilFarDet" resultMap="datosRecetaPerfil">
+    SELECT id_kardex,fecha,codsumi,id_medicamento,medicamento,forma_far,concentra,inicio as suma1,entrada as suma2,salida as suma3,
+       saldo as suma4, id_receta,id_detalle, id_pedido,id_historial,id_historia,id_medico, id_persona, id_estado as suma5, 
+       dosifica,indicacion, observacion as cadena1,cod_esta
+     FROM kardexpaciente k
+     JOIN medicamentos USING(id_medicamento)
+     where (id_estado=0 or id_estado=1) and id_historial=#id_historial# and id_farmacia=#id_farmacia# and cod_esta=#cod_esta#
+     order by id_receta,fecha
+  </select>
+  
+  <resultMap id="datosRecetaE" class="domain.Recetas">
+    <result property="id_factura"                     column="id_factura"/>
+    <result property="id_medicamento"                 column="id_medicamento"/>
+    <result property="id_receta"                      column="id_receta"/>
+    <result property="fecha"                          column="fecha"/>
+    <result property="medicamento"                    column="medicamento"/>
+    <result property="salida"                         column="salida"/>
+    <result property="entrada"                        column="entrada"/>
+    <result property="ajuste"                         column="ajuste"/>
+    <result property="expedido"                       column="expedido"/>
+    <result property="precio_venta"                   column="precio_venta"/>     
+    <result property="costo_unit"                     column="costo_unit"/>     
+    <result property="precio_total"                   column="precio_total"/>     
+    <result property="precio_totalc"                  column="precio_totalc"/>
+    <result property="precio_totala"                  column="precio_totala"/>        
+    <result property="forma_far"                      column="forma_far"/>
+    <result property="concentra"                      column="concentra"/>
+    <result property="fecha_ven"                      column="fecha_ven"/>     
+    <result property="nro_lote"                       column="nro_lote"/> 
+    <result property="id_pedido"                      column="id_pedido"/>
+    <result property="id_programa"                    column="id_programa"/>
+    <result property="id_historia"                    column="id_historia"/>
+    <result property="id_persona"                     column="id_persona"/>
+    <result property="id_farmacia"                    column="id_farmacia"/>
+    <result property="saldos"                         column="saldos"/>
+    <result property="num_recetak"                    column="num_recetak"/>
+    <result property="codsumi"                        column="codsumi"/>
+    <result property="fecha_ini"                      column="fecha_ini"/>
+  </resultMap>
+  
+  <select id="getListarKardexComprueba" resultMap="datosRecetaE">
+   SELECT id_detalle as id_factura,a.id_medicamento,id_receta,fecha, medicamento,a.salida, a.entrada,a.ajuste,a.expedido, 
+      a.precio_venta,a.costo_unit, salida*a.precio_venta as precio_total, entrada*a.costo_unit as precio_totalc, 
+      ajuste*a.costo_unit as precio_totala, forma_far,concentra,a.fecha_ven,a.nro_lote,0 as id_pedido,id_programa,
+     a.id_factura as id_historia,id_persona,stock as saldos, a.id_farmacia,num_recetak,codsumi,a.fec_reg as fecha_ini
+   FROM kardex a
+   JOIN medica_select m USING(id_medicamento)
+   where id_pedido =#id_pedido# and m.cod_esta=#cod_esta# and m.id_farmacia=#id_farmacia# and id_medicamento=#id_medicamento# and 
+         id_receta=#id_detalle#
+   order by id_detalle   
+  </select>
+  
+  <select id="getListarKardex" resultMap="datosRecetaE">
+   SELECT num_recetak,codsumi,id_detalle as id_factura,a.id_medicamento,id_receta,fecha, medicamento,a.salida, a.entrada,a.ajuste,
+      a.expedido,a.precio_venta,a.costo_unit, salida*a.precio_venta as precio_total, entrada*a.costo_unit as precio_totalc, 
+      ajuste*a.costo_unit as precio_totala, forma_far,concentra,a.fecha_ven,a.nro_lote,0 as id_pedido,id_programa,
+     a.id_factura as id_historia,id_persona,stock as saldos, a.id_farmacia,a.fec_reg as fecha_ini
+   FROM kardex a
+   JOIN medica_select m USING(id_medicamento)
+   where id_pedido =#id_pedido# and m.cod_esta=#cod_esta# and m.id_farmacia=#id_farmacia# 
+   order by num_recetak,a.entrada
+   <!--para num_recetak el orden de las entregados en farmacia igual a la receta medico -->
+   <!--caracollo id_detalle ese muetra la lista de detalle en buscar pedidos, para obrero debe haber codsumi -->
+  </select>
+  
+  <select id="getListarKardexAjus" resultMap="datosRecetaE">
+   SELECT num_recetak,codsumi,id_detalle as id_factura,a.id_medicamento,id_receta,fecha, medicamento,a.salida, a.entrada,a.ajuste,a.expedido, 
+      a.precio_venta,a.costo_unit, salida*a.precio_venta as precio_total, entrada*a.costo_unit as precio_totalc, 
+      ajuste*a.costo_unit as precio_totala, forma_far,concentra,a.fecha_ven,a.nro_lote,0 as id_pedido,id_programa,
+     a.id_factura as id_historia,id_persona,stock as saldos, a.id_farmacia,a.fec_reg as fecha_ini
+   FROM kardex a
+   JOIN medica_select m USING(id_medicamento)
+   where id_pedido =#id_pedido# and m.cod_esta=#cod_esta# and m.id_farmacia=#id_farmacia# 
+   order by Id_detalle,a.entrada
+   <!--para id_detalle para el order de los ajustes y traspasos de faramcia -->
+  </select>
+  
+  <select id="getListarKardexCodsumi" resultMap="datosRecetaE">
+   SELECT num_recetak,codsumi,id_detalle as id_factura,a.id_medicamento,id_receta,fecha, medicamento,a.salida, a.entrada,a.ajuste,a.expedido, 
+      a.precio_venta,a.costo_unit, salida*a.precio_venta as precio_total, entrada*a.costo_unit as precio_totalc, 
+      ajuste*a.costo_unit as precio_totala, forma_far,concentra,a.fecha_ven,a.nro_lote,0 as id_pedido,id_programa,
+     a.id_factura as id_historia,id_persona,stock as saldos, a.id_farmacia,a.fec_reg as fecha_ini
+   FROM kardex a
+   JOIN medica_select m USING(id_medicamento)
+   where id_pedido =#id_pedido# and m.cod_esta=#cod_esta# and m.id_farmacia=#id_farmacia# 
+   order by codsumi,a.entrada
+   <!--para num_recetak el orden de las entregados en farmacia igual a la receta medico -->
+   <!--caracollo id_detalle ese muetra la lista de detalle en buscar pedidos, para obrero debe haber codsumi -->
+  </select>
+  
+  <select id="getListarKardexFactura" resultMap="datosRecetaE">
+   SELECT id_detalle as id_factura,a.id_medicamento,id_receta,fecha, medicamento,a.salida, a.entrada,a.ajuste,a.expedido, 
+      a.precio_venta,a.costo_unit, salida*a.precio_venta as precio_total, entrada*a.costo_unit as precio_totalc, 
+      ajuste*a.costo_unit as precio_totala, forma_far,concentra,a.fecha_ven,a.nro_lote,0 as id_pedido,id_programa,
+     a.id_factura as id_historia,id_persona,stock as saldos, a.id_farmacia,num_recetak,codsumi,a.fec_reg as fecha_ini
+   FROM kardex a
+   JOIN medica_select m USING(id_medicamento)
+   where id_pedido =#id_pedido# and m.cod_esta=#cod_esta#  <!--and m.id_farmacia=#id_farmacia# borre id_farmacia para reimpresionfactura 16-11-2015 --> 
+   order by id_detalle   
+  </select>
+  
+  <select id="getListarKardexInterFact" resultMap="datosRecetaE">
+   SELECT id_detalle as id_factura,a.id_medicamento,id_receta,fecha, medicamento,a.salida, a.entrada,a.ajuste,a.expedido, 
+      a.precio_venta,a.costo_unit, salida*a.precio_venta as precio_total, entrada*a.costo_unit as precio_totalc, 
+      ajuste*a.costo_unit as precio_totala, forma_far,concentra,a.fecha_ven,a.nro_lote,0 as id_pedido,id_programa,
+      a.id_factura as id_historia,id_persona,stock as saldos, a.id_farmacia,num_recetak,codsumi,a.fec_reg as fecha_ini
+   FROM kardex a
+   JOIN medica_select m USING(id_medicamento)
+   where id_pedido in (select id_pedido from pedidos where id_historial=#id_pedido#)
+         and m.cod_esta=#id_prestacion# order by id_detalle   
+  </select>
+  
+  <select id="getListarKardexPago" resultMap="datosRecetaE">
+   SELECT id_detalle as id_factura,a.id_medicamento,id_receta,fecha, medicamento,a.salida, a.entrada,a.ajuste,a.expedido, 
+      a.precio_venta,a.costo_unit, salida*a.precio_venta as precio_total, entrada*a.costo_unit as precio_totalc, 
+      ajuste*a.costo_unit as precio_totala, forma_far,concentra,a.fecha_ven,a.nro_lote,id_pedido,id_programa,
+      a.id_factura as id_historia,pedidos.id_persona,stock as saldos, a.id_farmacia,num_recetak,codsumi,a.fec_reg as fecha_ini
+   FROM kardex a
+   JOIN medicamentos USING(id_medicamento)
+   JOIN pedidos USING(id_pedido)
+   where id_historial =#id_pedido#  order by id_detalle   
+  </select>
+  
+  <select id="getListarKardexI" resultMap="datosRecetaE">
+   SELECT id_detalle as id_factura,a.id_medicamento,id_receta,fecha, medicamento,a.salida, a.entrada,a.ajuste,a.expedido, 
+       a.precio_venta,a.costo_unit, salida*a.precio_venta as precio_total, entrada*a.costo_unit as precio_totalc, 
+       ajuste*a.costo_unit as precio_totala, forma_far,concentra,a.fecha_ven,a.nro_lote, id_pedido,id_programa,
+      a.id_factura as id_historia,pedidos.id_persona,stock as saldos, a.id_farmacia,num_recetak,codsumi,a.fec_reg as fecha_ini
+   FROM kardex a
+   JOIN medicamentos USING(id_medicamento)
+   JOIN pedidos USING(id_pedido)
+   where id_historial=#id_historial#  
+  </select>
+  
+  <select id="getListarKardexIImpRec" resultMap="datosRecetaE">
+   SELECT id_detalle as id_factura,a.id_medicamento,id_receta,fecha, medicamento,a.salida, a.entrada,a.ajuste,a.expedido, 
+       a.precio_venta,a.costo_unit, salida*a.precio_venta as precio_total, entrada*a.costo_unit as precio_totalc, 
+       ajuste*a.costo_unit as precio_totala, forma_far,concentra,a.fecha_ven,a.nro_lote, id_pedido,id_programa,
+      a.id_factura as id_historia,pedidos.id_persona,stock as saldos, a.id_farmacia,num_recetak,codsumi,a.fec_reg as fecha_ini
+   FROM kardex a
+   JOIN medicamentos USING(id_medicamento)
+   JOIN pedidos USING(id_pedido)
+   where a.cod_esta=#cod_esta# and id_receta in 
+         (select id_detalle from recetas where cod_esta=#cod_esta# and id_historial=#id_historial# and id_historia=#id_historia#)  
+   order by id_detalle      
+  </select>
+  
+  <select id="getListarKardexInter" resultMap="datosRecetaE">
+    SELECT id_detalle as id_factura,a.id_medicamento,id_receta,fecha, medicamento,a.salida, a.entrada,a.ajuste,a.expedido, 
+       a.precio_venta,a.costo_unit, salida*a.precio_venta as precio_total, entrada*a.costo_unit as precio_totalc, 
+       ajuste*a.costo_unit as precio_totala, forma_far,concentra,a.fecha_ven,a.nro_lote,0 as id_pedido,id_programa,
+       a.id_factura as id_historia,id_persona,stock as saldos, a.id_farmacia,num_recetak,codsumi,a.fec_reg as fecha_ini
+    FROM kardex a
+    JOIN medicamentos USING(id_medicamento)
+    where id_receta in (select id_detalle from recetas where id_historial=#id_historial#)
+  </select>
+  
+  <select id="getListarKardexTotal" resultMap="datosRecetaE">
+    SELECT id_detalle as id_factura,a.id_medicamento,id_receta,fecha, medicamento,a.salida, a.entrada,a.ajuste,a.expedido, 
+        a.precio_venta,a.costo_unit, salida*a.precio_venta as precio_total, entrada*a.costo_unit as precio_totalc, 
+        ajuste*a.costo_unit as precio_totala,forma_far,concentra,a.fecha_ven,a.nro_lote,id_pedido,id_programa,
+       a.id_factura as id_historia,a.id_persona,stock as saldos, a.id_farmacia,num_recetak,codsumi,a.fec_reg as fecha_ini
+    FROM kardex a
+    JOIN medicamentos USING(id_medicamento)
+    JOIN pedidos USING(id_pedido)
+    where id_paciente=#id_paciente# 
+    order by a.fec_reg desc
+  </select>
+  
+  <select id="getListarKardexMicro" resultMap="datosRecetaE">
+   SELECT id_historial as id_factura,a.id_medicamento,id_receta,fecha, medicamento,a.salida, a.entrada,a.ajuste,a.expedido, 
+        a.precio_venta,a.costo_unit, salida*a.precio_venta as precio_total, entrada*a.costo_unit as precio_totalc, 
+        ajuste*a.costo_unit as precio_totala, forma_far,concentra,a.fecha_ven,a.nro_lote,id_pedido,id_programa,
+        a.id_factura as id_historia,a.id_persona,stock as saldos, a.id_farmacia,num_recetak,codsumi,a.fec_reg as fecha_ini
+     FROM kardex a  
+     JOIN medicamentos USING(id_medicamento)  
+     join pedidos using(id_pedido)
+   where id_receta in (select id_detalle from recetas where id_medicamento=#id_factura# and fecha BETWEEN #fecha_ini#  and #fecha_fin#)     
+  </select> 
+  
+  <resultMap id="datosRecetaKP" class="domain.Recetas">
+    <result property="id_medicamento"                 column="id_medicamento"/>
+    <result property="id_detalle"                     column="id_detalle"/>
+    <result property="id_receta"                      column="id_receta"/>
+    <result property="fecha"                          column="fecha"/>
+    <result property="salida"                         column="salida"/>
+    <result property="entrada"                        column="entrada"/>
+    <result property="id_historial"                   column="id_historial"/>
+    <result property="id_historia"                    column="id_historia"/>
+    <result property="id_medico"                      column="id_medico"/>
+    <result property="id_persona"                     column="id_persona"/>
+    <result property="id_pedido"                      column="id_pedido"/>
+    <result property="id_farmacia"                    column="id_farmacia"/>
+    <result property="id_estado"                      column="id_estado"/>
+    <result property="cod_esta"                       column="cod_esta"/>
+  </resultMap>
+  
+  <select id="getListarKardexPac" resultMap="datosRecetaKP">
+   SELECT k.salida as entrada, 0 as salida,k.salida,fecha, k.id_medicamento,k.id_detalle, 
+       id_receta, id_historial, id_historia, id_medico, k.id_persona, 
+       id_pedido, k.id_farmacia, 0 as id_estado, k.cod_esta
+    FROM kardexpaciente k
+    where  id_historial =#id_historial# and id_historia=#id_historia# and k.cod_esta=#cod_esta#
+  </select>
+    
+  <insert id="setCrearKardexPacInsert">
+      INSERT INTO kardexpaciente(fecha,inicio,entrada,salida,saldo,id_medicamento,id_detalle,id_receta,id_medico,id_persona,id_estado,id_historial,
+                           id_historia,id_pedido,id_farmacia,dosifica,cod_esta,indicacion,observacion)
+      (SELECT now(),k.salida,k.salida, 0 ,k.salida, k.id_medicamento,k.id_detalle, r.id_detalle, r.id_persona,
+         k.id_persona,0,id_historial, id_historia, id_pedido, k.id_farmacia,dosifica, k.cod_esta,indicacion,'M'::text 
+        FROM kardex k inner join recetas r on k.id_receta=r.id_detalle
+        where id_historial=#id_historial# and id_historia=#id_historia# and k.cod_esta=#cod_esta# )
+  </insert> 
+   
+  <insert id="setCrearKardexPaciente">
+      update kardexpaciente set id_estado=1 where id_historial=#id_historial# and id_kardex=#id_kardex# and cod_esta=#cod_esta#;
+ 
+      INSERT INTO kardexpaciente(fecha, inicio, entrada, salida, saldo, id_medicamento, id_detalle, id_historial, id_persona, id_pedido, 
+                id_farmacia, id_estado, cod_esta, observacion, id_historia, id_receta, id_medico, indicacion, dosifica)
+      VALUES (now(), #suma1#, 0, #salidas#, #saldos#, #id_medicamento#, #id_detalle#, #id_historial#, #id_persona#, #id_pedido#, 
+                #id_farmacia#, #id_prestacion#, #cod_esta#, #cadena1#,#id_historia#, #id_receta#, #id_medico#, #indicacion#, #dosifica#);
+  </insert> 
+   
+  <select id="setRegistrarKardex" resultClass="java.lang.Integer">    
+    SELECT registrar_kardex(#id_medicamento#,#id_pedido#,#salida#,#entrada#, #ajuste#,#precio_venta#, #costo_unit#,#fecha#,#fecha_ven#::date,
+           #expedido#,#nro_lote#,#cadena1#,#cadena2#,#id_receta#,#id_programa#,#id_persona#,#id_factura#,#id_farmacia#,#cod_esta#) as valor;
+  </select>     
+  
+  <insert id="setCrearKardex">
+   <!--
+    insert into kardex (id_medicamento,id_pedido,salida,entrada,ajuste,precio_venta,costo_unit,expedido,fecha,fecha_ven,nro_lote,
+                        id_receta,id_programa,fec_reg,cod_esta,id_persona,id_farmacia,num_recetak,ip,nameip) 
+           values (#id_medicamento#,#id_pedido#,#salida#,#entrada#,#ajuste#,#precio_venta#,#costo_unit#,#expedido#,#fecha#,#fecha_ven#,
+                   #nro_lote#,#id_receta#,#id_programa#,now(),#cod_esta#,#id_factura#,#id_farmacia#,
+                              (select folio_far from establecimientos where cod_esta=#cod_esta#),#cadena1#,#cadena2#);-->
+                        <!-- cuando es-2 botiquin se numera desde aqui y nueva numeracion cuando es de otra fecha la receta-->
+         
+<!--
+        update kardex 
+               set num_recetak = (select min(num_recetak) from kardex where id_farmacia=#id_farmacia# and cod_esta=#cod_esta# and id_pedido=#id_pedido#) 
+        where id_farmacia=#id_farmacia# and cod_esta=#cod_esta# and id_pedido in-->                               <!-- mismo folio en 5 botiquin unidosis y emergencias  -->
+             <!-- (select id_pedido from pedidos where cod_esta=#cod_esta# and id_pedido=#id_pedido# and ((id_tipo_far=5 and tag='M') or tag='U' or tag='M' or tag='N' ) );
+        
+     update pedidos set num_receta = (select min(num_recetak) from kardex where cod_esta=#cod_esta# and id_pedido=#id_pedido#) 
+                       where cod_esta=#cod_esta# and id_pedido=#id_pedido#;
+
+    UPDATE medica_select set stocks=(CASE WHEN (select (sum(entrada)-sum(salida)+sum(ajuste)) from kardex 
+             where id_farmacia=#id_farmacia# and id_medicamento=#id_medicamento# and (id_programa between 1 and 5) and cod_esta=#cod_esta#)!=0 
+       THEN (select (sum(entrada)-sum(salida)+sum(ajuste)) from kardex 
+             where id_farmacia=#id_farmacia# and id_medicamento=#id_medicamento# and (id_programa between 1 and 5) and cod_esta=#cod_esta#) ELSE 0 END),
+       stockp=(CASE WHEN (select (sum(entrada)-sum(salida)+sum(ajuste)) from kardex 
+             where id_farmacia=#id_farmacia# and id_medicamento=#id_medicamento# and (id_programa between 6 and 999) and cod_esta=#cod_esta#)!=0 
+       THEN (select (sum(entrada)-sum(salida)+sum(ajuste)) from kardex 
+             where id_farmacia=#id_farmacia# and id_medicamento=#id_medicamento# and (id_programa between 6 and 999) and cod_esta=#cod_esta#) ELSE 0 END), 
+       stockv=(CASE WHEN (select (sum(entrada)-sum(salida)+sum(ajuste)) from kardex 
+             where id_farmacia=#id_farmacia# and id_medicamento=#id_medicamento# and (id_programa between 0 and 0) and cod_esta=#cod_esta#)!=0 
+       THEN (select (sum(entrada)-sum(salida)+sum(ajuste)) from kardex 
+             where id_farmacia=#id_farmacia# and id_medicamento=#id_medicamento# and (id_programa between 0 and 0) and cod_esta=#cod_esta#) ELSE 0 END),
+       stock=(CASE WHEN (select (sum(entrada)-sum(salida)+sum(ajuste)) from kardex 
+             where id_farmacia=#id_farmacia# and id_medicamento=#id_medicamento# and cod_esta=#cod_esta#)!=0 
+       THEN (select (sum(entrada)-sum(salida)+sum(ajuste)) from kardex 
+             where id_farmacia=#id_farmacia# and id_medicamento=#id_medicamento# and cod_esta=#cod_esta#) ELSE 0 END),
+       costo_unit=#costo_unit#,precio_venta=#precio_venta#,fecha_ven=#fecha_ven#,nro_lote=#nro_lote#,codigo=-1     
+     WHERE id_farmacia=#id_farmacia# and id_medicamento=#id_medicamento# and cod_esta=#cod_esta#; -->
+        
+   <!-- solo debia actualizar la venta cuando es venta y no asi sumi o programas 24-11-2015 -->
+  </insert> 
+  
+  <update id="setModificarKardexV" >
+     INSERT INTO recetasupdate(id_detalle, fecha, salida, expedido, id_medicamento, id_historial,id_estado, id_prestacion, indicacion, 
+                  id_historia, id_persona,fec_reg, cod_esta, dosifica, id_farmacia, numeracion, id_por, fechamod, modi_por, tipop, ip, nameip)
+           (SELECT id_detalle, fecha, salida, expedido, id_medicamento, id_historial, id_estado, id_prestacion, indicacion, id_historia, 
+                  id_persona, fec_reg, cod_esta, dosifica, id_farmacia, numeracion, id_por, now(),#id_paciente#,'E',#cadena1#,#cadena2# 
+          FROM recetas 
+          WHERE id_detalle= (select id_receta from kardex where id_detalle=#id_detalle# and cod_esta=#cod_esta#)
+           and cod_esta=#cod_esta#);
+      
+     INSERT INTO kardexupdate(id_detalle, fecha, entrada, salida, ajuste, expedido, costo_unit,id_medicamento, id_pedido, 
+            precio_venta, ult_usuario, fec_mod, nro_lote,id_receta,fec_reg,id_programa,cod_esta,id_persona,num_recetak,
+            fecha_ven,id_farmacia,id_por,ip,nameip,ipdel)
+    (SELECT id_detalle, fecha, entrada, salida, ajuste, expedido, costo_unit,id_medicamento, id_pedido, 
+            precio_venta,#id_paciente#, now(), nro_lote,id_receta,fec_reg,id_programa,cod_esta,id_persona,num_recetak,
+            fecha_ven,id_farmacia,#id_paciente#,ip,#cadena1#,#cadena2# 
+       FROM kardex WHERE id_detalle=#id_detalle# and cod_esta=#cod_esta#);   
+            
+     update recetas set id_medicamento=#id_medicamento# where id_detalle= 
+           (select id_receta from kardex where id_detalle=#id_detalle# and cod_esta=#cod_esta#)
+           and cod_esta=#cod_esta#;        
+           
+     update kardex 
+      set  entrada=#entrada#,salida=#salida#,ajuste=#ajuste#,costo_unit=#costo_unit#, precio_venta=#precio_venta#,
+           id_medicamento=#id_medicamento#,expedido=#expedido#,id_programa=#id_programa#,num_recetak=#num_recetak#
+      where id_detalle = #id_detalle# and cod_esta=#cod_esta#;
+     
+    update pedidos set precio_total=(select sum(salida*precio_venta) from kardex where id_pedido= #id_pedido# and cod_esta=#cod_esta#),
+      num_receta=(select min(num_recetak) from kardex where id_pedido=#id_pedido# and cod_esta=#cod_esta#)   
+      where id_pedido= #id_pedido# and cod_esta=#cod_esta#;
+    <!-- esto es para actualizar medica_select cuando se realizamodificacioens del akrdex  
+    update medica_select set  
+      where cod_esta=#cod_esta# and id_medicamento=#id_medicamento# and id_farmacia=#farmacia# and codigo=-1;
+    -->  
+  </update>
+  
+   <update id="setModificarKardexVenta" >
+     update pedidos set precio_total=(select sum(salida*precio_venta) from kardex where id_pedido= #id_pedido#) 
+      where id_pedido= #id_pedido#;
+   </update>
+  
+  <update id="setModificarKardexR" >
+     INSERT INTO kardexupdate(id_detalle, fecha, entrada, salida, ajuste, expedido, costo_unit,id_medicamento, id_pedido, 
+            precio_venta, ult_usuario, fec_mod, nro_lote,id_receta,fec_reg,id_programa,cod_esta,id_persona,num_recetak,
+            fecha_ven,id_farmacia,id_por,ip,nameip,ipdel)
+    (SELECT id_detalle, fecha, entrada, salida, ajuste, expedido, costo_unit,id_medicamento, id_pedido, 
+            precio_venta,#id_paciente#, now(), nro_lote,id_receta,fec_reg,id_programa,cod_esta,id_persona,num_recetak,
+            fecha_ven,id_farmacia,#id_paciente#,ip,#cadena1#,#cadena2# 
+       FROM kardex WHERE id_detalle=#id_detalle# and cod_esta=#cod_esta#);   
+
+      update kardex 
+      set  entrada=#entrada#,salida=#salida#,ajuste=#ajuste#,costo_unit=#costo_unit#, cod_esta=#cod_esta#,
+           precio_venta=#precio_venta#,id_medicamento=#id_medicamento#,expedido=#expedido#,id_programa=#id_programa#,num_recetak=#num_recetak#       
+      where id_detalle = #id_detalle# and cod_esta=#cod_esta#;
+    update pedidos set precio_total=(select sum(entrada*costo_unit+ajuste*costo_unit) from kardex where id_pedido= #id_pedido# and cod_esta=#cod_esta#),
+      num_receta=(select min(num_recetak) from kardex where id_pedido=#id_pedido# and cod_esta=#cod_esta#)   
+      where id_pedido= #id_pedido# and cod_esta=#cod_esta#;
+      
+    <!--para  
+    update medica_select 
+     set stock = (select (sum(entrada)-sum(salida)+sum(ajuste)) from kardex  
+                 WHERE id_medicamento=#id_medicamento# and cod_esta=#cod_esta# and (date(fecha) between '2001-01-01' and '2016-01-31'))
+    WHERE  id_medicamento=#id_medicamento# and cod_esta=#cod_esta# ;  
+    caracollo-->
+  </update>
+
+  <update id="setModificarKardex" >
+INSERT INTO kardexupdate(id_detalle, fecha, entrada, salida, ajuste, expedido, costo_unit,id_medicamento, id_pedido, 
+            precio_venta, ult_usuario, fec_mod, nro_lote,id_receta,fec_reg,id_programa,cod_esta,id_persona,num_recetak,
+            fecha_ven,id_farmacia,id_por,ip,nameip,ipdel)
+    (SELECT id_detalle, fecha, entrada, salida, ajuste, expedido, costo_unit,id_medicamento, id_pedido, 
+            precio_venta,#id_paciente#, now(), nro_lote,id_receta,fec_reg,id_programa,cod_esta,id_persona,num_recetak,
+            fecha_ven,id_farmacia,#id_paciente#,ip,#cadena1#,#cadena2# 
+       FROM kardex WHERE id_detalle=#id_detalle# and cod_esta=#cod_esta#);   
+       
+    update kardex set  entrada=#entrada#,salida=#salida#,ajuste=#ajuste#,costo_unit=#costo_unit#,
+           precio_venta=#precio_venta#,id_medicamento=#id_medicamento#,id_programa=#id_programa#,expedido=#expedido#,num_recetak=#num_recetak#
+      where id_detalle = #id_detalle# and cod_esta=#cod_esta#;
+      
+    update recetas set id_medicamento=#id_medicamento# where id_detalle=
+           (select id_receta as id_detalle from kardex where id_detalle=#id_detalle# and cod_esta=#cod_esta#); 
+ 
+    update pedidos set precio_total=(select sum(salida*costo_unit) from kardex where id_pedido= #id_pedido# and cod_esta=#cod_esta#),
+      num_receta=(select min(num_recetak) from kardex where id_pedido=#id_pedido# and cod_esta=#cod_esta#)  
+      where id_pedido= #id_pedido# and cod_esta=#cod_esta#;
+  </update>
+  
+  <update id="setModificarKardexPaciente" >
+     update kardexpaciente set id_estado=2 
+      where id_kardex= #id_kardex# and id_historial= #id_historial# and cod_esta= #cod_esta#;
+   </update>
+  
+  <delete id="setEliminarKardexReceta" >
+    INSERT INTO kardexupdate(id_detalle, fecha, entrada,salida,ajuste,expedido,costo_unit,id_medicamento,id_pedido, 
+               precio_venta, ult_usuario, fec_mod, nro_lote,id_receta,fec_reg,id_programa,cod_esta,id_persona,
+               id_estado,fecha_ven, id_farmacia,id_por,tipo,ip,nameip,ipdel)
+        (SELECT id_detalle, fecha, entrada, salida, ajuste, expedido, costo_unit,id_medicamento, id_pedido, 
+               precio_venta,#id_persona#, now(),nro_lote,id_receta,fec_reg,id_programa,cod_esta,id_persona,id_estado,
+               fecha_ven, id_farmacia,#id_persona#,'E',ip,#cadena1#,#cadena2#
+               FROM kardex WHERE id_factura>0 and id_pedido=#id_pedido# and cod_esta=#cod_esta#);   
+         
+    delete from kardex where id_receta = #id_factura# and cod_esta=#cod_esta#
+  </delete>
+  
+  <delete id="setEliminarKardex" >
+    INSERT INTO kardexupdate(id_detalle, fecha, entrada,salida,ajuste,expedido,costo_unit,id_medicamento,id_pedido, 
+               precio_venta, ult_usuario, fec_mod, nro_lote,id_receta,fec_reg,id_programa,cod_esta,id_persona,id_estado,
+               fecha_ven, id_farmacia,id_por,tipo,ip,nameip,ipdel)
+        (SELECT id_detalle, fecha, entrada, salida, ajuste, expedido, costo_unit,id_medicamento, id_pedido, 
+               precio_venta,#id_persona#, now(),nro_lote,id_receta,fec_reg,id_programa,cod_esta,id_persona,id_estado,
+               fecha_ven, id_farmacia,#id_persona#,'E',ip,#cadena1#,#cadena2# 
+               FROM kardex WHERE id_detalle = #id_factura# and id_pedido=#id_pedido# and cod_esta=#cod_esta#);
+       <!--elimina solo si es facturado y guarda este dato-->
+    delete from kardex where id_detalle = #id_factura# and id_pedido=#id_pedido# and cod_esta=#cod_esta#;
+    
+    UPDATE medica_select set stocks=(CASE WHEN (select (sum(entrada)-sum(salida)+sum(ajuste)) from kardex 
+             where id_farmacia=#id_farmacia# and id_medicamento=#id_medicamento# and (id_programa between 1 and 5) and cod_esta=#cod_esta#)!=0 
+       THEN (select (sum(entrada)-sum(salida)+sum(ajuste)) from kardex 
+             where id_farmacia=#id_farmacia# and id_medicamento=#id_medicamento# and (id_programa between 1 and 5) and cod_esta=#cod_esta#) ELSE 0 END),
+       stockp=(CASE WHEN (select (sum(entrada)-sum(salida)+sum(ajuste)) from kardex 
+             where id_farmacia=#id_farmacia# and id_medicamento=#id_medicamento# and (id_programa between 6 and 999) and cod_esta=#cod_esta#)!=0 
+       THEN (select (sum(entrada)-sum(salida)+sum(ajuste)) from kardex 
+             where id_farmacia=#id_farmacia# and id_medicamento=#id_medicamento# and (id_programa between 6 and 999) and cod_esta=#cod_esta#) ELSE 0 END), 
+       stockv=(CASE WHEN (select (sum(entrada)-sum(salida)+sum(ajuste)) from kardex 
+             where id_farmacia=#id_farmacia# and id_medicamento=#id_medicamento# and (id_programa between 0 and 0) and cod_esta=#cod_esta#)!=0 
+       THEN (select (sum(entrada)-sum(salida)+sum(ajuste)) from kardex 
+             where id_farmacia=#id_farmacia# and id_medicamento=#id_medicamento# and (id_programa between 0 and 0) and cod_esta=#cod_esta#) ELSE 0 END),
+       stock=(CASE WHEN (select (sum(entrada)-sum(salida)+sum(ajuste)) from kardex 
+             where id_farmacia=#id_farmacia# and id_medicamento=#id_medicamento# and (id_programa between 0 and 999) and cod_esta=#cod_esta#)!=0 
+       THEN (select (sum(entrada)-sum(salida)+sum(ajuste)) from kardex 
+             where id_farmacia=#id_farmacia# and id_medicamento=#id_medicamento# and (id_programa between 0 and 999) and cod_esta=#cod_esta#) ELSE 0 END)
+     WHERE id_farmacia=#id_farmacia# and id_medicamento=#id_medicamento# and cod_esta=#cod_esta#; 
+  </delete>
+  
+  <resultMap id="datosKardexMed"    class="domain.Recetas">
+    <result property="id_medicamento"                 column="id_medicamento"/>
+    <result property="medicamento"                    column="medicamento"/>
+    <result property="forma_far"                      column="forma_far"/>
+    <result property="concentra"                      column="concentra"/>
+    <result property="codsumi"                        column="codsumi"/>
+    <result property="cod_cta"                        column="cod_cta"/>
+    <result property="cod_tipo"                       column="cod_tipo"/>
+    <result property="cod_espe"                       column="cod_espe"/>
+    <result property="cod_material"                   column="cod_material"/>
+    <result property="id_detalle"                     column="id_detalle"/>
+    <result property="fecha"                          column="fecha"/>
+    <result property="salida"                         column="salida"/>
+    <result property="expedido"                       column="expedido"/>
+    <result property="id_pedido"                      column="id_pedido"/>
+    <result property="fecha_ven"                      column="fecha_ven"/>     
+    <result property="nro_lote"                       column="nro_lote"/>
+    <result property="id_persona"                     column="id_persona"/> 
+    <result property="id_farmacia"                    column="id_farmacia"/> 
+    <result property="cod_esta"                       column="cod_esta"/> 
+    <result property="cadena1"                        column="cadena1"/>
+    <result property="cadena2"                        column="cadena2"/>
+    <result property="cadena3"                        column="cadena3"/>
+    <result property="cadena4"                        column="cadena4"/>
+    <result property="num_recetak"                        column="num_recetak"/>
+  </resultMap>
+  
+  <select id="getListarKardexIndi" resultMap="datosKardexMed">
+     select id_medicamento,medicamento,forma_far,concentra,codsumi,cod_cta,cod_tipo,cod_espe,cod_material,id_detalle,
+            k.fecha,salida,expedido,id_pedido,k.fecha_ven,k.nro_lote,id_programa,k.id_persona,k.id_farmacia,k.cod_esta,
+            matricula as cadena1,codigoprof as cadena2,farmacia as cadena3,establecimiento as cadena4,num_recetak
+         from kardex k
+         join farmacias f using(id_farmacia)
+        join medicamentos m using(id_medicamento)
+        join personas p using(id_persona)
+        inner join establecimientos e on e.cod_esta=k.cod_esta
+        where id_pedido in (select id_pedido from pedidos where id_paciente=#id_paciente#)      
+        order by k.fecha
+  </select>
+  
+   <resultMap id="datosKardexMed" class="domain.Recetas">
+    <result property="stock_i"                        column="stock_i"/>
+    <result property="entrada"                        column="entrada"/>
+    <result property="salida"                         column="salida"/>
+    <result property="ajuste"                         column="ajuste"/>
+    <result property="stock_f"                        column="stock_f"/>
+    <result property="fecha"                          column="fecha"/>
+    <result property="precio_venta"                   column="precio_venta"/>
+    <result property="expedido"                       column="expedido"/>
+    <result property="id_factura"                     column="id_factura"/>
+    <result property="nit"                            column="nit"/>
+    <result property="num_cladoc"                     column="num_cladoc"/>
+    <result property="fecha_ven"                      column="fecha_ven"/>     
+    <result property="nro_lote"                       column="nro_lote"/>
+    <result property="medico"                         column="medico"/>   
+    <result property="id_prestacion"                  column="id_prestacion"/>   
+    <result property="id_programa"                    column="id_programa"/> 
+    <result property="id_farmacia"                    column="id_farmacia"/> 
+    <result property="cod_esta"                       column="cod_esta"/>   
+    <result property="id_persona"                     column="id_persona"/>
+    <result property="num_recetak"                    column="num_recetak"/>
+    <result property="cadena1"                        column="cadena1"/>
+    <result property="cadena2"                        column="cadena2"/>
+    <result property="cadena3"                        column="cadena3"/>
+    <result property="cadena4"                        column="cadena4"/>
+    <result property="cadena5"                        column="cadena5"/>
+  </resultMap>
+  
+  <select id="getListarKardexMedicamento" resultMap="datosKardexMed">
+     select * from _kardex_mes(#id_medicamento#,#expedido#,#id_farmacia#,#cod_esta#,#fecha_ini#, #fecha_fin#) 
+     as (stock_i float, entrada float,salida float,ajuste float,stock_f float, fecha timestamp without time zone, 
+         precio_venta float,expedido varchar,id_factura integer,nit varchar,num_cladoc varchar,fecha_ven date,
+         nro_lote varchar,medico varchar, id_prestacion integer,id_programa integer,id_farmacia integer,cod_esta integer,
+         id_persona integer,num_recetak integer,cadena1 varchar,cadena2 varchar,cadena3 varchar,cadena4 varchar,cadena5 varchar)     
+  </select>
+  
+  <select id="getListarKardexMedicamentoSolo0" resultMap="datosKardexMed">
+     select * from _kardex_mess0(#id_medicamento#,#expedido#,#id_farmacia#,#cod_esta#,#fecha_ini#, #fecha_fin#) 
+     as (stock_i float, entrada float,salida float,ajuste float,stock_f float, fecha timestamp without time zone, 
+         precio_venta float,expedido varchar,id_factura integer,nit varchar,num_cladoc varchar,fecha_ven date,
+         nro_lote varchar,medico varchar, id_prestacion integer,id_programa integer,id_farmacia integer,cod_esta integer,
+         id_persona integer,num_recetak integer,cadena1 varchar,cadena2 varchar,cadena3 varchar,cadena4 varchar,cadena5 varchar)        
+  </select>
+  
+  <select id="getListarKardexMedicamentoSin0" resultMap="datosKardexMed">
+     select * from _kardex_mesSin0(#id_medicamento#,#expedido#,#id_farmacia#,#cod_esta#,#fecha_ini#, #fecha_fin#) 
+     as (stock_i float, entrada float,salida float,ajuste float,stock_f float, fecha timestamp without time zone, 
+         precio_venta float,expedido varchar,id_factura integer,nit varchar,num_cladoc varchar,fecha_ven date,
+         nro_lote varchar,medico varchar, id_prestacion integer,id_programa integer,id_farmacia integer,cod_esta integer,
+         id_persona integer,num_recetak integer,cadena1 varchar,cadena2 varchar,cadena3 varchar,cadena4 varchar,cadena5 varchar) 
+  </select>
+  
+  <select id="getListarKardexMedicamentoSoloE" resultMap="datosKardexMed">
+     select * from _kardex_mesSoloE(#id_medicamento#,#expedido#,#id_farmacia#,#cod_esta#,#fecha_ini#, #fecha_fin#) 
+     as (stock_i float, entrada float,salida float,ajuste float,stock_f float, fecha timestamp without time zone, 
+         precio_venta float,expedido varchar,id_factura integer,nit varchar,num_cladoc varchar,fecha_ven date,
+         nro_lote varchar,medico varchar, id_prestacion integer,id_programa integer,id_farmacia integer,cod_esta integer,
+         id_persona integer,num_recetak integer,cadena1 varchar,cadena2 varchar,cadena3 varchar,cadena4 varchar,cadena5 varchar)  
+  </select>
+  
+  <select id="getListarKardexMedicamentoSoloS" resultMap="datosKardexMed">
+     select * from _kardex_mesSoloS(#id_medicamento#,#expedido#,#id_farmacia#,#cod_esta#,#fecha_ini#, #fecha_fin#) 
+     as (stock_i float, entrada float,salida float,ajuste float,stock_f float, fecha timestamp without time zone, 
+         precio_venta float,expedido varchar,id_factura integer,nit varchar,num_cladoc varchar,fecha_ven date,
+         nro_lote varchar,medico varchar, id_prestacion integer,id_programa integer,id_farmacia integer,cod_esta integer,
+         id_persona integer,num_recetak integer,cadena1 varchar,cadena2 varchar,cadena3 varchar,cadena4 varchar,cadena5 varchar) 
+  </select>
+  
+  <select id="getListarKardexMedicamentoSoloA" resultMap="datosKardexMed">
+     select * from _kardex_mesSoloA(#id_medicamento#,#expedido#,#id_farmacia#,#cod_esta#,#fecha_ini#, #fecha_fin#) 
+     as (stock_i float, entrada float,salida float,ajuste float,stock_f float, fecha timestamp without time zone, 
+         precio_venta float,expedido varchar,id_factura integer,nit varchar,num_cladoc varchar,fecha_ven date,
+         nro_lote varchar,medico varchar, id_prestacion integer,id_programa integer,id_farmacia integer,cod_esta integer,
+         id_persona integer,num_recetak integer,cadena1 varchar,cadena2 varchar,cadena3 varchar,cadena4 varchar,cadena5 varchar) 
+  </select>
+  
+  <select id="getListarKardexProg" resultMap="datosKardexMed">
+     select * from _kardex_prog(#id_medicamento#,#expedido#,#id_farmacia#,#cod_esta#,#id_programa#,#fecha_ini#, #fecha_fin#) 
+     as (stock_i float, entrada float,salida float,ajuste float,stock_f float, fecha timestamp without time zone, 
+         precio_venta float,expedido varchar,id_factura integer,nit varchar,num_cladoc varchar,fecha_ven date,
+         nro_lote varchar,medico varchar, id_prestacion integer,id_programa integer,id_farmacia integer,cod_esta integer,
+         id_persona integer,num_recetak integer,cadena1 varchar,cadena2 varchar,cadena3 varchar,cadena4 varchar,cadena5 varchar) 
+  </select>
+  
+</sqlMap>

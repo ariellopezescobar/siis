@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Salas">
+  
+  <resultMap id="datosPiso" class="domain.Salas">
+    <result property="id_piso"                 column="id_piso"/>
+    <result property="piso"                    column="piso"/>
+    <result property="cod_esta"               column="cod_esta"/>
+  </resultMap>
+  
+  <select id="getListarPisos" resultMap="datosPiso">
+    SELECT id_piso,piso,cod_esta FROM pisos where cod_esta=#cod_esta# and id_piso in 
+    (select id_piso from salas where id_sala in (select id_sala from camas where estado=0) )
+    order by piso
+  </select>
+  
+  <select id="getListarPisosTotal" resultMap="datosPiso">
+    SELECT id_piso,piso,cod_esta FROM pisos where cod_esta=#cod_esta# and id_estado='A' 
+    order by piso
+  </select>
+  
+  <resultMap id="datosSala" class="domain.Salas">
+    <result property="id_sala"                 column="id_sala"/>
+    <result property="sala"                    column="sala"/>
+    <result property="piso"                    column="piso"/>
+    <result property="id_estado"               column="id_estado"/>
+    <result property="cod_esta"               column="cod_esta"/>
+  </resultMap>
+
+  <select id="getListarSalas" resultMap="datosSala">
+    SELECT pisos.cod_esta,piso,id_sala,sala,salas.id_estado 
+    FROM salas
+    JOIN camas using(id_sala)
+    INNER JOIN pisos on salas.id_piso=pisos.id_piso
+    WHERE estado=0
+    GROUP BY pisos.cod_esta,piso,id_sala,sala,salas.id_estado ORDER BY pisos.cod_esta,sala
+  </select>
+  
+  <select id="getListarSalasLibres" resultMap="datosSala">
+    SELECT p.cod_esta,piso,id_sala,sala,s.id_estado 
+    FROM salas s 
+    JOIN pisos p using(id_piso)  
+    where s.id_estado='A' and id_sala!=0 and id_piso=#id_piso# and id_sala in (select id_sala from camas where estado=0)
+    GROUP BY p.cod_esta,piso,id_sala,sala,s.id_estado ORDER BY sala
+  </select>
+  
+  <select id="getListarSalaPisoTotal" resultMap="datosSala">
+    SELECT p.cod_esta,piso,id_sala,sala,s.id_estado 
+    FROM salas s 
+    JOIN pisos p using(id_piso)  
+    where s.id_estado='A' and id_sala!=0 and id_piso=#id_piso# 
+    GROUP BY p.cod_esta,piso,id_sala,sala,s.id_estado ORDER BY sala
+  </select>
+  
+  <select id="getListarSalaPiso" resultMap="datosSala">
+    SELECT pisos.cod_esta,piso,id_sala,sala,s.id_estado 
+    FROM salas s
+    JOIN pisos using(id_piso)
+    WHERE s.id_estado='A' and  pisos.cod_esta=#cod_esta#
+    GROUP BY pisos.cod_esta,id_sala,sala,piso,s.id_estado 
+    ORDER BY pisos.piso,sala
+  </select>
+  
+  <select id="getDatosSala" resultMap="datosSala">
+    SELECT pisos.cod_esta,piso,id_sala,sala,piso,salas.id_estado
+    FROM salas
+    JOIN PISOS USING(id_piso)
+    where id_sala=#id_sala#
+    ORDER BY sala 
+  </select>
+  
+  <insert id="setCrearSala" >
+    insert into salas (sala,  id_estado, ult_usuario) 
+                      values ( #sala#, 'A', #ult_usuario# )
+  </insert>
+
+  <update id="setModificarSala" >
+    update salas
+    set  sala = #sala#,
+         id_estado = #id_estado#       
+    where  id_sala = #id_sala#
+  </update>
+
+  <delete id="setEliminarSala" >
+    delete from salas where id_sala = #id_sala#
+  </delete>
+  
+</sqlMap>

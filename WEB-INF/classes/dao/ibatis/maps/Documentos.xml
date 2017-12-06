@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE sqlMap PUBLIC "-//iBATIS.com//DTD SQL Map 2.0//EN" "http://www.ibatis.com/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Documentos">
+
+  <resultMap id="datosDocumento" class="domain.Documentos">
+    <result property="id_documento"                 column="id_documento"/>
+    <result property="documento"                    column="documento"/>
+    <result property="id_estado"               column="id_estado"/>
+  </resultMap>
+
+  <select id="getListarDocumentos" resultMap="datosDocumento">
+    SELECT id_tipo_documento as id_documento,tipo_documento as documento,id_estado
+    FROM tipos_documentos
+    ORDER BY tipo_documento
+  </select>
+  
+  <select id="getDatosDocumento" resultMap="datosDocumento">
+    SELECT id_tipo_documento as id_documento,tipo_documento as documento,id_estado
+    FROM tipos_documentos
+    where id_tipo_documento=#id_documento#
+    ORDER BY tipo_documento   
+  </select>
+  
+  <insert id="setCrearDocumento" >
+    insert into tipos_documentos (id_tipo_documento, tipo_documento,  id_estado, ult_usuario) 
+                      values ( #id_documento#, #documento#, 'A', #ult_usuario# )
+  </insert>
+
+  <update id="setModificarDocumento" >
+    update tipos_documentos
+    set  tipo_documento = #documento#,
+         id_estado = #id_estado#       
+    where  id_tipo_documento = #id_documento#
+    
+  </update>
+
+  <delete id="setEliminarDocumento" >
+    delete from tipos_documentos where id_tipo_documento = #id_documento#
+  </delete>
+  
+</sqlMap>
